@@ -1,0 +1,237 @@
+<?php
+
+namespace Karnoweb\TaskManager;
+
+use Illuminate\Database\Connection;
+use Illuminate\Database\Query\Builder;
+use Illuminate\Support\Str;
+use Karnoweb\TaskManager\Context\ExecutionContext;
+use Karnoweb\TaskManager\Exceptions\DomainError;
+use Karnoweb\TaskManager\Contracts\Clock;
+
+final class TaskService
+{
+    public function __construct(private readonly Connection $db, private readonly Clock $clock = new SystemClock()) {}
+
+    private function now(): string { return $this->clock->now()->setTimezone(new \DateTimeZone('UTC'))->format('Y-m-d H:i:s'); }
+
+    private function normalize(string $value): string
+    {
+        return strtr(mb_strtolower($value), ['ي' => 'ی', 'ك' => 'ک', '۰' => '0', '۱' => '1', '۲' => '2', '۳' => '3', '۴' => '4', '۵' => '5', '۶' => '6', '۷' => '7', '۸' => '8', '۹' => '9', '٠' => '0', '١' => '1', '٢' => '2', '٣' => '3', '٤' => '4', '٥' => '5', '٦' => '6', '٧' => '7', '٨' => '8', '٩' => '9']);
+    }
+
+    private function visible(ExecutionContext $context, string $capability = 'view'): Builder
+    {
+        $context->require('task.'.$capability);
+        return $this->db->table('tm_tasks')->where('scope_key', $context->scope)
+            ->where(function (Builder $q) use ($context, $capability) {
+                $q->where('owner_ref', $context->actor)->orWhereExists(function (Builder $grant) use ($context, $capability) {
+                    $grant->selectRaw('1')->from('tm_task_grants')->whereColumn('task_id', 'tm_tasks.id')
+                        ->where('actor_ref', $context->actor)->where('capability', $capability);
+                });
+            });
+    }
+
+    public function get(ExecutionContext $context, string $id): array
+    {
+        $task = $this->visible($context)->where('public_key', $id)->first();
+        if (!$task) { throw new DomainError('not_found'); }
+        $instance = $this->db->table('tm_workflow_instances')->where('task_id', $task->id)->where('scope_key', $context->scope)->first();
+        return [...(array) $task, 'state' => $instance->current_state_key, 'completed_at' => $instance->completed_at];
+    }
+
+    public function resolveKey(ExecutionContext $context, string $key): array
+    {
+        $task = $this->visible($context)->whereExists(function (Builder $query) use ($context, $key) {
+            $query->selectRaw('1')->from('tm_task_key_aliases')->whereColumn('tm_task_key_aliases.task_id', 'tm_tasks.id')
+                ->where('tm_task_key_aliases.scope_key', $context->scope)->where('display_key', $key);
+        })->first();
+        if (!$task) { throw new DomainError('not_found'); }
+        return $this->get($context, $task->public_key);
+    }
+
+    private function nextDisplayKey(ExecutionContext $context): string
+    {
+        $this->db->table('tm_sequences')->insertOrIgnore(['scope_key' => $context->scope, 'sequence_key' => 'task', 'current' => 0]);
+        $sequence = $this->db->table('tm_sequences')->where('scope_key', $context->scope)->where('sequence_key', 'task')->lockForUpdate()->first();
+        $next = $sequence->current + 1;
+        $this->db->table('tm_sequences')->where('scope_key', $context->scope)->where('sequence_key', 'task')->update(['current' => $next]);
+        return 'TM-'.$next;
+    }
+
+    public function query(ExecutionContext $context, int $page = 1, int $limit = 30): array
+    {
+        if ($page < 1 || $limit < 1 || $limit > 100) { throw new DomainError('pagination_invalid'); }
+        return $this->visible($context)->whereNull('deleted_at')->whereNull('archived_at')->orderBy('public_key')
+            ->forPage($page, $limit)->get()->map(fn ($row) => (array) $row)->all();
+    }
+
+    public function count(ExecutionContext $context): int
+    {
+        return $this->visible($context)->whereNull('deleted_at')->whereNull('archived_at')->count();
+    }
+
+    public function facets(ExecutionContext $context): array
+    {
+        return $this->visible($context)->whereNull('deleted_at')->whereNull('archived_at')
+            ->select('priority')->selectRaw('COUNT(*) AS total')->groupBy('priority')->orderBy('priority')->get()
+            ->map(fn ($row) => ['priority' => $row->priority, 'total' => (int) $row->total])->all();
+    }
+
+    private function ownedList(ExecutionContext $context, string $id): object
+    {
+        $list = $this->db->table('tm_lists')->where('scope_key', $context->scope)->where('owner_ref', $context->actor)->where('id', $id)->first();
+        if (!$list) { throw new DomainError('not_found'); }
+        return $list;
+    }
+
+    public function lists(ExecutionContext $context): array
+    {
+        $context->require('list.view');
+        return $this->db->table('tm_lists')->where('scope_key', $context->scope)->where('owner_ref', $context->actor)->orderBy('id')->limit(100)->get()->map(fn ($row) => (array) $row)->all();
+    }
+
+    public function createList(ExecutionContext $context, string $name, string $operation): array
+    {
+        $context->require('list.create');
+        $name = trim($name);
+        if ($name === '' || mb_strlen($name) > 255 || $name === 'Inbox') { throw new DomainError('list_name_invalid'); }
+        return $this->command($context, $operation, ['action' => 'create_list', 'name' => $name], function () use ($context, $name, $operation) {
+            $id = $this->db->table('tm_lists')->insertGetId(['scope_key' => $context->scope, 'owner_ref' => $context->actor, 'name' => $name]);
+            $this->record($context, null, 'list_created', $operation);
+            return ['list_id' => $id, 'name' => $name];
+        });
+    }
+
+    public function share(ExecutionContext $context, string $id, int $version, string $operation, string $actor, bool $edit = false, bool $revoke = false): array
+    {
+        $context->require('task.share');
+        if (trim($actor) === '' || strlen($actor) > 120) { throw new DomainError('actor_invalid'); }
+        return $this->command($context, $operation, compact('id', 'version', 'actor', 'edit', 'revoke') + ['action' => 'share'], function () use ($context, $id, $version, $operation, $actor, $edit, $revoke) {
+            $task = $this->db->table('tm_tasks')->where('scope_key', $context->scope)->where('owner_ref', $context->actor)->where('public_key', $id)->lockForUpdate()->first();
+            if (!$task) { throw new DomainError('not_found'); }
+            if ($task->version !== $version) { throw new DomainError('version_conflict'); }
+            $this->db->table('tm_task_grants')->where('task_id', $task->id)->where('actor_ref', $actor)->delete();
+            if (!$revoke) {
+                foreach ($edit ? ['view', 'edit'] : ['view'] as $capability) {
+                    $this->db->table('tm_task_grants')->insert(['task_id' => $task->id, 'actor_ref' => $actor, 'capability' => $capability]);
+                }
+            }
+            $this->db->table('tm_tasks')->where('public_key', $id)->update(['version' => $version + 1]);
+            $this->record($context, $id, $revoke ? 'share_revoked' : 'shared', $operation);
+            return $this->get($context, $id);
+        });
+    }
+
+    public function cloneTask(ExecutionContext $context, string $id, string $operation): array
+    {
+        $context->require('task.create');
+        return $this->command($context, $operation, ['action' => 'clone', 'source' => $id], function () use ($context, $id, $operation) {
+            $source = $this->get($context, $id);
+            // Create a fresh personal task: grants, project and lifecycle never carry over.
+            return $this->createRecord($context, $source['title'], $operation, $source['description'], $source['priority']);
+        });
+    }
+
+    public function activity(ExecutionContext $context, string $id): array
+    {
+        $context->require('activity.view');
+        $task = $this->get($context, $id);
+        return $this->db->table('tm_audit_events')->where('scope_key', $context->scope)->where('task_id', $task['id'])
+            ->orderBy('occurred_at')->orderBy('event_id')->limit(100)->get()->map(fn ($row) => (array) $row)->all();
+    }
+
+    private function command(ExecutionContext $context, string $operation, array $payload, callable $execute): array
+    {
+        return (new CommandExecutor($this->db))->execute($context, $operation, $payload, $execute, function (array $result) use ($context) {
+            if (isset($result['public_key'])) { $this->get($context, $result['public_key']); }
+            elseif (isset($result['list_id'])) { $this->ownedList($context, $result['list_id']); }
+        });
+    }
+
+    private function record(ExecutionContext $context, ?string $id, string $action, string $operation, array $before = [], array $changed = [], array $metadata = []): void
+    {
+        $task = $id === null ? null : $this->db->table('tm_tasks')->where('public_key', $id)->where('scope_key', $context->scope)->first();
+        $safeFields = array_flip(['version', 'priority', 'list_id', 'archived_at', 'deleted_at']);
+        $snapshot = ['task_id' => $id, 'changed_field_paths' => array_keys($changed), 'before_redacted' => array_intersect_key($before, $safeFields),
+            'after_redacted' => array_intersect_key((array) $task, $safeFields), 'metadata' => $metadata];
+        $event = ['event_id' => (string) Str::uuid(), 'scope_key' => $context->scope, 'actor_ref' => $context->actor,
+            'task_id' => $task?->id, 'action' => $action, 'operation_id' => $operation, 'correlation_id' => $context->correlationId,
+            'payload' => json_encode($snapshot, JSON_THROW_ON_ERROR), 'occurred_at' => $this->now()];
+        $this->db->table('tm_audit_events')->insert($event);
+        $this->db->table('tm_outbox')->insert($event);
+    }
+
+    public function create(ExecutionContext $context, string $title, string $operation): array
+    {
+        $context->require('task.create');
+        $title = trim($title);
+        if ($title === '' || mb_strlen($title) > 255) { throw new DomainError('title_invalid'); }
+        return $this->command($context, $operation, ['action' => 'create', 'title' => $title], fn () => $this->createRecord($context, $title, $operation));
+    }
+
+    private function createRecord(ExecutionContext $context, string $title, string $operation, ?string $description = null, string $priority = 'normal'): array
+    {
+            $this->db->table('tm_workflow_definitions')->insertOrIgnore(['scope_key' => $context->scope,
+                'key' => 'personal', 'revision' => 1, 'definition' => json_encode(['states' => ['pending', 'done'], 'transitions' => ['pending' => ['done'], 'done' => ['pending']]], JSON_THROW_ON_ERROR)]);
+            $list = $this->db->table('tm_lists')->where('scope_key', $context->scope)->where('owner_ref', $context->actor)->where('name', 'Inbox')->first();
+            if (!$list) {
+                $this->db->table('tm_lists')->insertOrIgnore(['scope_key' => $context->scope, 'owner_ref' => $context->actor, 'name' => 'Inbox']);
+                $listId = $this->db->table('tm_lists')->where('scope_key', $context->scope)->where('owner_ref', $context->actor)->where('name', 'Inbox')->value('id');
+            } else { $listId = $list->id; }
+            $id = (string) Str::uuid();
+            $now = $this->now();
+            $displayKey = $this->nextDisplayKey($context);
+            $internalId = $this->db->table('tm_tasks')->insertGetId(['public_key' => $id, 'display_key' => $displayKey, 'scope_key' => $context->scope,
+                'owner_ref' => $context->actor, 'list_id' => $listId, 'title' => $title, 'description' => $description, 'priority' => $priority, 'title_search_normalized' => $this->normalize($title), 'created_at' => $now, 'updated_at' => $now]);
+            $revisionId = $this->db->table('tm_workflow_definitions')->where('scope_key', $context->scope)->where('key', 'personal')->where('revision', 1)->value('id');
+            $this->db->table('tm_workflow_instances')->insert(['instance_key' => (string) Str::uuid(), 'scope_key' => $context->scope, 'task_id' => $internalId, 'workflow_revision_id' => $revisionId]);
+            $this->db->table('tm_task_key_aliases')->insert(['scope_key' => $context->scope, 'task_id' => $internalId, 'display_key' => $displayKey]);
+            $this->record($context, $id, 'created', $operation);
+            return $this->get($context, $id);
+    }
+
+    public function mutate(ExecutionContext $context, string $id, int $version, string $operation, string $action, array $values = []): array
+    {
+        $allowed = ['update', 'complete', 'reopen', 'archive', 'restore', 'delete', 'undelete', 'move_list'];
+        if (!in_array($action, $allowed, true)) { throw new DomainError('action_invalid'); }
+        return $this->command($context, $operation, compact('id', 'version', 'action', 'values'), function () use ($context, $id, $version, $operation, $action, $values) {
+            $task = $this->visible($context, 'edit')->where('public_key', $id)->lockForUpdate()->first();
+            if (!$task) { throw new DomainError('not_found'); }
+            if ($task->version !== $version) { throw new DomainError('version_conflict'); }
+            $changes = ['version' => $version + 1, 'updated_at' => $this->now()];
+            if ($action === 'move_list') {
+                if ($task->owner_ref !== $context->actor) { throw new DomainError('access_denied'); }
+                $this->ownedList($context, $values['list_id'] ?? '');
+                $changes['list_id'] = $values['list_id'];
+                // Moving lists preserves the task's existing rank.
+            }
+            if ($action === 'update') {
+                foreach ($values as $key => $value) {
+                    if (!in_array($key, ['title', 'description', 'priority'], true)) { throw new DomainError('field_invalid'); }
+                    if ($key === 'title' && (!is_string($value) || trim($value) === '' || mb_strlen($value) > 255)) { throw new DomainError('title_invalid'); }
+                    if ($key === 'priority' && !in_array($value, ['low', 'normal', 'high', 'urgent'], true)) { throw new DomainError('priority_invalid'); }
+                    if ($key === 'description' && $value !== null && !is_string($value)) { throw new DomainError('description_invalid'); }
+                    $changes[$key] = $value;
+                    if ($key === 'title') { $changes['title_search_normalized'] = $this->normalize($value); }
+                }
+            }
+            $now = $this->now();
+            if (in_array($action, ['archive', 'restore'], true)) { $changes['archived_at'] = $action === 'archive' ? $now : null; }
+            if (in_array($action, ['delete', 'undelete'], true)) { $changes['deleted_at'] = $action === 'delete' ? $now : null; }
+            if (in_array($action, ['complete', 'reopen'], true)) {
+                $instance = $this->db->table('tm_workflow_instances')->where('task_id', $task->id)->lockForUpdate()->first();
+                $state = $action === 'complete' ? 'done' : 'pending';
+                if ($instance->current_state_key === $state) { throw new DomainError('transition_invalid'); }
+                $this->db->table('tm_instance_transitions')->insert(['scope_key' => $context->scope, 'instance_id' => $instance->id,
+                    'from_state' => $instance->current_state_key, 'to_state' => $state, 'actor_ref' => $context->actor, 'operation_id' => $operation, 'occurred_at' => $now]);
+                $this->db->table('tm_workflow_instances')->where('task_id', $task->id)->update(['current_state_key' => $state,
+                    'completed_at' => $state === 'done' ? $now : null, 'version' => $instance->version + 1]);
+            }
+            $changed = $this->visible($context, 'edit')->where('public_key', $id)->where('version', $version)->update($changes);
+            if ($changed !== 1) { throw new DomainError('version_conflict'); }
+            $this->record($context, $id, $action, $operation, (array) $task, $changes);
+            return $this->get($context, $id);
+        });
+    }
+}
