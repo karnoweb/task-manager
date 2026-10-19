@@ -6,10 +6,10 @@ Latest observed execution:
 
 | Profile | Tests | Assertions | Outcome |
 |---|---:|---:|---|
-| SQLite | 49 | 198 | 47 passed; 2 PostgreSQL-only concurrency tests explicitly skipped |
-| PostgreSQL | 49 | 237 | All passed; zero skipped |
+| SQLite | 51 | 209 | 49 passed; 2 PostgreSQL-only concurrency tests explicitly skipped |
+| PostgreSQL | 51 | 248 | All passed; zero skipped |
 
-Included: all 25 individually named phase-one TM scenario files and 24 supplemental foundation/review tests. PostgreSQL concurrency uses separate PHP processes and a socket barrier, not sequential calls or sleep. Four identical concurrent create requests produce exactly one task/list/instance/journal/outbox/audit. Two distinct updates at expected version 1 produce exactly one success and one version_conflict, with no failed-operation journal or event.
+Included: all 25 individually named phase-one TM scenario files and 26 supplemental foundation/review tests. PostgreSQL concurrency uses separate PHP processes and a socket barrier, not sequential calls or sleep. Four identical concurrent create requests produce exactly one task/list/instance/journal/outbox/audit. Two distinct updates at expected version 1 produce exactly one success and one version_conflict, with no failed-operation journal or event.
 
 Also verified: fresh migrations, rollback/reinstall, outer-transaction rollback, after-commit dispatcher restriction, failed-delivery recovery, title validation, task/list/count/facet/activity isolation, share revocation, service capabilities, facade parity, fixed test clock, public UUIDs, scoped display sequence/aliases, and clone-operation key collision regression.
 

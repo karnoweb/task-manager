@@ -281,6 +281,28 @@ final class FoundationTest extends TestCase
         self::assertSame(0, $this->service()->count($this->context()));
     }
 
+    public function test_host_sql_authorization_applies_to_counts_facets_mutations_and_replays(): void
+    {
+        $c = $this->context(); $task = $this->service()->create($c, 'private', 'create');
+        $provider = new class implements \Karnoweb\TaskManager\Contracts\AuthorizationProvider {
+            public function authorize(ExecutionContext $context, string $capability): void { $context->require($capability); }
+            public function constrain(\Illuminate\Database\Query\Builder $query, ExecutionContext $context, string $resource, string $capability): void { $query->whereRaw('1 = 0'); }
+        };
+        $s = new TaskService(DB::connection(), authorization: $provider);
+        self::assertSame(0, $s->count($c)); self::assertSame([], $s->facets($c)); self::assertSame([], $s->query($c));
+        foreach ([fn () => $s->create($c, 'private', 'create'), fn () => $s->mutate($c, $task['public_key'], 1, 'edit', 'complete'), fn () => $s->share($c, $task['public_key'], 1, 'share', 'b')] as $operation) {
+            try { $operation(); self::fail('Host permission bypass'); } catch (DomainError $e) { self::assertSame('not_found', $e->getMessage()); }
+        }
+        self::assertSame(1, DB::table('tm_outbox')->count());
+    }
+
+    public function test_typed_create_command_returns_typed_result(): void
+    {
+        $result = $this->service()->createTodo(new \Karnoweb\TaskManager\DTO\CreateTodo($this->context(), 'Typed', 'typed'));
+        self::assertInstanceOf(\Karnoweb\TaskManager\DTO\TaskResult::class, $result);
+        self::assertSame('Typed', $result->title); self::assertSame(1, $result->version); self::assertSame('pending', $result->state);
+    }
+
     public function test_postgres_real_concurrent_same_operation_creates_one_task(): void
     {
         if (DB::connection()->getDriverName() !== 'pgsql') {

@@ -6,4 +6,6 @@ Public services currently return arrays. create requires context/title/operation
 
 query is bounded/paginated; count and facets apply SQL visibility predicates. activity authorizes the parent task before querying its scoped events. OutboxDispatcher refuses to deliver while its connection is in a transaction. Failed delivery stays pending for replay; downstream consumers must deduplicate.
 
-These signatures remain provisional until phase-six API freeze. They do not yet constitute the final typed DTO contract required by the plan.
+createTodo accepts a typed CreateTodo command and returns a typed TaskResult. AuthorizationProvider is container-bound and adds host SQL constraints while retaining core owner/scope/capability restrictions. Tests verify that host denial applies to reads, counts, facets, updates, sharing and cached command replay.
+
+These signatures remain provisional until phase-six API freeze. Typed mutation/query/result DTOs still need expansion to constitute the complete DTO contract required by the plan.

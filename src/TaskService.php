@@ -8,12 +8,24 @@ use Illuminate\Support\Str;
 use Karnoweb\TaskManager\Context\ExecutionContext;
 use Karnoweb\TaskManager\Exceptions\DomainError;
 use Karnoweb\TaskManager\Contracts\Clock;
+use Karnoweb\TaskManager\Contracts\AuthorizationProvider;
 
 final class TaskService
 {
-    public function __construct(private readonly Connection $db, private readonly Clock $clock = new SystemClock()) {}
+    public function __construct(private readonly Connection $db, private readonly Clock $clock = new SystemClock(), private readonly AuthorizationProvider $authorization = new ContextAuthorization()) {}
+
+    public function createTodo(\Karnoweb\TaskManager\DTO\CreateTodo $command): \Karnoweb\TaskManager\DTO\TaskResult
+    {
+        return \Karnoweb\TaskManager\DTO\TaskResult::fromArray($this->create($command->context, $command->title, $command->operationId));
+    }
 
     private function now(): string { return $this->clock->now()->setTimezone(new \DateTimeZone('UTC'))->format('Y-m-d H:i:s'); }
+
+    private function authorize(ExecutionContext $context, string $capability): void
+    {
+        $context->require($capability);
+        $this->authorization->authorize($context, $capability);
+    }
 
     private function normalize(string $value): string
     {
@@ -22,14 +34,16 @@ final class TaskService
 
     private function visible(ExecutionContext $context, string $capability = 'view'): Builder
     {
-        $context->require('task.'.$capability);
-        return $this->db->table('tm_tasks')->where('scope_key', $context->scope)
+        $this->authorize($context, 'task.'.$capability);
+        $query = $this->db->table('tm_tasks')->where('scope_key', $context->scope)
             ->where(function (Builder $q) use ($context, $capability) {
                 $q->where('owner_ref', $context->actor)->orWhereExists(function (Builder $grant) use ($context, $capability) {
                     $grant->selectRaw('1')->from('tm_task_grants')->whereColumn('task_id', 'tm_tasks.id')
                         ->where('actor_ref', $context->actor)->where('capability', $capability);
                 });
             });
+        $this->authorization->constrain($query, $context, 'task', $capability);
+        return $query;
     }
 
     public function get(ExecutionContext $context, string $id): array
@@ -80,20 +94,24 @@ final class TaskService
 
     private function ownedList(ExecutionContext $context, string $id): object
     {
-        $list = $this->db->table('tm_lists')->where('scope_key', $context->scope)->where('owner_ref', $context->actor)->where('id', $id)->first();
+        $query = $this->db->table('tm_lists')->where('scope_key', $context->scope)->where('owner_ref', $context->actor)->where('id', $id);
+        $this->authorization->constrain($query, $context, 'list', 'view');
+        $list = $query->first();
         if (!$list) { throw new DomainError('not_found'); }
         return $list;
     }
 
     public function lists(ExecutionContext $context): array
     {
-        $context->require('list.view');
-        return $this->db->table('tm_lists')->where('scope_key', $context->scope)->where('owner_ref', $context->actor)->orderBy('id')->limit(100)->get()->map(fn ($row) => (array) $row)->all();
+        $this->authorize($context, 'list.view');
+        $query = $this->db->table('tm_lists')->where('scope_key', $context->scope)->where('owner_ref', $context->actor);
+        $this->authorization->constrain($query, $context, 'list', 'view');
+        return $query->orderBy('id')->limit(100)->get()->map(fn ($row) => (array) $row)->all();
     }
 
     public function createList(ExecutionContext $context, string $name, string $operation): array
     {
-        $context->require('list.create');
+        $this->authorize($context, 'list.create');
         $name = trim($name);
         if ($name === '' || mb_strlen($name) > 255 || $name === 'Inbox') { throw new DomainError('list_name_invalid'); }
         return $this->command($context, $operation, ['action' => 'create_list', 'name' => $name], function () use ($context, $name, $operation) {
@@ -105,10 +123,10 @@ final class TaskService
 
     public function share(ExecutionContext $context, string $id, int $version, string $operation, string $actor, bool $edit = false, bool $revoke = false): array
     {
-        $context->require('task.share');
+        $this->authorize($context, 'task.share');
         if (trim($actor) === '' || strlen($actor) > 120) { throw new DomainError('actor_invalid'); }
         return $this->command($context, $operation, compact('id', 'version', 'actor', 'edit', 'revoke') + ['action' => 'share'], function () use ($context, $id, $version, $operation, $actor, $edit, $revoke) {
-            $task = $this->db->table('tm_tasks')->where('scope_key', $context->scope)->where('owner_ref', $context->actor)->where('public_key', $id)->lockForUpdate()->first();
+            $task = $this->visible($context, 'edit')->where('owner_ref', $context->actor)->where('public_key', $id)->lockForUpdate()->first();
             if (!$task) { throw new DomainError('not_found'); }
             if ($task->version !== $version) { throw new DomainError('version_conflict'); }
             $this->db->table('tm_task_grants')->where('task_id', $task->id)->where('actor_ref', $actor)->delete();
@@ -125,7 +143,7 @@ final class TaskService
 
     public function cloneTask(ExecutionContext $context, string $id, string $operation): array
     {
-        $context->require('task.create');
+        $this->authorize($context, 'task.create');
         return $this->command($context, $operation, ['action' => 'clone', 'source' => $id], function () use ($context, $id, $operation) {
             $source = $this->get($context, $id);
             // Create a fresh personal task: grants, project and lifecycle never carry over.
@@ -135,7 +153,7 @@ final class TaskService
 
     public function activity(ExecutionContext $context, string $id): array
     {
-        $context->require('activity.view');
+        $this->authorize($context, 'activity.view');
         $task = $this->get($context, $id);
         return $this->db->table('tm_audit_events')->where('scope_key', $context->scope)->where('task_id', $task['id'])
             ->orderBy('occurred_at')->orderBy('event_id')->limit(100)->get()->map(fn ($row) => (array) $row)->all();
@@ -164,7 +182,7 @@ final class TaskService
 
     public function create(ExecutionContext $context, string $title, string $operation): array
     {
-        $context->require('task.create');
+        $this->authorize($context, 'task.create');
         $title = trim($title);
         if ($title === '' || mb_strlen($title) > 255) { throw new DomainError('title_invalid'); }
         return $this->command($context, $operation, ['action' => 'create', 'title' => $title], fn () => $this->createRecord($context, $title, $operation));

@@ -10,7 +10,8 @@ final class TaskManagerServiceProvider extends ServiceProvider
     {
         $this->mergeConfigFrom(__DIR__.'/../config/task-manager.php', 'task-manager');
         $this->app->bindIf(\Karnoweb\TaskManager\Contracts\Clock::class, SystemClock::class);
-        $this->app->bind(TaskService::class, fn ($app) => new TaskService($app['db']->connection(), $app->make(\Karnoweb\TaskManager\Contracts\Clock::class)));
+        $this->app->bindIf(\Karnoweb\TaskManager\Contracts\AuthorizationProvider::class, ContextAuthorization::class);
+        $this->app->bind(TaskService::class, fn ($app) => new TaskService($app['db']->connection(), $app->make(\Karnoweb\TaskManager\Contracts\Clock::class), $app->make(\Karnoweb\TaskManager\Contracts\AuthorizationProvider::class)));
     }
 
     public function boot(): void
