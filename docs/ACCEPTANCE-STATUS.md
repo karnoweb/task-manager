@@ -1,6 +1,6 @@
 # Acceptance implementation status
 
-Work in progress. This is not a phase-seven run. PASS records only observed phase-one/two and implemented SLA/assignment/approval subsets of phase three. Handoff/campaign scenarios and final cross-module/UI acceptance remain pending.
+Work in progress. This is not a phase-seven run. PASS records only observed phase-one/two and implemented SLA/assignment/approval/handoff subsets of phase three. Host move/spawn/Saga and campaign scenarios and final cross-module/UI acceptance remain pending.
 
 | ID | Current evidence |
 |---|---|
@@ -169,40 +169,40 @@ Work in progress. This is not a phase-seven run. PASS records only observed phas
 | TM-163 | PASS (implemented PostgreSQL phase scope) |
 | TM-164 | PASS (implemented PostgreSQL phase scope) |
 | TM-165 | PASS (implemented PostgreSQL phase scope) |
-| TM-166 | NOT RUN |
-| TM-167 | NOT RUN |
-| TM-168 | NOT RUN |
-| TM-169 | NOT RUN |
-| TM-170 | NOT RUN |
-| TM-171 | NOT RUN |
-| TM-172 | NOT RUN |
-| TM-173 | NOT RUN |
-| TM-174 | NOT RUN |
-| TM-175 | NOT RUN |
-| TM-176 | NOT RUN |
-| TM-177 | NOT RUN |
-| TM-178 | NOT RUN |
-| TM-179 | NOT RUN |
-| TM-180 | NOT RUN |
+| TM-166 | PASS (implemented PostgreSQL phase scope) |
+| TM-167 | PASS (implemented PostgreSQL phase scope) |
+| TM-168 | PASS (implemented PostgreSQL phase scope) |
+| TM-169 | PASS (implemented PostgreSQL phase scope) |
+| TM-170 | PASS (implemented PostgreSQL phase scope) |
+| TM-171 | PASS (implemented PostgreSQL phase scope) |
+| TM-172 | PASS (implemented PostgreSQL phase scope) |
+| TM-173 | PASS (implemented PostgreSQL phase scope) |
+| TM-174 | PASS (implemented PostgreSQL phase scope) |
+| TM-175 | PASS (implemented PostgreSQL phase scope) |
+| TM-176 | PASS (implemented PostgreSQL phase scope) |
+| TM-177 | PASS (implemented PostgreSQL phase scope) |
+| TM-178 | PASS (implemented PostgreSQL phase scope) |
+| TM-179 | PASS (implemented PostgreSQL phase scope) |
+| TM-180 | PASS (implemented PostgreSQL phase scope) |
 | TM-181 | NOT RUN |
 | TM-182 | NOT RUN |
 | TM-183 | NOT RUN |
-| TM-184 | NOT RUN |
-| TM-185 | NOT RUN |
-| TM-186 | NOT RUN |
-| TM-187 | NOT RUN |
+| TM-184 | PASS (implemented PostgreSQL phase scope) |
+| TM-185 | PASS (implemented PostgreSQL phase scope) |
+| TM-186 | PASS (implemented PostgreSQL phase scope) |
+| TM-187 | PASS (implemented PostgreSQL phase scope) |
 | TM-188 | PASS (implemented PostgreSQL phase scope) |
 | TM-189 | PASS (implemented PostgreSQL phase scope) |
 | TM-190 | PASS (implemented PostgreSQL phase scope) |
 | TM-191 | PASS (implemented PostgreSQL phase scope) |
-| TM-192 | NOT RUN |
+| TM-192 | PASS (implemented PostgreSQL phase scope) |
 | TM-193 | PASS (implemented PostgreSQL phase scope) |
 | TM-194 | PASS (implemented PostgreSQL phase scope) |
 | TM-195 | PASS (implemented PostgreSQL phase scope) |
 | TM-196 | PASS (implemented PostgreSQL phase scope) |
 | TM-197 | PASS (implemented PostgreSQL phase scope) |
 | TM-198 | PASS (implemented PostgreSQL phase scope) |
-| TM-199 | NOT RUN |
+| TM-199 | PASS (implemented PostgreSQL phase scope) |
 | TM-200 | PASS (implemented PostgreSQL phase scope) |
 | TM-201 | PASS (implemented PostgreSQL phase scope) |
 | TM-202 | PASS (implemented PostgreSQL phase scope) |
@@ -366,4 +366,5 @@ Work in progress. This is not a phase-seven run. PASS records only observed phas
 | REG-078 | NOT RUN |
 | REG-079 | NOT RUN |
 | REG-080 | NOT RUN |
+
 

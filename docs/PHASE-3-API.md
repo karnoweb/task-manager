@@ -12,4 +12,6 @@ TaskManager.assignments() exposes assignment get/assign, explicit instance polic
 
 TaskManager.approvals() exposes immutable stage policy configuration, manual begin, active/get, vote, explicit execute and administrative cancel. Voting requires approval.vote, current view permission and host eligibility; it does not grant task edit. State exit requires the policy's resolved outcome transition. A pending executor or host veto is represented explicitly rather than reported as completed business state.
 
-Handoff and group APIs are still pending. This is not the final phase-three public API contract.
+TaskManager.handoffs() exposes get/delegate/parallel/settle/recall/run. Delegation requires an expected source version, independent target slot, accepted pipeline/revision and explicit immutable return policy. Settle reads terminal destination evidence. Recall/timeout require a configured guarded cancellation transition. Parallel groups declare qualifying outcomes, priority and all/any/quorum at creation; remaining independent destinations are explicitly detached after the join. Bounded run recovers committed destination outcomes after a worker restart. See PHASE-3-HANDOFFS.md for limitations and capabilities.
+
+Host-owned move/spawn, Saga, manual return repair and group closure APIs are still pending. This is not the final phase-three public API contract.

@@ -10,6 +10,8 @@ Assignment/responsibility foundation is also implemented: host eligibility resol
 
 Approval foundation is implemented with immutable policies, sequential/parallel/quorum votes, current voter eligibility, duplicate protection, explicit rejection, pending-step guards, view-only voter separation, authorized execution, manual-review on host veto and administrative cancellation/replacement. Owned scenarios are TM-193..195; see PHASE-3-APPROVALS.md.
 
-Still required before the full phase-three gate: handoff modes and versioned return policies, joins/lineage/timeout/recall, real host spawn/Saga confirmation/compensation, trusted committed milestones, campaign preview/enrollment/cutoff policies and resumable leased/chunked group execution. The 75/15/10 campaign acceptance scenario has NOT been implemented or run. No phase-four work is declared started.
+Same-subject handoff now includes durable source waiting/version snapshots, independent destination slots/clocks, configured terminal return mappings, current assignee eligibility, recall/timeout, lineage/cycle protection, all/any/quorum joins with explicit detached remainder policy, append-only destination outcome evidence and bounded recovery scans. Focused tests cover successful/failed/conflicting returns, independent clocks, same-connection rollback and real delegation/return races. See PHASE-3-HANDOFFS.md; the latest combined run is still the authority for accepted scenario counts.
+
+Still required before the full phase-three gate: real host move/spawn/Saga confirmation/compensation, trusted committed milestones, campaign preview/enrollment/cutoff policies and resumable leased/chunked group execution. Manual join and return repair APIs also remain pending. The 75/15/10 campaign acceptance scenario has NOT been implemented or run. No phase-four work is declared started.
 
 This file explicitly does not certify all 58 phase-three scenarios, E2E flows or release readiness.

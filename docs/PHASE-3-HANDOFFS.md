@@ -1,0 +1,19 @@
+# Phase 3 handoff implementation — work in progress
+
+`HandoffService` implements same-subject delegation and parallel groups. It requires explicit context and capabilities (`handoff.view/manage/recall/timeout/run`) in addition to current subject/workflow/SLA permissions. `TaskManager::handoffs()` exposes the service.
+
+Delegation locks the authoritative subject and origin instance before checking its expected version. The destination has an independent active slot and optional clock. Host `SubjectHandler::guard(start)` receives the target pipeline, revision, slot, state and stage before creation; a host may reject the destination with `destination_not_accepted`. All local source/destination/case/clock/audit/outbox writes commit in one transaction or roll back together.
+
+The origin keeps its state and current visit, receives a waiting flag, and increments its version. An SLA policy must explicitly permit the `handoff` pause reason. Already-paused clocks are rejected. A previously elapsed, undetected deadline cannot be hidden by pausing: `sla_due_requires_detection` requires watchdog detection first. No-clock visits remain supported.
+
+Every handoff stores immutable return/assignment/clock policy, original state/stage/revision/owner/version, assignment snapshot, initiator, coded reason, target team, deadline and lineage. The default maximum lineage depth is five; automatic cycles are rejected. A durable reservation prevents duplicate active delegation from an origin.
+
+`settle()` derives approved/rejected/cancelled from the destination's actual terminal workflow state. Caller-asserted success is never accepted. The first outcome is append-only, unique per handoff and tied to the destination version. Recall and timeout require their own capability, configured cancellation edge/reason and actual guarded terminal cancellation. Timeout cannot run before its stored deadline.
+
+Return runs the configured origin workflow transition in a nested transaction. Source version, waiting flag, host guards, reasons, current assignment eligibility and clock constraints are rechecked. A failure rolls back return effects while preserving destination evidence, records `return_conflict` and leaves a durable reservation for manual review. A closed or changed source is never silently overwritten. An expired pause limit also requires review. Successful return chooses explicit restore-origin / keep-destination-assignment / resolve-return-stage behavior. Clock resume/reset is explicit.
+
+Parallel groups require all/any/quorum, qualifying outcomes, deterministic outcome priority and the explicit `keep_active_detached` remainder policy at creation. Each destination has its own outcome. One origin lock serializes joining; only one return is committed. Extra destinations continue independently and record detached outcomes without another source transition. An impossible join enters manual review. Manual joins and cancellation of remaining destinations are not yet implemented.
+
+After a destination transaction commits, a host can call `settle()` using a stable operation key. `run()` offers a scoped, bounded recovery scan for committed terminal destinations and due timeouts, so a crash before return does not lose the pending work. It excludes known return conflicts from automatic retry. Events use the existing transactional outbox; no external queue dependency is added. Manual repair tooling is still pending.
+
+Coverage is currently focused implementation evidence, not a complete phase-three or phase-seven gate. Same-DB owner-service move/spawn, cross-DB Saga, campaign closure and the final full scenario run remain pending. PostgreSQL results must be taken from the latest successful report; an interrupted local test server is not passing evidence. No MySQL validation is claimed.

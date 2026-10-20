@@ -42,6 +42,7 @@ final class SlaService
             if ($visit->paused_at !== null) { throw new DomainError('sla_already_paused'); }
             if (!in_array($reason, $policy['pause_reasons'], true)) { throw new DomainError('reason_invalid'); }
             $remaining = max(0, $visit->budget_seconds - $this->engine->worked($visit, $policy, sinceAnchor: true)); $now = $this->engine->format($this->engine->now());
+            if ($remaining === 0 && $visit->breached_at === null) { throw new DomainError('sla_due_requires_detection'); }
             $this->db->table('tm_sla_pauses')->insert(['visit_id' => $visitId, 'started_at' => $now, 'reason_code' => $reason, 'actor_ref' => $context->actor]);
             $this->db->table('tm_stage_visits')->where('id', $visitId)->update(['paused_at' => $now, 'remaining_seconds' => $remaining, 'sla_state' => 'paused', 'sla_version' => $slaVersion + 1]);
             $this->event($context, $instance, 'sla_paused', $operation, ['visit_id' => $visitId, 'reason_code' => $reason, 'remaining_seconds' => $remaining]);

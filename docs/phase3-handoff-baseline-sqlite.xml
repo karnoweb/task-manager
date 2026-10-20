@@ -1,0 +1,392 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<testsuites>
+  <testsuite name="D:\my-packages\task-manager\phpunit.xml" tests="181" assertions="835" errors="0" failures="0" skipped="10" time="33.143130">
+    <testsuite name="Package" tests="181" assertions="835" errors="0" failures="0" skipped="10" time="33.143130">
+      <testsuite name="Karnoweb\TaskManager\Tests\ApprovalConcurrencyTest" file="D:\my-packages\task-manager\tests\ApprovalConcurrencyTest.php" tests="1" assertions="0" errors="0" failures="0" skipped="1" time="0.444349">
+        <testcase name="test_parallel_votes_have_explicit_conflict_retry_and_one_completion" file="D:\my-packages\task-manager\tests\ApprovalConcurrencyTest.php" line="10" class="Karnoweb\TaskManager\Tests\ApprovalConcurrencyTest" classname="Karnoweb.TaskManager.Tests.ApprovalConcurrencyTest" assertions="0" time="0.444349">
+          <skipped/>
+        </testcase>
+      </testsuite>
+      <testsuite name="Karnoweb\TaskManager\Tests\ApprovalCoreTest" file="D:\my-packages\task-manager\tests\ApprovalCoreTest.php" tests="11" assertions="69" errors="0" failures="0" skipped="0" time="1.117105">
+        <testcase name="test_quorum_votes_resolve_once_and_duplicate_vote_or_replay_does_not_count_twice" file="D:\my-packages\task-manager\tests\ApprovalCoreTest.php" line="10" class="Karnoweb\TaskManager\Tests\ApprovalCoreTest" classname="Karnoweb.TaskManager.Tests.ApprovalCoreTest" assertions="12" time="0.133023"/>
+        <testcase name="test_sequential_votes_reject_early_next_actor_and_stale_version" file="D:\my-packages\task-manager\tests\ApprovalCoreTest.php" line="24" class="Karnoweb\TaskManager\Tests\ApprovalCoreTest" classname="Karnoweb.TaskManager.Tests.ApprovalCoreTest" assertions="7" time="0.102398"/>
+        <testcase name="test_revocation_before_vote_is_rechecked_and_manager_can_cancel_for_explicit_repair" file="D:\my-packages\task-manager\tests\ApprovalCoreTest.php" line="35" class="Karnoweb\TaskManager\Tests\ApprovalCoreTest" classname="Karnoweb.TaskManager.Tests.ApprovalCoreTest" assertions="8" time="0.096293"/>
+        <testcase name="test_reject_requires_catalog_reason_and_uses_distinct_return_transition" file="D:\my-packages\task-manager\tests\ApprovalCoreTest.php" line="46" class="Karnoweb\TaskManager\Tests\ApprovalCoreTest" classname="Karnoweb.TaskManager.Tests.ApprovalCoreTest" assertions="6" time="0.098191"/>
+        <testcase name="test_pending_approval_cannot_be_bypassed_by_transition_or_pipeline_move" file="D:\my-packages\task-manager\tests\ApprovalCoreTest.php" line="55" class="Karnoweb\TaskManager\Tests\ApprovalCoreTest" classname="Karnoweb.TaskManager.Tests.ApprovalCoreTest" assertions="5" time="0.108338"/>
+        <testcase name="test_view_only_voter_records_consent_but_needs_authorized_executor" file="D:\my-packages\task-manager\tests\ApprovalCoreTest.php" line="65" class="Karnoweb\TaskManager\Tests\ApprovalCoreTest" classname="Karnoweb.TaskManager.Tests.ApprovalCoreTest" assertions="6" time="0.101813"/>
+        <testcase name="test_host_veto_retains_valid_votes_without_faking_workflow_completion" file="D:\my-packages\task-manager\tests\ApprovalCoreTest.php" line="79" class="Karnoweb\TaskManager\Tests\ApprovalCoreTest" classname="Karnoweb.TaskManager.Tests.ApprovalCoreTest" assertions="6" time="0.100869"/>
+        <testcase name="test_native_todo_complete_archive_delete_and_conversion_respect_pending_step" file="D:\my-packages\task-manager\tests\ApprovalCoreTest.php" line="90" class="Karnoweb\TaskManager\Tests\ApprovalCoreTest" classname="Karnoweb.TaskManager.Tests.ApprovalCoreTest" assertions="7" time="0.125732"/>
+        <testcase name="test_self_approval_and_invalid_quorum_fail_closed" file="D:\my-packages\task-manager\tests\ApprovalCoreTest.php" line="107" class="Karnoweb\TaskManager\Tests\ApprovalCoreTest" classname="Karnoweb.TaskManager.Tests.ApprovalCoreTest" assertions="4" time="0.076966"/>
+        <testcase name="test_project_migration_cannot_bypass_a_pending_manual_step" file="D:\my-packages\task-manager\tests\ApprovalCoreTest.php" line="115" class="Karnoweb\TaskManager\Tests\ApprovalCoreTest" classname="Karnoweb.TaskManager.Tests.ApprovalCoreTest" assertions="4" time="0.086561"/>
+        <testcase name="test_native_owner_can_execute_consented_completion_without_leaving_stale_execution_projection" file="D:\my-packages\task-manager\tests\ApprovalCoreTest.php" line="128" class="Karnoweb\TaskManager\Tests\ApprovalCoreTest" classname="Karnoweb.TaskManager.Tests.ApprovalCoreTest" assertions="4" time="0.086920"/>
+      </testsuite>
+      <testsuite name="Karnoweb\TaskManager\Tests\AssignmentConcurrencyTest" file="D:\my-packages\task-manager\tests\AssignmentConcurrencyTest.php" tests="1" assertions="0" errors="0" failures="0" skipped="1" time="0.075590">
+        <testcase name="test_round_robin_serializes_shared_team_across_two_independent_stage_rows" file="D:\my-packages\task-manager\tests\AssignmentConcurrencyTest.php" line="10" class="Karnoweb\TaskManager\Tests\AssignmentConcurrencyTest" classname="Karnoweb.TaskManager.Tests.AssignmentConcurrencyTest" assertions="0" time="0.075590">
+          <skipped/>
+        </testcase>
+      </testsuite>
+      <testsuite name="Karnoweb\TaskManager\Tests\AssignmentCoreTest" file="D:\my-packages\task-manager\tests\AssignmentCoreTest.php" tests="8" assertions="46" errors="0" failures="0" skipped="0" time="0.700202">
+        <testcase name="test_primary_and_secondary_capacity_duplicate_and_owner_invariants" file="D:\my-packages\task-manager\tests\AssignmentCoreTest.php" line="10" class="Karnoweb\TaskManager\Tests\AssignmentCoreTest" classname="Karnoweb.TaskManager.Tests.AssignmentCoreTest" assertions="10" time="0.086083"/>
+        <testcase name="test_stage_dynamic_assignment_changes_executor_but_not_owner_and_keeps_intervals" file="D:\my-packages\task-manager\tests\AssignmentCoreTest.php" line="22" class="Karnoweb\TaskManager\Tests\AssignmentCoreTest" classname="Karnoweb.TaskManager.Tests.AssignmentCoreTest" assertions="7" time="0.092233"/>
+        <testcase name="test_empty_or_revoked_resolver_cannot_activate_stage" file="D:\my-packages\task-manager\tests\AssignmentCoreTest.php" line="33" class="Karnoweb\TaskManager\Tests\AssignmentCoreTest" classname="Karnoweb.TaskManager.Tests.AssignmentCoreTest" assertions="5" time="0.088243"/>
+        <testcase name="test_round_robin_uses_locked_scoped_queue_and_is_fair_for_stable_candidates" file="D:\my-packages\task-manager\tests\AssignmentCoreTest.php" line="43" class="Karnoweb\TaskManager\Tests\AssignmentCoreTest" classname="Karnoweb.TaskManager.Tests.AssignmentCoreTest" assertions="3" time="0.092960"/>
+        <testcase name="test_departure_policies_reject_or_restore_owner_and_close_old_history" file="D:\my-packages\task-manager\tests\AssignmentCoreTest.php" line="56" class="Karnoweb\TaskManager\Tests\AssignmentCoreTest" classname="Karnoweb.TaskManager.Tests.AssignmentCoreTest" assertions="7" time="0.097156"/>
+        <testcase name="test_explicit_unassigned_policy_is_required_to_remove_last_primary" file="D:\my-packages\task-manager\tests\AssignmentCoreTest.php" line="66" class="Karnoweb\TaskManager\Tests\AssignmentCoreTest" classname="Karnoweb.TaskManager.Tests.AssignmentCoreTest" assertions="3" time="0.084524"/>
+        <testcase name="test_personal_complete_and_reopen_close_and_restore_fixed_assignments" file="D:\my-packages\task-manager\tests\AssignmentCoreTest.php" line="73" class="Karnoweb\TaskManager\Tests\AssignmentCoreTest" classname="Karnoweb.TaskManager.Tests.AssignmentCoreTest" assertions="7" time="0.082059"/>
+        <testcase name="test_assignment_capability_scope_and_stale_version_fail_closed" file="D:\my-packages\task-manager\tests\AssignmentCoreTest.php" line="85" class="Karnoweb\TaskManager\Tests\AssignmentCoreTest" classname="Karnoweb.TaskManager.Tests.AssignmentCoreTest" assertions="4" time="0.076945"/>
+      </testsuite>
+      <testsuite name="Karnoweb\TaskManager\Tests\FoundationTest" file="D:\my-packages\task-manager\tests\FoundationTest.php" tests="26" assertions="108" errors="0" failures="0" skipped="2" time="4.401302">
+        <testcase name="test_create_complete_reopen_records_atomic_history" file="D:\my-packages\task-manager\tests\FoundationTest.php" line="34" class="Karnoweb\TaskManager\Tests\FoundationTest" classname="Karnoweb.TaskManager.Tests.FoundationTest" assertions="11" time="0.088033"/>
+        <testcase name="test_idempotency_returns_original_result_without_duplicate_writes" file="D:\my-packages\task-manager\tests\FoundationTest.php" line="53" class="Karnoweb\TaskManager\Tests\FoundationTest" classname="Karnoweb.TaskManager.Tests.FoundationTest" assertions="4" time="0.073153"/>
+        <testcase name="test_cross_actor_and_scope_cannot_read_count_or_update" file="D:\my-packages\task-manager\tests\FoundationTest.php" line="64" class="Karnoweb\TaskManager\Tests\FoundationTest" classname="Karnoweb.TaskManager.Tests.FoundationTest" assertions="9" time="0.076421"/>
+        <testcase name="test_stale_version_rolls_back_all_side_effects" file="D:\my-packages\task-manager\tests\FoundationTest.php" line="76" class="Karnoweb\TaskManager\Tests\FoundationTest" classname="Karnoweb.TaskManager.Tests.FoundationTest" assertions="4" time="0.076695"/>
+        <testcase name="test_archive_delete_restore_preserve_identity" file="D:\my-packages\task-manager\tests\FoundationTest.php" line="86" class="Karnoweb\TaskManager\Tests\FoundationTest" classname="Karnoweb.TaskManager.Tests.FoundationTest" assertions="8" time="0.191983"/>
+        <testcase name="test_invalid_title_creates_no_inbox_or_event" file="D:\my-packages\task-manager\tests\FoundationTest.php" line="96" class="Karnoweb\TaskManager\Tests\FoundationTest" classname="Karnoweb.TaskManager.Tests.FoundationTest" assertions="5" time="0.223463"/>
+        <testcase name="test_empty_context_is_rejected" file="D:\my-packages\task-manager\tests\FoundationTest.php" line="105" class="Karnoweb\TaskManager\Tests\FoundationTest" classname="Karnoweb.TaskManager.Tests.FoundationTest" assertions="1" time="0.180421"/>
+        <testcase name="test_share_revoke_immediately_changes_queries_and_activity" file="D:\my-packages\task-manager\tests\FoundationTest.php" line="111" class="Karnoweb\TaskManager\Tests\FoundationTest" classname="Karnoweb.TaskManager.Tests.FoundationTest" assertions="4" time="0.200211"/>
+        <testcase name="test_clone_does_not_copy_shares_or_completed_state" file="D:\my-packages\task-manager\tests\FoundationTest.php" line="124" class="Karnoweb\TaskManager\Tests\FoundationTest" classname="Karnoweb.TaskManager.Tests.FoundationTest" assertions="5" time="0.208076"/>
+        <testcase name="test_outbox_failure_retries_after_commit_with_same_event_identity" file="D:\my-packages\task-manager\tests\FoundationTest.php" line="137" class="Karnoweb\TaskManager\Tests\FoundationTest" classname="Karnoweb.TaskManager.Tests.FoundationTest" assertions="7" time="0.185455"/>
+        <testcase name="test_outbox_cannot_deliver_inside_outer_transaction" file="D:\my-packages\task-manager\tests\FoundationTest.php" line="153" class="Karnoweb\TaskManager\Tests\FoundationTest" classname="Karnoweb.TaskManager.Tests.FoundationTest" assertions="1" time="0.168668"/>
+        <testcase name="test_nested_transaction_rollback_removes_task_journal_and_outbox" file="D:\my-packages\task-manager\tests\FoundationTest.php" line="164" class="Karnoweb\TaskManager\Tests\FoundationTest" classname="Karnoweb.TaskManager.Tests.FoundationTest" assertions="6" time="0.143456"/>
+        <testcase name="test_two_scopes_have_independent_personal_definitions" file="D:\my-packages\task-manager\tests\FoundationTest.php" line="174" class="Karnoweb\TaskManager\Tests\FoundationTest" classname="Karnoweb.TaskManager.Tests.FoundationTest" assertions="2" time="0.150449"/>
+        <testcase name="test_move_between_owned_lists_preserves_rank_and_rejects_foreign_list" file="D:\my-packages\task-manager\tests\FoundationTest.php" line="184" class="Karnoweb\TaskManager\Tests\FoundationTest" classname="Karnoweb.TaskManager.Tests.FoundationTest" assertions="5" time="0.156393"/>
+        <testcase name="test_facade_has_service_parity_and_missing_context_fails_closed" file="D:\my-packages\task-manager\tests\FoundationTest.php" line="199" class="Karnoweb\TaskManager\Tests\FoundationTest" classname="Karnoweb.TaskManager.Tests.FoundationTest" assertions="2" time="0.160791"/>
+        <testcase name="test_service_actor_requires_explicit_limited_capabilities" file="D:\my-packages\task-manager\tests\FoundationTest.php" line="207" class="Karnoweb\TaskManager\Tests\FoundationTest" classname="Karnoweb.TaskManager.Tests.FoundationTest" assertions="4" time="0.153117"/>
+        <testcase name="test_clock_controls_completion_and_audit_without_waiting" file="D:\my-packages\task-manager\tests\FoundationTest.php" line="218" class="Karnoweb\TaskManager\Tests\FoundationTest" classname="Karnoweb.TaskManager.Tests.FoundationTest" assertions="2" time="0.170800"/>
+        <testcase name="test_share_view_does_not_grant_edit_and_facets_stay_scoped" file="D:\my-packages\task-manager\tests\FoundationTest.php" line="230" class="Karnoweb\TaskManager\Tests\FoundationTest" classname="Karnoweb.TaskManager.Tests.FoundationTest" assertions="3" time="0.156090"/>
+        <testcase name="test_payload_field_order_is_canonical_for_retry" file="D:\my-packages\task-manager\tests\FoundationTest.php" line="241" class="Karnoweb\TaskManager\Tests\FoundationTest" classname="Karnoweb.TaskManager.Tests.FoundationTest" assertions="2" time="0.153096"/>
+        <testcase name="test_clone_operation_does_not_collide_with_user_supplied_suffix" file="D:\my-packages\task-manager\tests\FoundationTest.php" line="249" class="Karnoweb\TaskManager\Tests\FoundationTest" classname="Karnoweb.TaskManager.Tests.FoundationTest" assertions="3" time="0.179149"/>
+        <testcase name="test_display_sequences_and_alias_resolution_are_scoped" file="D:\my-packages\task-manager\tests\FoundationTest.php" line="259" class="Karnoweb\TaskManager\Tests\FoundationTest" classname="Karnoweb.TaskManager.Tests.FoundationTest" assertions="6" time="0.193818"/>
+        <testcase name="test_migration_rollback_and_reinstall" file="D:\my-packages\task-manager\tests\FoundationTest.php" line="274" class="Karnoweb\TaskManager\Tests\FoundationTest" classname="Karnoweb.TaskManager.Tests.FoundationTest" assertions="3" time="0.501425"/>
+        <testcase name="test_host_sql_authorization_applies_to_counts_facets_mutations_and_replays" file="D:\my-packages\task-manager\tests\FoundationTest.php" line="284" class="Karnoweb\TaskManager\Tests\FoundationTest" classname="Karnoweb.TaskManager.Tests.FoundationTest" assertions="7" time="0.148363"/>
+        <testcase name="test_typed_create_command_returns_typed_result" file="D:\my-packages\task-manager\tests\FoundationTest.php" line="299" class="Karnoweb\TaskManager\Tests\FoundationTest" classname="Karnoweb.TaskManager.Tests.FoundationTest" assertions="4" time="0.146242"/>
+        <testcase name="test_postgres_real_concurrent_same_operation_creates_one_task" file="D:\my-packages\task-manager\tests\FoundationTest.php" line="306" class="Karnoweb\TaskManager\Tests\FoundationTest" classname="Karnoweb.TaskManager.Tests.FoundationTest" assertions="0" time="0.166460">
+          <skipped/>
+        </testcase>
+        <testcase name="test_postgres_concurrent_updates_accept_exactly_one_version" file="D:\my-packages\task-manager\tests\FoundationTest.php" line="346" class="Karnoweb\TaskManager\Tests\FoundationTest" classname="Karnoweb.TaskManager.Tests.FoundationTest" assertions="0" time="0.149073">
+          <skipped/>
+        </testcase>
+      </testsuite>
+      <testsuite name="Karnoweb\TaskManager\Tests\HandoffCoreTest" file="D:\my-packages\task-manager\tests\HandoffCoreTest.php" tests="13" assertions="54" errors="0" failures="0" skipped="0" time="2.886888">
+        <testcase name="test_delegate_pauses_origin_without_creating_a_new_origin_visit" file="D:\my-packages\task-manager\tests\HandoffCoreTest.php" line="10" class="Karnoweb\TaskManager\Tests\HandoffCoreTest" classname="Karnoweb.TaskManager.Tests.HandoffCoreTest" assertions="8" time="0.218158"/>
+        <testcase name="test_success_returns_through_workflow_once_and_preserves_clock_metrics" file="D:\my-packages\task-manager\tests\HandoffCoreTest.php" line="22" class="Karnoweb\TaskManager\Tests\HandoffCoreTest" classname="Karnoweb.TaskManager.Tests.HandoffCoreTest" assertions="7" time="0.270565"/>
+        <testcase name="test_changed_origin_is_never_overwritten" file="D:\my-packages\task-manager\tests\HandoffCoreTest.php" line="36" class="Karnoweb\TaskManager\Tests\HandoffCoreTest" classname="Karnoweb.TaskManager.Tests.HandoffCoreTest" assertions="4" time="0.227725"/>
+        <testcase name="test_return_guard_failure_preserves_destination_evidence_and_waiting_origin" file="D:\my-packages\task-manager\tests\HandoffCoreTest.php" line="46" class="Karnoweb\TaskManager\Tests\HandoffCoreTest" classname="Karnoweb.TaskManager.Tests.HandoffCoreTest" assertions="5" time="0.273727"/>
+        <testcase name="test_recall_is_a_guarded_cancel_and_never_success" file="D:\my-packages\task-manager\tests\HandoffCoreTest.php" line="56" class="Karnoweb\TaskManager\Tests\HandoffCoreTest" classname="Karnoweb.TaskManager.Tests.HandoffCoreTest" assertions="4" time="0.236887"/>
+        <testcase name="test_timeout_cannot_run_early_and_replays_one_result" file="D:\my-packages\task-manager\tests\HandoffCoreTest.php" line="64" class="Karnoweb\TaskManager\Tests\HandoffCoreTest" classname="Karnoweb.TaskManager.Tests.HandoffCoreTest" assertions="4" time="0.244732"/>
+        <testcase name="test_scope_is_checked_before_handoff_details" file="D:\my-packages\task-manager\tests\HandoffCoreTest.php" line="74" class="Karnoweb\TaskManager\Tests\HandoffCoreTest" classname="Karnoweb.TaskManager.Tests.HandoffCoreTest" assertions="1" time="0.183586"/>
+        <testcase name="test_nonterminal_destination_cannot_claim_success" file="D:\my-packages\task-manager\tests\HandoffCoreTest.php" line="79" class="Karnoweb\TaskManager\Tests\HandoffCoreTest" classname="Karnoweb.TaskManager.Tests.HandoffCoreTest" assertions="1" time="0.205489"/>
+        <testcase name="test_rejection_returns_for_correction_with_original_reason_audited" file="D:\my-packages\task-manager\tests\HandoffCoreTest.php" line="84" class="Karnoweb\TaskManager\Tests\HandoffCoreTest" classname="Karnoweb.TaskManager.Tests.HandoffCoreTest" assertions="5" time="0.238077"/>
+        <testcase name="test_duplicate_delegate_does_not_create_a_second_destination" file="D:\my-packages\task-manager\tests\HandoffCoreTest.php" line="95" class="Karnoweb\TaskManager\Tests\HandoffCoreTest" classname="Karnoweb.TaskManager.Tests.HandoffCoreTest" assertions="4" time="0.187228"/>
+        <testcase name="test_cycle_is_rejected_before_creating_another_process" file="D:\my-packages\task-manager\tests\HandoffCoreTest.php" line="104" class="Karnoweb\TaskManager\Tests\HandoffCoreTest" classname="Karnoweb.TaskManager.Tests.HandoffCoreTest" assertions="1" time="0.192367"/>
+        <testcase name="test_denied_destination_rolls_back_case_origin_and_events" file="D:\my-packages\task-manager\tests\HandoffCoreTest.php" line="110" class="Karnoweb\TaskManager\Tests\HandoffCoreTest" classname="Karnoweb.TaskManager.Tests.HandoffCoreTest" assertions="6" time="0.200747"/>
+        <testcase name="test_delegation_cannot_hide_an_unprocessed_expired_deadline" file="D:\my-packages\task-manager\tests\HandoffCoreTest.php" line="120" class="Karnoweb\TaskManager\Tests\HandoffCoreTest" classname="Karnoweb.TaskManager.Tests.HandoffCoreTest" assertions="4" time="0.207600"/>
+      </testsuite>
+      <testsuite name="Karnoweb\TaskManager\Tests\PersonalApiTest" file="D:\my-packages\task-manager\tests\PersonalApiTest.php" tests="2" assertions="14" errors="0" failures="0" skipped="0" time="0.376991">
+        <testcase name="test_immutable_sessions_do_not_leak_context_and_query_has_constant_query_count" file="D:\my-packages\task-manager\tests\PersonalApiTest.php" line="11" class="Karnoweb\TaskManager\Tests\PersonalApiTest" classname="Karnoweb.TaskManager.Tests.PersonalApiTest" assertions="6" time="0.208998"/>
+        <testcase name="test_list_optimistic_lifecycle_and_inbox_protection" file="D:\my-packages\task-manager\tests\PersonalApiTest.php" line="25" class="Karnoweb\TaskManager\Tests\PersonalApiTest" classname="Karnoweb.TaskManager.Tests.PersonalApiTest" assertions="8" time="0.167993"/>
+      </testsuite>
+      <testsuite name="Karnoweb\TaskManager\Tests\Scenarios\TM001Test" file="D:\my-packages\task-manager\tests\Scenarios\TM001Test.php" tests="1" assertions="4" errors="0" failures="0" skipped="0" time="0.124406">
+        <testcase name="test_scenario" file="D:\my-packages\task-manager\tests\Scenarios\TM001Test.php" line="12" class="Karnoweb\TaskManager\Tests\Scenarios\TM001Test" classname="Karnoweb.TaskManager.Tests.Scenarios.TM001Test" assertions="4" time="0.124406"/>
+      </testsuite>
+      <testsuite name="Karnoweb\TaskManager\Tests\Scenarios\TM002Test" file="D:\my-packages\task-manager\tests\Scenarios\TM002Test.php" tests="1" assertions="5" errors="0" failures="0" skipped="0" time="0.143945">
+        <testcase name="test_scenario" file="D:\my-packages\task-manager\tests\Scenarios\TM002Test.php" line="12" class="Karnoweb\TaskManager\Tests\Scenarios\TM002Test" classname="Karnoweb.TaskManager.Tests.Scenarios.TM002Test" assertions="5" time="0.143945"/>
+      </testsuite>
+      <testsuite name="Karnoweb\TaskManager\Tests\Scenarios\TM003Test" file="D:\my-packages\task-manager\tests\Scenarios\TM003Test.php" tests="1" assertions="5" errors="0" failures="0" skipped="0" time="0.152824">
+        <testcase name="test_scenario" file="D:\my-packages\task-manager\tests\Scenarios\TM003Test.php" line="12" class="Karnoweb\TaskManager\Tests\Scenarios\TM003Test" classname="Karnoweb.TaskManager.Tests.Scenarios.TM003Test" assertions="5" time="0.152824"/>
+      </testsuite>
+      <testsuite name="Karnoweb\TaskManager\Tests\Scenarios\TM005Test" file="D:\my-packages\task-manager\tests\Scenarios\TM005Test.php" tests="1" assertions="4" errors="0" failures="0" skipped="0" time="0.145066">
+        <testcase name="test_scenario" file="D:\my-packages\task-manager\tests\Scenarios\TM005Test.php" line="12" class="Karnoweb\TaskManager\Tests\Scenarios\TM005Test" classname="Karnoweb.TaskManager.Tests.Scenarios.TM005Test" assertions="4" time="0.145066"/>
+      </testsuite>
+      <testsuite name="Karnoweb\TaskManager\Tests\Scenarios\TM006Test" file="D:\my-packages\task-manager\tests\Scenarios\TM006Test.php" tests="1" assertions="3" errors="0" failures="0" skipped="0" time="0.157782">
+        <testcase name="test_scenario" file="D:\my-packages\task-manager\tests\Scenarios\TM006Test.php" line="12" class="Karnoweb\TaskManager\Tests\Scenarios\TM006Test" classname="Karnoweb.TaskManager.Tests.Scenarios.TM006Test" assertions="3" time="0.157782"/>
+      </testsuite>
+      <testsuite name="Karnoweb\TaskManager\Tests\Scenarios\TM007Test" file="D:\my-packages\task-manager\tests\Scenarios\TM007Test.php" tests="1" assertions="4" errors="0" failures="0" skipped="0" time="0.152589">
+        <testcase name="test_scenario" file="D:\my-packages\task-manager\tests\Scenarios\TM007Test.php" line="12" class="Karnoweb\TaskManager\Tests\Scenarios\TM007Test" classname="Karnoweb.TaskManager.Tests.Scenarios.TM007Test" assertions="4" time="0.152589"/>
+      </testsuite>
+      <testsuite name="Karnoweb\TaskManager\Tests\Scenarios\TM008Test" file="D:\my-packages\task-manager\tests\Scenarios\TM008Test.php" tests="1" assertions="5" errors="0" failures="0" skipped="0" time="0.170784">
+        <testcase name="test_scenario" file="D:\my-packages\task-manager\tests\Scenarios\TM008Test.php" line="12" class="Karnoweb\TaskManager\Tests\Scenarios\TM008Test" classname="Karnoweb.TaskManager.Tests.Scenarios.TM008Test" assertions="5" time="0.170784"/>
+      </testsuite>
+      <testsuite name="Karnoweb\TaskManager\Tests\Scenarios\TM009Test" file="D:\my-packages\task-manager\tests\Scenarios\TM009Test.php" tests="1" assertions="4" errors="0" failures="0" skipped="0" time="0.146070">
+        <testcase name="test_scenario" file="D:\my-packages\task-manager\tests\Scenarios\TM009Test.php" line="12" class="Karnoweb\TaskManager\Tests\Scenarios\TM009Test" classname="Karnoweb.TaskManager.Tests.Scenarios.TM009Test" assertions="4" time="0.146070"/>
+      </testsuite>
+      <testsuite name="Karnoweb\TaskManager\Tests\Scenarios\TM010Test" file="D:\my-packages\task-manager\tests\Scenarios\TM010Test.php" tests="1" assertions="5" errors="0" failures="0" skipped="0" time="0.154988">
+        <testcase name="test_scenario" file="D:\my-packages\task-manager\tests\Scenarios\TM010Test.php" line="10" class="Karnoweb\TaskManager\Tests\Scenarios\TM010Test" classname="Karnoweb.TaskManager.Tests.Scenarios.TM010Test" assertions="5" time="0.154988"/>
+      </testsuite>
+      <testsuite name="Karnoweb\TaskManager\Tests\Scenarios\TM011Test" file="D:\my-packages\task-manager\tests\Scenarios\TM011Test.php" tests="1" assertions="4" errors="0" failures="0" skipped="0" time="0.142738">
+        <testcase name="test_scenario" file="D:\my-packages\task-manager\tests\Scenarios\TM011Test.php" line="12" class="Karnoweb\TaskManager\Tests\Scenarios\TM011Test" classname="Karnoweb.TaskManager.Tests.Scenarios.TM011Test" assertions="4" time="0.142738"/>
+      </testsuite>
+      <testsuite name="Karnoweb\TaskManager\Tests\Scenarios\TM012Test" file="D:\my-packages\task-manager\tests\Scenarios\TM012Test.php" tests="1" assertions="3" errors="0" failures="0" skipped="0" time="0.160257">
+        <testcase name="test_scenario" file="D:\my-packages\task-manager\tests\Scenarios\TM012Test.php" line="12" class="Karnoweb\TaskManager\Tests\Scenarios\TM012Test" classname="Karnoweb.TaskManager.Tests.Scenarios.TM012Test" assertions="3" time="0.160257"/>
+      </testsuite>
+      <testsuite name="Karnoweb\TaskManager\Tests\Scenarios\TM014Test" file="D:\my-packages\task-manager\tests\Scenarios\TM014Test.php" tests="1" assertions="3" errors="0" failures="0" skipped="0" time="0.208724">
+        <testcase name="test_scenario" file="D:\my-packages\task-manager\tests\Scenarios\TM014Test.php" line="10" class="Karnoweb\TaskManager\Tests\Scenarios\TM014Test" classname="Karnoweb.TaskManager.Tests.Scenarios.TM014Test" assertions="3" time="0.208724"/>
+      </testsuite>
+      <testsuite name="Karnoweb\TaskManager\Tests\Scenarios\TM015Test" file="D:\my-packages\task-manager\tests\Scenarios\TM015Test.php" tests="1" assertions="4" errors="0" failures="0" skipped="0" time="0.168596">
+        <testcase name="test_scenario" file="D:\my-packages\task-manager\tests\Scenarios\TM015Test.php" line="10" class="Karnoweb\TaskManager\Tests\Scenarios\TM015Test" classname="Karnoweb.TaskManager.Tests.Scenarios.TM015Test" assertions="4" time="0.168596"/>
+      </testsuite>
+      <testsuite name="Karnoweb\TaskManager\Tests\Scenarios\TM016Test" file="D:\my-packages\task-manager\tests\Scenarios\TM016Test.php" tests="1" assertions="4" errors="0" failures="0" skipped="0" time="0.198165">
+        <testcase name="test_scenario" file="D:\my-packages\task-manager\tests\Scenarios\TM016Test.php" line="10" class="Karnoweb\TaskManager\Tests\Scenarios\TM016Test" classname="Karnoweb.TaskManager.Tests.Scenarios.TM016Test" assertions="4" time="0.198165"/>
+      </testsuite>
+      <testsuite name="Karnoweb\TaskManager\Tests\Scenarios\TM017Test" file="D:\my-packages\task-manager\tests\Scenarios\TM017Test.php" tests="1" assertions="4" errors="0" failures="0" skipped="0" time="0.175345">
+        <testcase name="test_scenario" file="D:\my-packages\task-manager\tests\Scenarios\TM017Test.php" line="10" class="Karnoweb\TaskManager\Tests\Scenarios\TM017Test" classname="Karnoweb.TaskManager.Tests.Scenarios.TM017Test" assertions="4" time="0.175345"/>
+      </testsuite>
+      <testsuite name="Karnoweb\TaskManager\Tests\Scenarios\TM018Test" file="D:\my-packages\task-manager\tests\Scenarios\TM018Test.php" tests="1" assertions="4" errors="0" failures="0" skipped="0" time="0.149507">
+        <testcase name="test_scenario" file="D:\my-packages\task-manager\tests\Scenarios\TM018Test.php" line="10" class="Karnoweb\TaskManager\Tests\Scenarios\TM018Test" classname="Karnoweb.TaskManager.Tests.Scenarios.TM018Test" assertions="4" time="0.149507"/>
+      </testsuite>
+      <testsuite name="Karnoweb\TaskManager\Tests\Scenarios\TM019Test" file="D:\my-packages\task-manager\tests\Scenarios\TM019Test.php" tests="1" assertions="3" errors="0" failures="0" skipped="0" time="0.183419">
+        <testcase name="test_scenario" file="D:\my-packages\task-manager\tests\Scenarios\TM019Test.php" line="10" class="Karnoweb\TaskManager\Tests\Scenarios\TM019Test" classname="Karnoweb.TaskManager.Tests.Scenarios.TM019Test" assertions="3" time="0.183419"/>
+      </testsuite>
+      <testsuite name="Karnoweb\TaskManager\Tests\Scenarios\TM020Test" file="D:\my-packages\task-manager\tests\Scenarios\TM020Test.php" tests="1" assertions="4" errors="0" failures="0" skipped="0" time="0.173318">
+        <testcase name="test_scenario" file="D:\my-packages\task-manager\tests\Scenarios\TM020Test.php" line="10" class="Karnoweb\TaskManager\Tests\Scenarios\TM020Test" classname="Karnoweb.TaskManager.Tests.Scenarios.TM020Test" assertions="4" time="0.173318"/>
+      </testsuite>
+      <testsuite name="Karnoweb\TaskManager\Tests\Scenarios\TM021Test" file="D:\my-packages\task-manager\tests\Scenarios\TM021Test.php" tests="1" assertions="3" errors="0" failures="0" skipped="0" time="0.162885">
+        <testcase name="test_scenario" file="D:\my-packages\task-manager\tests\Scenarios\TM021Test.php" line="10" class="Karnoweb\TaskManager\Tests\Scenarios\TM021Test" classname="Karnoweb.TaskManager.Tests.Scenarios.TM021Test" assertions="3" time="0.162885"/>
+      </testsuite>
+      <testsuite name="Karnoweb\TaskManager\Tests\Scenarios\TM022Test" file="D:\my-packages\task-manager\tests\Scenarios\TM022Test.php" tests="1" assertions="4" errors="0" failures="0" skipped="0" time="0.164935">
+        <testcase name="test_scenario" file="D:\my-packages\task-manager\tests\Scenarios\TM022Test.php" line="10" class="Karnoweb\TaskManager\Tests\Scenarios\TM022Test" classname="Karnoweb.TaskManager.Tests.Scenarios.TM022Test" assertions="4" time="0.164935"/>
+      </testsuite>
+      <testsuite name="Karnoweb\TaskManager\Tests\Scenarios\TM023Test" file="D:\my-packages\task-manager\tests\Scenarios\TM023Test.php" tests="1" assertions="3" errors="0" failures="0" skipped="0" time="0.173718">
+        <testcase name="test_scenario" file="D:\my-packages\task-manager\tests\Scenarios\TM023Test.php" line="10" class="Karnoweb\TaskManager\Tests\Scenarios\TM023Test" classname="Karnoweb.TaskManager.Tests.Scenarios.TM023Test" assertions="3" time="0.173718"/>
+      </testsuite>
+      <testsuite name="Karnoweb\TaskManager\Tests\Scenarios\TM024Test" file="D:\my-packages\task-manager\tests\Scenarios\TM024Test.php" tests="1" assertions="6" errors="0" failures="0" skipped="0" time="0.155491">
+        <testcase name="test_scenario" file="D:\my-packages\task-manager\tests\Scenarios\TM024Test.php" line="10" class="Karnoweb\TaskManager\Tests\Scenarios\TM024Test" classname="Karnoweb.TaskManager.Tests.Scenarios.TM024Test" assertions="6" time="0.155491"/>
+      </testsuite>
+      <testsuite name="Karnoweb\TaskManager\Tests\Scenarios\TM025Test" file="D:\my-packages\task-manager\tests\Scenarios\TM025Test.php" tests="1" assertions="4" errors="0" failures="0" skipped="0" time="0.168680">
+        <testcase name="test_scenario" file="D:\my-packages\task-manager\tests\Scenarios\TM025Test.php" line="10" class="Karnoweb\TaskManager\Tests\Scenarios\TM025Test" classname="Karnoweb.TaskManager.Tests.Scenarios.TM025Test" assertions="4" time="0.168680"/>
+      </testsuite>
+      <testsuite name="Karnoweb\TaskManager\Tests\Scenarios\TM026Test" file="D:\my-packages\task-manager\tests\Scenarios\TM026Test.php" tests="1" assertions="4" errors="0" failures="0" skipped="0" time="0.184831">
+        <testcase name="test_scenario" file="D:\my-packages\task-manager\tests\Scenarios\TM026Test.php" line="10" class="Karnoweb\TaskManager\Tests\Scenarios\TM026Test" classname="Karnoweb.TaskManager.Tests.Scenarios.TM026Test" assertions="4" time="0.184831"/>
+      </testsuite>
+      <testsuite name="Karnoweb\TaskManager\Tests\Scenarios\TM073Test" file="D:\my-packages\task-manager\tests\Scenarios\TM073Test.php" tests="1" assertions="4" errors="0" failures="0" skipped="0" time="0.154891">
+        <testcase name="test_scenario" file="D:\my-packages\task-manager\tests\Scenarios\TM073Test.php" line="12" class="Karnoweb\TaskManager\Tests\Scenarios\TM073Test" classname="Karnoweb.TaskManager.Tests.Scenarios.TM073Test" assertions="4" time="0.154891"/>
+      </testsuite>
+      <testsuite name="Karnoweb\TaskManager\Tests\Scenarios\TM076Test" file="D:\my-packages\task-manager\tests\Scenarios\TM076Test.php" tests="1" assertions="3" errors="0" failures="0" skipped="0" time="0.136895">
+        <testcase name="test_scenario" file="D:\my-packages\task-manager\tests\Scenarios\TM076Test.php" line="12" class="Karnoweb\TaskManager\Tests\Scenarios\TM076Test" classname="Karnoweb.TaskManager.Tests.Scenarios.TM076Test" assertions="3" time="0.136895"/>
+      </testsuite>
+      <testsuite name="Karnoweb\TaskManager\Tests\Scenarios\TM077Test" file="D:\my-packages\task-manager\tests\Scenarios\TM077Test.php" tests="1" assertions="5" errors="0" failures="0" skipped="0" time="0.174190">
+        <testcase name="test_scenario" file="D:\my-packages\task-manager\tests\Scenarios\TM077Test.php" line="10" class="Karnoweb\TaskManager\Tests\Scenarios\TM077Test" classname="Karnoweb.TaskManager.Tests.Scenarios.TM077Test" assertions="5" time="0.174190"/>
+      </testsuite>
+      <testsuite name="Karnoweb\TaskManager\Tests\Scenarios\TM078Test" file="D:\my-packages\task-manager\tests\Scenarios\TM078Test.php" tests="1" assertions="3" errors="0" failures="0" skipped="0" time="0.150985">
+        <testcase name="test_scenario" file="D:\my-packages\task-manager\tests\Scenarios\TM078Test.php" line="12" class="Karnoweb\TaskManager\Tests\Scenarios\TM078Test" classname="Karnoweb.TaskManager.Tests.Scenarios.TM078Test" assertions="3" time="0.150985"/>
+      </testsuite>
+      <testsuite name="Karnoweb\TaskManager\Tests\Scenarios\TM079Test" file="D:\my-packages\task-manager\tests\Scenarios\TM079Test.php" tests="1" assertions="5" errors="0" failures="0" skipped="0" time="0.160035">
+        <testcase name="test_scenario" file="D:\my-packages\task-manager\tests\Scenarios\TM079Test.php" line="12" class="Karnoweb\TaskManager\Tests\Scenarios\TM079Test" classname="Karnoweb.TaskManager.Tests.Scenarios.TM079Test" assertions="5" time="0.160035"/>
+      </testsuite>
+      <testsuite name="Karnoweb\TaskManager\Tests\Scenarios\TM080Test" file="D:\my-packages\task-manager\tests\Scenarios\TM080Test.php" tests="1" assertions="4" errors="0" failures="0" skipped="0" time="0.141990">
+        <testcase name="test_scenario" file="D:\my-packages\task-manager\tests\Scenarios\TM080Test.php" line="12" class="Karnoweb\TaskManager\Tests\Scenarios\TM080Test" classname="Karnoweb.TaskManager.Tests.Scenarios.TM080Test" assertions="4" time="0.141990"/>
+      </testsuite>
+      <testsuite name="Karnoweb\TaskManager\Tests\Scenarios\TM091Test" file="D:\my-packages\task-manager\tests\Scenarios\TM091Test.php" tests="1" assertions="5" errors="0" failures="0" skipped="0" time="0.141820">
+        <testcase name="test_scenario" file="D:\my-packages\task-manager\tests\Scenarios\TM091Test.php" line="12" class="Karnoweb\TaskManager\Tests\Scenarios\TM091Test" classname="Karnoweb.TaskManager.Tests.Scenarios.TM091Test" assertions="5" time="0.141820"/>
+      </testsuite>
+      <testsuite name="Karnoweb\TaskManager\Tests\Scenarios\TM092Test" file="D:\my-packages\task-manager\tests\Scenarios\TM092Test.php" tests="1" assertions="4" errors="0" failures="0" skipped="0" time="0.159350">
+        <testcase name="test_scenario" file="D:\my-packages\task-manager\tests\Scenarios\TM092Test.php" line="12" class="Karnoweb\TaskManager\Tests\Scenarios\TM092Test" classname="Karnoweb.TaskManager.Tests.Scenarios.TM092Test" assertions="4" time="0.159350"/>
+      </testsuite>
+      <testsuite name="Karnoweb\TaskManager\Tests\Scenarios\TM095Test" file="D:\my-packages\task-manager\tests\Scenarios\TM095Test.php" tests="1" assertions="4" errors="0" failures="0" skipped="0" time="0.178590">
+        <testcase name="test_scenario" file="D:\my-packages\task-manager\tests\Scenarios\TM095Test.php" line="12" class="Karnoweb\TaskManager\Tests\Scenarios\TM095Test" classname="Karnoweb.TaskManager.Tests.Scenarios.TM095Test" assertions="4" time="0.178590"/>
+      </testsuite>
+      <testsuite name="Karnoweb\TaskManager\Tests\Scenarios\TM096Test" file="D:\my-packages\task-manager\tests\Scenarios\TM096Test.php" tests="1" assertions="3" errors="0" failures="0" skipped="0" time="0.195544">
+        <testcase name="test_scenario" file="D:\my-packages\task-manager\tests\Scenarios\TM096Test.php" line="10" class="Karnoweb\TaskManager\Tests\Scenarios\TM096Test" classname="Karnoweb.TaskManager.Tests.Scenarios.TM096Test" assertions="3" time="0.195544"/>
+      </testsuite>
+      <testsuite name="Karnoweb\TaskManager\Tests\Scenarios\TM097Test" file="D:\my-packages\task-manager\tests\Scenarios\TM097Test.php" tests="1" assertions="3" errors="0" failures="0" skipped="0" time="0.192622">
+        <testcase name="test_scenario" file="D:\my-packages\task-manager\tests\Scenarios\TM097Test.php" line="10" class="Karnoweb\TaskManager\Tests\Scenarios\TM097Test" classname="Karnoweb.TaskManager.Tests.Scenarios.TM097Test" assertions="3" time="0.192622"/>
+      </testsuite>
+      <testsuite name="Karnoweb\TaskManager\Tests\Scenarios\TM098Test" file="D:\my-packages\task-manager\tests\Scenarios\TM098Test.php" tests="1" assertions="3" errors="0" failures="0" skipped="0" time="0.204000">
+        <testcase name="test_scenario" file="D:\my-packages\task-manager\tests\Scenarios\TM098Test.php" line="12" class="Karnoweb\TaskManager\Tests\Scenarios\TM098Test" classname="Karnoweb.TaskManager.Tests.Scenarios.TM098Test" assertions="3" time="0.204000"/>
+      </testsuite>
+      <testsuite name="Karnoweb\TaskManager\Tests\Scenarios\TM099Test" file="D:\my-packages\task-manager\tests\Scenarios\TM099Test.php" tests="1" assertions="5" errors="0" failures="0" skipped="0" time="0.222549">
+        <testcase name="test_scenario" file="D:\my-packages\task-manager\tests\Scenarios\TM099Test.php" line="12" class="Karnoweb\TaskManager\Tests\Scenarios\TM099Test" classname="Karnoweb.TaskManager.Tests.Scenarios.TM099Test" assertions="5" time="0.222549"/>
+      </testsuite>
+      <testsuite name="Karnoweb\TaskManager\Tests\Scenarios\TM100Test" file="D:\my-packages\task-manager\tests\Scenarios\TM100Test.php" tests="1" assertions="4" errors="0" failures="0" skipped="0" time="0.207568">
+        <testcase name="test_scenario" file="D:\my-packages\task-manager\tests\Scenarios\TM100Test.php" line="10" class="Karnoweb\TaskManager\Tests\Scenarios\TM100Test" classname="Karnoweb.TaskManager.Tests.Scenarios.TM100Test" assertions="4" time="0.207568"/>
+      </testsuite>
+      <testsuite name="Karnoweb\TaskManager\Tests\Scenarios\TM126Test" file="D:\my-packages\task-manager\tests\Scenarios\TM126Test.php" tests="1" assertions="3" errors="0" failures="0" skipped="0" time="0.151858">
+        <testcase name="test_scenario" file="D:\my-packages\task-manager\tests\Scenarios\TM126Test.php" line="12" class="Karnoweb\TaskManager\Tests\Scenarios\TM126Test" classname="Karnoweb.TaskManager.Tests.Scenarios.TM126Test" assertions="3" time="0.151858"/>
+      </testsuite>
+      <testsuite name="Karnoweb\TaskManager\Tests\Scenarios\TM127Test" file="D:\my-packages\task-manager\tests\Scenarios\TM127Test.php" tests="1" assertions="4" errors="0" failures="0" skipped="0" time="0.196124">
+        <testcase name="test_scenario" file="D:\my-packages\task-manager\tests\Scenarios\TM127Test.php" line="10" class="Karnoweb\TaskManager\Tests\Scenarios\TM127Test" classname="Karnoweb.TaskManager.Tests.Scenarios.TM127Test" assertions="4" time="0.196124"/>
+      </testsuite>
+      <testsuite name="Karnoweb\TaskManager\Tests\Scenarios\TM128Test" file="D:\my-packages\task-manager\tests\Scenarios\TM128Test.php" tests="1" assertions="4" errors="0" failures="0" skipped="0" time="0.159325">
+        <testcase name="test_scenario" file="D:\my-packages\task-manager\tests\Scenarios\TM128Test.php" line="12" class="Karnoweb\TaskManager\Tests\Scenarios\TM128Test" classname="Karnoweb.TaskManager.Tests.Scenarios.TM128Test" assertions="4" time="0.159325"/>
+      </testsuite>
+      <testsuite name="Karnoweb\TaskManager\Tests\Scenarios\TM129Test" file="D:\my-packages\task-manager\tests\Scenarios\TM129Test.php" tests="1" assertions="3" errors="0" failures="0" skipped="0" time="0.176257">
+        <testcase name="test_scenario" file="D:\my-packages\task-manager\tests\Scenarios\TM129Test.php" line="12" class="Karnoweb\TaskManager\Tests\Scenarios\TM129Test" classname="Karnoweb.TaskManager.Tests.Scenarios.TM129Test" assertions="3" time="0.176257"/>
+      </testsuite>
+      <testsuite name="Karnoweb\TaskManager\Tests\Scenarios\TM146Test" file="D:\my-packages\task-manager\tests\Scenarios\TM146Test.php" tests="1" assertions="6" errors="0" failures="0" skipped="0" time="0.173298">
+        <testcase name="test_scenario" file="D:\my-packages\task-manager\tests\Scenarios\TM146Test.php" line="10" class="Karnoweb\TaskManager\Tests\Scenarios\TM146Test" classname="Karnoweb.TaskManager.Tests.Scenarios.TM146Test" assertions="6" time="0.173298"/>
+      </testsuite>
+      <testsuite name="Karnoweb\TaskManager\Tests\Scenarios\TM148Test" file="D:\my-packages\task-manager\tests\Scenarios\TM148Test.php" tests="1" assertions="7" errors="0" failures="0" skipped="0" time="0.174676">
+        <testcase name="test_scenario" file="D:\my-packages\task-manager\tests\Scenarios\TM148Test.php" line="10" class="Karnoweb\TaskManager\Tests\Scenarios\TM148Test" classname="Karnoweb.TaskManager.Tests.Scenarios.TM148Test" assertions="7" time="0.174676"/>
+      </testsuite>
+      <testsuite name="Karnoweb\TaskManager\Tests\Scenarios\TM149Test" file="D:\my-packages\task-manager\tests\Scenarios\TM149Test.php" tests="1" assertions="4" errors="0" failures="0" skipped="0" time="0.168053">
+        <testcase name="test_scenario" file="D:\my-packages\task-manager\tests\Scenarios\TM149Test.php" line="10" class="Karnoweb\TaskManager\Tests\Scenarios\TM149Test" classname="Karnoweb.TaskManager.Tests.Scenarios.TM149Test" assertions="4" time="0.168053"/>
+      </testsuite>
+      <testsuite name="Karnoweb\TaskManager\Tests\Scenarios\TM150Test" file="D:\my-packages\task-manager\tests\Scenarios\TM150Test.php" tests="1" assertions="6" errors="0" failures="0" skipped="0" time="0.221079">
+        <testcase name="test_scenario" file="D:\my-packages\task-manager\tests\Scenarios\TM150Test.php" line="10" class="Karnoweb\TaskManager\Tests\Scenarios\TM150Test" classname="Karnoweb.TaskManager.Tests.Scenarios.TM150Test" assertions="6" time="0.221079"/>
+      </testsuite>
+      <testsuite name="Karnoweb\TaskManager\Tests\Scenarios\TM151Test" file="D:\my-packages\task-manager\tests\Scenarios\TM151Test.php" tests="1" assertions="6" errors="0" failures="0" skipped="0" time="0.206297">
+        <testcase name="test_scenario" file="D:\my-packages\task-manager\tests\Scenarios\TM151Test.php" line="10" class="Karnoweb\TaskManager\Tests\Scenarios\TM151Test" classname="Karnoweb.TaskManager.Tests.Scenarios.TM151Test" assertions="6" time="0.206297"/>
+      </testsuite>
+      <testsuite name="Karnoweb\TaskManager\Tests\Scenarios\TM152Test" file="D:\my-packages\task-manager\tests\Scenarios\TM152Test.php" tests="1" assertions="6" errors="0" failures="0" skipped="0" time="0.223112">
+        <testcase name="test_scenario" file="D:\my-packages\task-manager\tests\Scenarios\TM152Test.php" line="10" class="Karnoweb\TaskManager\Tests\Scenarios\TM152Test" classname="Karnoweb.TaskManager.Tests.Scenarios.TM152Test" assertions="6" time="0.223112"/>
+      </testsuite>
+      <testsuite name="Karnoweb\TaskManager\Tests\Scenarios\TM153Test" file="D:\my-packages\task-manager\tests\Scenarios\TM153Test.php" tests="1" assertions="5" errors="0" failures="0" skipped="0" time="0.202788">
+        <testcase name="test_scenario" file="D:\my-packages\task-manager\tests\Scenarios\TM153Test.php" line="12" class="Karnoweb\TaskManager\Tests\Scenarios\TM153Test" classname="Karnoweb.TaskManager.Tests.Scenarios.TM153Test" assertions="5" time="0.202788"/>
+      </testsuite>
+      <testsuite name="Karnoweb\TaskManager\Tests\Scenarios\TM154Test" file="D:\my-packages\task-manager\tests\Scenarios\TM154Test.php" tests="1" assertions="2" errors="0" failures="0" skipped="0" time="0.202269">
+        <testcase name="test_scenario" file="D:\my-packages\task-manager\tests\Scenarios\TM154Test.php" line="10" class="Karnoweb\TaskManager\Tests\Scenarios\TM154Test" classname="Karnoweb.TaskManager.Tests.Scenarios.TM154Test" assertions="2" time="0.202269"/>
+      </testsuite>
+      <testsuite name="Karnoweb\TaskManager\Tests\Scenarios\TM155Test" file="D:\my-packages\task-manager\tests\Scenarios\TM155Test.php" tests="1" assertions="5" errors="0" failures="0" skipped="0" time="0.192393">
+        <testcase name="test_scenario" file="D:\my-packages\task-manager\tests\Scenarios\TM155Test.php" line="10" class="Karnoweb\TaskManager\Tests\Scenarios\TM155Test" classname="Karnoweb.TaskManager.Tests.Scenarios.TM155Test" assertions="5" time="0.192393"/>
+      </testsuite>
+      <testsuite name="Karnoweb\TaskManager\Tests\Scenarios\TM156Test" file="D:\my-packages\task-manager\tests\Scenarios\TM156Test.php" tests="1" assertions="3" errors="0" failures="0" skipped="0" time="0.247578">
+        <testcase name="test_scenario" file="D:\my-packages\task-manager\tests\Scenarios\TM156Test.php" line="10" class="Karnoweb\TaskManager\Tests\Scenarios\TM156Test" classname="Karnoweb.TaskManager.Tests.Scenarios.TM156Test" assertions="3" time="0.247578"/>
+      </testsuite>
+      <testsuite name="Karnoweb\TaskManager\Tests\Scenarios\TM157Test" file="D:\my-packages\task-manager\tests\Scenarios\TM157Test.php" tests="1" assertions="0" errors="0" failures="0" skipped="1" time="0.140739">
+        <testcase name="test_scenario" file="D:\my-packages\task-manager\tests\Scenarios\TM157Test.php" line="10" class="Karnoweb\TaskManager\Tests\Scenarios\TM157Test" classname="Karnoweb.TaskManager.Tests.Scenarios.TM157Test" assertions="0" time="0.140739">
+          <skipped/>
+        </testcase>
+      </testsuite>
+      <testsuite name="Karnoweb\TaskManager\Tests\Scenarios\TM158Test" file="D:\my-packages\task-manager\tests\Scenarios\TM158Test.php" tests="1" assertions="4" errors="0" failures="0" skipped="0" time="0.185785">
+        <testcase name="test_scenario" file="D:\my-packages\task-manager\tests\Scenarios\TM158Test.php" line="10" class="Karnoweb\TaskManager\Tests\Scenarios\TM158Test" classname="Karnoweb.TaskManager.Tests.Scenarios.TM158Test" assertions="4" time="0.185785"/>
+      </testsuite>
+      <testsuite name="Karnoweb\TaskManager\Tests\Scenarios\TM159Test" file="D:\my-packages\task-manager\tests\Scenarios\TM159Test.php" tests="1" assertions="4" errors="0" failures="0" skipped="0" time="0.182598">
+        <testcase name="test_scenario" file="D:\my-packages\task-manager\tests\Scenarios\TM159Test.php" line="10" class="Karnoweb\TaskManager\Tests\Scenarios\TM159Test" classname="Karnoweb.TaskManager.Tests.Scenarios.TM159Test" assertions="4" time="0.182598"/>
+      </testsuite>
+      <testsuite name="Karnoweb\TaskManager\Tests\Scenarios\TM160Test" file="D:\my-packages\task-manager\tests\Scenarios\TM160Test.php" tests="1" assertions="6" errors="0" failures="0" skipped="0" time="0.176382">
+        <testcase name="test_scenario" file="D:\my-packages\task-manager\tests\Scenarios\TM160Test.php" line="10" class="Karnoweb\TaskManager\Tests\Scenarios\TM160Test" classname="Karnoweb.TaskManager.Tests.Scenarios.TM160Test" assertions="6" time="0.176382"/>
+      </testsuite>
+      <testsuite name="Karnoweb\TaskManager\Tests\Scenarios\TM161Test" file="D:\my-packages\task-manager\tests\Scenarios\TM161Test.php" tests="1" assertions="5" errors="0" failures="0" skipped="0" time="0.150511">
+        <testcase name="test_scenario" file="D:\my-packages\task-manager\tests\Scenarios\TM161Test.php" line="10" class="Karnoweb\TaskManager\Tests\Scenarios\TM161Test" classname="Karnoweb.TaskManager.Tests.Scenarios.TM161Test" assertions="5" time="0.150511"/>
+      </testsuite>
+      <testsuite name="Karnoweb\TaskManager\Tests\Scenarios\TM162Test" file="D:\my-packages\task-manager\tests\Scenarios\TM162Test.php" tests="1" assertions="5" errors="0" failures="0" skipped="0" time="0.162170">
+        <testcase name="test_scenario" file="D:\my-packages\task-manager\tests\Scenarios\TM162Test.php" line="10" class="Karnoweb\TaskManager\Tests\Scenarios\TM162Test" classname="Karnoweb.TaskManager.Tests.Scenarios.TM162Test" assertions="5" time="0.162170"/>
+      </testsuite>
+      <testsuite name="Karnoweb\TaskManager\Tests\Scenarios\TM163Test" file="D:\my-packages\task-manager\tests\Scenarios\TM163Test.php" tests="1" assertions="5" errors="0" failures="0" skipped="0" time="0.164698">
+        <testcase name="test_scenario" file="D:\my-packages\task-manager\tests\Scenarios\TM163Test.php" line="10" class="Karnoweb\TaskManager\Tests\Scenarios\TM163Test" classname="Karnoweb.TaskManager.Tests.Scenarios.TM163Test" assertions="5" time="0.164698"/>
+      </testsuite>
+      <testsuite name="Karnoweb\TaskManager\Tests\Scenarios\TM164Test" file="D:\my-packages\task-manager\tests\Scenarios\TM164Test.php" tests="1" assertions="5" errors="0" failures="0" skipped="0" time="0.163616">
+        <testcase name="test_scenario" file="D:\my-packages\task-manager\tests\Scenarios\TM164Test.php" line="10" class="Karnoweb\TaskManager\Tests\Scenarios\TM164Test" classname="Karnoweb.TaskManager.Tests.Scenarios.TM164Test" assertions="5" time="0.163616"/>
+      </testsuite>
+      <testsuite name="Karnoweb\TaskManager\Tests\Scenarios\TM165Test" file="D:\my-packages\task-manager\tests\Scenarios\TM165Test.php" tests="1" assertions="8" errors="0" failures="0" skipped="0" time="0.165678">
+        <testcase name="test_scenario" file="D:\my-packages\task-manager\tests\Scenarios\TM165Test.php" line="10" class="Karnoweb\TaskManager\Tests\Scenarios\TM165Test" classname="Karnoweb.TaskManager.Tests.Scenarios.TM165Test" assertions="8" time="0.165678"/>
+      </testsuite>
+      <testsuite name="Karnoweb\TaskManager\Tests\Scenarios\TM188Test" file="D:\my-packages\task-manager\tests\Scenarios\TM188Test.php" tests="1" assertions="7" errors="0" failures="0" skipped="0" time="0.218413">
+        <testcase name="test_scenario" file="D:\my-packages\task-manager\tests\Scenarios\TM188Test.php" line="10" class="Karnoweb\TaskManager\Tests\Scenarios\TM188Test" classname="Karnoweb.TaskManager.Tests.Scenarios.TM188Test" assertions="7" time="0.218413"/>
+      </testsuite>
+      <testsuite name="Karnoweb\TaskManager\Tests\Scenarios\TM189Test" file="D:\my-packages\task-manager\tests\Scenarios\TM189Test.php" tests="1" assertions="6" errors="0" failures="0" skipped="0" time="0.191937">
+        <testcase name="test_scenario" file="D:\my-packages\task-manager\tests\Scenarios\TM189Test.php" line="10" class="Karnoweb\TaskManager\Tests\Scenarios\TM189Test" classname="Karnoweb.TaskManager.Tests.Scenarios.TM189Test" assertions="6" time="0.191937"/>
+      </testsuite>
+      <testsuite name="Karnoweb\TaskManager\Tests\Scenarios\TM190Test" file="D:\my-packages\task-manager\tests\Scenarios\TM190Test.php" tests="1" assertions="0" errors="0" failures="0" skipped="1" time="0.137938">
+        <testcase name="test_scenario" file="D:\my-packages\task-manager\tests\Scenarios\TM190Test.php" line="10" class="Karnoweb\TaskManager\Tests\Scenarios\TM190Test" classname="Karnoweb.TaskManager.Tests.Scenarios.TM190Test" assertions="0" time="0.137938">
+          <skipped/>
+        </testcase>
+      </testsuite>
+      <testsuite name="Karnoweb\TaskManager\Tests\Scenarios\TM191Test" file="D:\my-packages\task-manager\tests\Scenarios\TM191Test.php" tests="1" assertions="6" errors="0" failures="0" skipped="0" time="0.184216">
+        <testcase name="test_scenario" file="D:\my-packages\task-manager\tests\Scenarios\TM191Test.php" line="10" class="Karnoweb\TaskManager\Tests\Scenarios\TM191Test" classname="Karnoweb.TaskManager.Tests.Scenarios.TM191Test" assertions="6" time="0.184216"/>
+      </testsuite>
+      <testsuite name="Karnoweb\TaskManager\Tests\Scenarios\TM193Test" file="D:\my-packages\task-manager\tests\Scenarios\TM193Test.php" tests="1" assertions="9" errors="0" failures="0" skipped="0" time="0.227441">
+        <testcase name="test_scenario" file="D:\my-packages\task-manager\tests\Scenarios\TM193Test.php" line="10" class="Karnoweb\TaskManager\Tests\Scenarios\TM193Test" classname="Karnoweb.TaskManager.Tests.Scenarios.TM193Test" assertions="9" time="0.227441"/>
+      </testsuite>
+      <testsuite name="Karnoweb\TaskManager\Tests\Scenarios\TM194Test" file="D:\my-packages\task-manager\tests\Scenarios\TM194Test.php" tests="1" assertions="8" errors="0" failures="0" skipped="0" time="0.233202">
+        <testcase name="test_scenario" file="D:\my-packages\task-manager\tests\Scenarios\TM194Test.php" line="10" class="Karnoweb\TaskManager\Tests\Scenarios\TM194Test" classname="Karnoweb.TaskManager.Tests.Scenarios.TM194Test" assertions="8" time="0.233202"/>
+      </testsuite>
+      <testsuite name="Karnoweb\TaskManager\Tests\Scenarios\TM195Test" file="D:\my-packages\task-manager\tests\Scenarios\TM195Test.php" tests="1" assertions="10" errors="0" failures="0" skipped="0" time="0.199067">
+        <testcase name="test_scenario" file="D:\my-packages\task-manager\tests\Scenarios\TM195Test.php" line="10" class="Karnoweb\TaskManager\Tests\Scenarios\TM195Test" classname="Karnoweb.TaskManager.Tests.Scenarios.TM195Test" assertions="10" time="0.199067"/>
+      </testsuite>
+      <testsuite name="Karnoweb\TaskManager\Tests\Scenarios\TM196Test" file="D:\my-packages\task-manager\tests\Scenarios\TM196Test.php" tests="1" assertions="8" errors="0" failures="0" skipped="0" time="0.216275">
+        <testcase name="test_scenario" file="D:\my-packages\task-manager\tests\Scenarios\TM196Test.php" line="10" class="Karnoweb\TaskManager\Tests\Scenarios\TM196Test" classname="Karnoweb.TaskManager.Tests.Scenarios.TM196Test" assertions="8" time="0.216275"/>
+      </testsuite>
+      <testsuite name="Karnoweb\TaskManager\Tests\Scenarios\TM197Test" file="D:\my-packages\task-manager\tests\Scenarios\TM197Test.php" tests="1" assertions="3" errors="0" failures="0" skipped="0" time="0.205859">
+        <testcase name="test_scenario" file="D:\my-packages\task-manager\tests\Scenarios\TM197Test.php" line="10" class="Karnoweb\TaskManager\Tests\Scenarios\TM197Test" classname="Karnoweb.TaskManager.Tests.Scenarios.TM197Test" assertions="3" time="0.205859"/>
+      </testsuite>
+      <testsuite name="Karnoweb\TaskManager\Tests\Scenarios\TM198Test" file="D:\my-packages\task-manager\tests\Scenarios\TM198Test.php" tests="1" assertions="6" errors="0" failures="0" skipped="0" time="0.199619">
+        <testcase name="test_scenario" file="D:\my-packages\task-manager\tests\Scenarios\TM198Test.php" line="10" class="Karnoweb\TaskManager\Tests\Scenarios\TM198Test" classname="Karnoweb.TaskManager.Tests.Scenarios.TM198Test" assertions="6" time="0.199619"/>
+      </testsuite>
+      <testsuite name="Karnoweb\TaskManager\Tests\Scenarios\TM200Test" file="D:\my-packages\task-manager\tests\Scenarios\TM200Test.php" tests="1" assertions="5" errors="0" failures="0" skipped="0" time="0.159692">
+        <testcase name="test_scenario" file="D:\my-packages\task-manager\tests\Scenarios\TM200Test.php" line="10" class="Karnoweb\TaskManager\Tests\Scenarios\TM200Test" classname="Karnoweb.TaskManager.Tests.Scenarios.TM200Test" assertions="5" time="0.159692"/>
+      </testsuite>
+      <testsuite name="Karnoweb\TaskManager\Tests\Scenarios\TM201Test" file="D:\my-packages\task-manager\tests\Scenarios\TM201Test.php" tests="1" assertions="6" errors="0" failures="0" skipped="0" time="0.195944">
+        <testcase name="test_scenario" file="D:\my-packages\task-manager\tests\Scenarios\TM201Test.php" line="10" class="Karnoweb\TaskManager\Tests\Scenarios\TM201Test" classname="Karnoweb.TaskManager.Tests.Scenarios.TM201Test" assertions="6" time="0.195944"/>
+      </testsuite>
+      <testsuite name="Karnoweb\TaskManager\Tests\Scenarios\TM202Test" file="D:\my-packages\task-manager\tests\Scenarios\TM202Test.php" tests="1" assertions="7" errors="0" failures="0" skipped="0" time="0.211438">
+        <testcase name="test_scenario" file="D:\my-packages\task-manager\tests\Scenarios\TM202Test.php" line="10" class="Karnoweb\TaskManager\Tests\Scenarios\TM202Test" classname="Karnoweb.TaskManager.Tests.Scenarios.TM202Test" assertions="7" time="0.211438"/>
+      </testsuite>
+      <testsuite name="Karnoweb\TaskManager\Tests\Scenarios\TM203Test" file="D:\my-packages\task-manager\tests\Scenarios\TM203Test.php" tests="1" assertions="0" errors="0" failures="0" skipped="1" time="0.151156">
+        <testcase name="test_scenario" file="D:\my-packages\task-manager\tests\Scenarios\TM203Test.php" line="10" class="Karnoweb\TaskManager\Tests\Scenarios\TM203Test" classname="Karnoweb.TaskManager.Tests.Scenarios.TM203Test" assertions="0" time="0.151156">
+          <skipped/>
+        </testcase>
+      </testsuite>
+      <testsuite name="Karnoweb\TaskManager\Tests\Scenarios\TM204Test" file="D:\my-packages\task-manager\tests\Scenarios\TM204Test.php" tests="1" assertions="4" errors="0" failures="0" skipped="0" time="0.201717">
+        <testcase name="test_scenario" file="D:\my-packages\task-manager\tests\Scenarios\TM204Test.php" line="10" class="Karnoweb\TaskManager\Tests\Scenarios\TM204Test" classname="Karnoweb.TaskManager.Tests.Scenarios.TM204Test" assertions="4" time="0.201717"/>
+      </testsuite>
+      <testsuite name="Karnoweb\TaskManager\Tests\Scenarios\TM205Test" file="D:\my-packages\task-manager\tests\Scenarios\TM205Test.php" tests="1" assertions="4" errors="0" failures="0" skipped="0" time="0.183702">
+        <testcase name="test_scenario" file="D:\my-packages\task-manager\tests\Scenarios\TM205Test.php" line="10" class="Karnoweb\TaskManager\Tests\Scenarios\TM205Test" classname="Karnoweb.TaskManager.Tests.Scenarios.TM205Test" assertions="4" time="0.183702"/>
+      </testsuite>
+      <testsuite name="Karnoweb\TaskManager\Tests\Scenarios\TM207Test" file="D:\my-packages\task-manager\tests\Scenarios\TM207Test.php" tests="1" assertions="4" errors="0" failures="0" skipped="0" time="0.167663">
+        <testcase name="test_scenario" file="D:\my-packages\task-manager\tests\Scenarios\TM207Test.php" line="10" class="Karnoweb\TaskManager\Tests\Scenarios\TM207Test" classname="Karnoweb.TaskManager.Tests.Scenarios.TM207Test" assertions="4" time="0.167663"/>
+      </testsuite>
+      <testsuite name="Karnoweb\TaskManager\Tests\Scenarios\TM208Test" file="D:\my-packages\task-manager\tests\Scenarios\TM208Test.php" tests="1" assertions="5" errors="0" failures="0" skipped="0" time="0.163126">
+        <testcase name="test_scenario" file="D:\my-packages\task-manager\tests\Scenarios\TM208Test.php" line="12" class="Karnoweb\TaskManager\Tests\Scenarios\TM208Test" classname="Karnoweb.TaskManager.Tests.Scenarios.TM208Test" assertions="5" time="0.163126"/>
+      </testsuite>
+      <testsuite name="Karnoweb\TaskManager\Tests\Scenarios\TM212Test" file="D:\my-packages\task-manager\tests\Scenarios\TM212Test.php" tests="1" assertions="6" errors="0" failures="0" skipped="0" time="0.159821">
+        <testcase name="test_scenario" file="D:\my-packages\task-manager\tests\Scenarios\TM212Test.php" line="10" class="Karnoweb\TaskManager\Tests\Scenarios\TM212Test" classname="Karnoweb.TaskManager.Tests.Scenarios.TM212Test" assertions="6" time="0.159821"/>
+      </testsuite>
+      <testsuite name="Karnoweb\TaskManager\Tests\SlaConcurrencyTest" file="D:\my-packages\task-manager\tests\SlaConcurrencyTest.php" tests="1" assertions="0" errors="0" failures="0" skipped="1" time="0.193047">
+        <testcase name="test_two_watchdogs_produce_one_event_and_one_notification_intent" file="D:\my-packages\task-manager\tests\SlaConcurrencyTest.php" line="10" class="Karnoweb\TaskManager\Tests\SlaConcurrencyTest" classname="Karnoweb.TaskManager.Tests.SlaConcurrencyTest" assertions="0" time="0.193047">
+          <skipped/>
+        </testcase>
+      </testsuite>
+      <testsuite name="Karnoweb\TaskManager\Tests\SlaCoreTest" file="D:\my-packages\task-manager\tests\SlaCoreTest.php" tests="16" assertions="83" errors="0" failures="0" skipped="0" time="4.119829">
+        <testcase name="test_warning_and_breach_boundaries_are_exact_and_idempotent" file="D:\my-packages\task-manager\tests\SlaCoreTest.php" line="11" class="Karnoweb\TaskManager\Tests\SlaCoreTest" classname="Karnoweb.TaskManager.Tests.SlaCoreTest" assertions="9" time="0.325338"/>
+        <testcase name="test_iran_business_calendar_skips_friday_and_holidays" file="D:\my-packages\task-manager\tests\SlaCoreTest.php" line="23" class="Karnoweb\TaskManager\Tests\SlaCoreTest" classname="Karnoweb.TaskManager.Tests.SlaCoreTest" assertions="3" time="0.238105"/>
+        <testcase name="test_pause_resume_preserves_remaining_time_and_pause_metrics_across_repeats" file="D:\my-packages\task-manager\tests\SlaCoreTest.php" line="33" class="Karnoweb\TaskManager\Tests\SlaCoreTest" classname="Karnoweb.TaskManager.Tests.SlaCoreTest" assertions="9" time="0.291341"/>
+        <testcase name="test_cumulative_reentry_uses_previous_work_without_rewriting_old_visits" file="D:\my-packages\task-manager\tests\SlaCoreTest.php" line="48" class="Karnoweb\TaskManager\Tests\SlaCoreTest" classname="Karnoweb.TaskManager.Tests.SlaCoreTest" assertions="5" time="0.226614"/>
+        <testcase name="test_policy_revision_does_not_change_existing_visit_deadline" file="D:\my-packages\task-manager\tests\SlaCoreTest.php" line="58" class="Karnoweb\TaskManager\Tests\SlaCoreTest" classname="Karnoweb.TaskManager.Tests.SlaCoreTest" assertions="3" time="0.239959"/>
+        <testcase name="test_stale_and_dead_candidate_are_labels_and_activity_starts_new_stale_epoch" file="D:\my-packages\task-manager\tests\SlaCoreTest.php" line="67" class="Karnoweb\TaskManager\Tests\SlaCoreTest" classname="Karnoweb.TaskManager.Tests.SlaCoreTest" assertions="9" time="0.326507"/>
+        <testcase name="test_auto_transition_without_permission_or_with_host_veto_is_manual_review" file="D:\my-packages\task-manager\tests\SlaCoreTest.php" line="81" class="Karnoweb\TaskManager\Tests\SlaCoreTest" classname="Karnoweb.TaskManager.Tests.SlaCoreTest" assertions="4" time="0.219149"/>
+        <testcase name="test_job_for_exited_stage_never_changes_new_stage" file="D:\my-packages\task-manager\tests\SlaCoreTest.php" line="91" class="Karnoweb\TaskManager\Tests\SlaCoreTest" classname="Karnoweb.TaskManager.Tests.SlaCoreTest" assertions="3" time="0.235392"/>
+        <testcase name="test_reset_is_a_new_clock_epoch_and_not_resume" file="D:\my-packages\task-manager\tests\SlaCoreTest.php" line="98" class="Karnoweb\TaskManager\Tests\SlaCoreTest" classname="Karnoweb.TaskManager.Tests.SlaCoreTest" assertions="5" time="0.288143"/>
+        <testcase name="test_calendar_and_pause_inputs_fail_closed" file="D:\my-packages\task-manager\tests\SlaCoreTest.php" line="107" class="Karnoweb\TaskManager\Tests\SlaCoreTest" classname="Karnoweb.TaskManager.Tests.SlaCoreTest" assertions="3" time="0.230181"/>
+        <testcase name="test_auto_transition_obeys_host_veto_without_committing_host_side_effect" file="D:\my-packages\task-manager\tests\SlaCoreTest.php" line="115" class="Karnoweb\TaskManager\Tests\SlaCoreTest" classname="Karnoweb.TaskManager.Tests.SlaCoreTest" assertions="5" time="0.268863"/>
+        <testcase name="test_authorized_auto_transition_runs_through_the_workflow_engine_and_resolves_old_visit" file="D:\my-packages\task-manager\tests\SlaCoreTest.php" line="125" class="Karnoweb\TaskManager\Tests\SlaCoreTest" classname="Karnoweb.TaskManager.Tests.SlaCoreTest" assertions="6" time="0.249976"/>
+        <testcase name="test_pause_requires_capability_reason_and_current_version_and_cannot_move_clock_backwards" file="D:\my-packages\task-manager\tests\SlaCoreTest.php" line="135" class="Karnoweb\TaskManager\Tests\SlaCoreTest" classname="Karnoweb.TaskManager.Tests.SlaCoreTest" assertions="5" time="0.241214"/>
+        <testcase name="test_dst_shift_boundaries_are_rejected_when_ambiguous_or_nonexistent" file="D:\my-packages\task-manager\tests\SlaCoreTest.php" line="148" class="Karnoweb\TaskManager\Tests\SlaCoreTest" classname="Karnoweb.TaskManager.Tests.SlaCoreTest" assertions="2" time="0.183286"/>
+        <testcase name="test_terminal_auto_fail_keeps_terminal_visit_and_frees_active_slot" file="D:\my-packages\task-manager\tests\SlaCoreTest.php" line="156" class="Karnoweb\TaskManager\Tests\SlaCoreTest" classname="Karnoweb.TaskManager.Tests.SlaCoreTest" assertions="8" time="0.248281"/>
+        <testcase name="test_watchdog_recovers_pending_dead_candidate_after_prior_thresholds_committed" file="D:\my-packages\task-manager\tests\SlaCoreTest.php" line="171" class="Karnoweb\TaskManager\Tests\SlaCoreTest" classname="Karnoweb.TaskManager.Tests.SlaCoreTest" assertions="4" time="0.307481"/>
+      </testsuite>
+      <testsuite name="Karnoweb\TaskManager\Tests\WorkflowConcurrencyTest" file="D:\my-packages\task-manager\tests\WorkflowConcurrencyTest.php" tests="2" assertions="0" errors="0" failures="0" skipped="2" time="0.459253">
+        <testcase name="test_same_slot_concurrent_start_has_one_winner_and_no_orphan_instance" file="D:\my-packages\task-manager\tests\WorkflowConcurrencyTest.php" line="32" class="Karnoweb\TaskManager\Tests\WorkflowConcurrencyTest" classname="Karnoweb.TaskManager.Tests.WorkflowConcurrencyTest" assertions="0" time="0.233093">
+          <skipped/>
+        </testcase>
+        <testcase name="test_wip_one_serializes_competing_transitions_using_stage_lock" file="D:\my-packages\task-manager\tests\WorkflowConcurrencyTest.php" line="42" class="Karnoweb\TaskManager\Tests\WorkflowConcurrencyTest" classname="Karnoweb.TaskManager.Tests.WorkflowConcurrencyTest" assertions="0" time="0.226160">
+          <skipped/>
+        </testcase>
+      </testsuite>
+      <testsuite name="Karnoweb\TaskManager\Tests\WorkflowCoreTest" file="D:\my-packages\task-manager\tests\WorkflowCoreTest.php" tests="12" assertions="73" errors="0" failures="0" skipped="0" time="2.762481">
+        <testcase name="test_external_subject_keeps_identity_and_is_not_copied_to_tasks" file="D:\my-packages\task-manager\tests\WorkflowCoreTest.php" line="10" class="Karnoweb\TaskManager\Tests\WorkflowCoreTest" classname="Karnoweb.TaskManager.Tests.WorkflowCoreTest" assertions="6" time="0.279889"/>
+        <testcase name="test_invalid_transition_required_fields_self_action_and_cancel" file="D:\my-packages\task-manager\tests\WorkflowCoreTest.php" line="19" class="Karnoweb\TaskManager\Tests\WorkflowCoreTest" classname="Karnoweb.TaskManager.Tests.WorkflowCoreTest" assertions="8" time="0.230535"/>
+        <testcase name="test_host_veto_rolls_back_host_domain_history_journal_and_outbox" file="D:\my-packages\task-manager\tests\WorkflowCoreTest.php" line="33" class="Karnoweb\TaskManager\Tests\WorkflowCoreTest" classname="Karnoweb.TaskManager.Tests.WorkflowCoreTest" assertions="7" time="0.189777"/>
+        <testcase name="test_external_permissions_are_applied_before_count_facets_and_paging" file="D:\my-packages\task-manager\tests\WorkflowCoreTest.php" line="43" class="Karnoweb\TaskManager\Tests\WorkflowCoreTest" classname="Karnoweb.TaskManager.Tests.WorkflowCoreTest" assertions="7" time="0.225234"/>
+        <testcase name="test_slots_are_independent_duplicates_rejected_and_terminal_frees_slot" file="D:\my-packages\task-manager\tests\WorkflowCoreTest.php" line="53" class="Karnoweb\TaskManager\Tests\WorkflowCoreTest" classname="Karnoweb.TaskManager.Tests.WorkflowCoreTest" assertions="7" time="0.242688"/>
+        <testcase name="test_stage_reentry_and_pipeline_move_preserve_visits_and_subject_identity" file="D:\my-packages\task-manager\tests\WorkflowCoreTest.php" line="66" class="Karnoweb\TaskManager\Tests\WorkflowCoreTest" classname="Karnoweb.TaskManager.Tests.WorkflowCoreTest" assertions="7" time="0.284335"/>
+        <testcase name="test_stage_mapping_validation_ambiguity_and_capacity" file="D:\my-packages\task-manager\tests\WorkflowCoreTest.php" line="79" class="Karnoweb\TaskManager\Tests\WorkflowCoreTest" classname="Karnoweb.TaskManager.Tests.WorkflowCoreTest" assertions="5" time="0.256939"/>
+        <testcase name="test_project_membership_revocation_is_immediate_even_for_task_owner" file="D:\my-packages\task-manager\tests\WorkflowCoreTest.php" line="94" class="Karnoweb\TaskManager\Tests\WorkflowCoreTest" classname="Karnoweb.TaskManager.Tests.WorkflowCoreTest" assertions="9" time="0.237727"/>
+        <testcase name="test_project_workflow_revisions_are_immutable_and_migration_requires_fresh_complete_map" file="D:\my-packages\task-manager\tests\WorkflowCoreTest.php" line="109" class="Karnoweb\TaskManager\Tests\WorkflowCoreTest" classname="Karnoweb.TaskManager.Tests.WorkflowCoreTest" assertions="6" time="0.215172"/>
+        <testcase name="test_case_timeline_filters_subject_permissions_without_private_host_text" file="D:\my-packages\task-manager\tests\WorkflowCoreTest.php" line="124" class="Karnoweb\TaskManager\Tests\WorkflowCoreTest" classname="Karnoweb.TaskManager.Tests.WorkflowCoreTest" assertions="4" time="0.200127"/>
+        <testcase name="test_legacy_host_writer_is_reported_as_conflict_and_alias_remains_stable" file="D:\my-packages\task-manager\tests\WorkflowCoreTest.php" line="134" class="Karnoweb\TaskManager\Tests\WorkflowCoreTest" classname="Karnoweb.TaskManager.Tests.WorkflowCoreTest" assertions="4" time="0.212227"/>
+        <testcase name="test_board_visibility_does_not_mutate_state_journal_or_events" file="D:\my-packages\task-manager\tests\WorkflowCoreTest.php" line="142" class="Karnoweb\TaskManager\Tests\WorkflowCoreTest" classname="Karnoweb.TaskManager.Tests.WorkflowCoreTest" assertions="3" time="0.187831"/>
+      </testsuite>
+      <testsuite name="Karnoweb\TaskManager\Tests\WorkflowSecurityTest" file="D:\my-packages\task-manager\tests\WorkflowSecurityTest.php" tests="8" assertions="27" errors="0" failures="0" skipped="0" time="1.470491">
+        <testcase name="test_definition_rejects_malformed_arrays_and_unsafe_condition_operators" file="D:\my-packages\task-manager\tests\WorkflowSecurityTest.php" line="12" class="Karnoweb\TaskManager\Tests\WorkflowSecurityTest" classname="Karnoweb.TaskManager.Tests.WorkflowSecurityTest" assertions="5" time="0.172008"/>
+        <testcase name="test_subject_conditions_cannot_be_overwritten_by_caller_payload" file="D:\my-packages\task-manager\tests\WorkflowSecurityTest.php" line="25" class="Karnoweb\TaskManager\Tests\WorkflowSecurityTest" classname="Karnoweb.TaskManager.Tests.WorkflowSecurityTest" assertions="3" time="0.194264"/>
+        <testcase name="test_unknown_reason_code_cannot_close_instance" file="D:\my-packages\task-manager\tests\WorkflowSecurityTest.php" line="35" class="Karnoweb\TaskManager\Tests\WorkflowSecurityTest" classname="Karnoweb.TaskManager.Tests.WorkflowSecurityTest" assertions="3" time="0.207815"/>
+        <testcase name="test_external_only_service_actor_does_not_need_native_task_capabilities" file="D:\my-packages\task-manager\tests\WorkflowSecurityTest.php" line="43" class="Karnoweb\TaskManager\Tests\WorkflowSecurityTest" classname="Karnoweb.TaskManager.Tests.WorkflowSecurityTest" assertions="3" time="0.191902"/>
+        <testcase name="test_workflow_migration_rejects_preview_after_instance_changes_without_partial_writes" file="D:\my-packages\task-manager\tests\WorkflowSecurityTest.php" line="51" class="Karnoweb\TaskManager\Tests\WorkflowSecurityTest" classname="Karnoweb.TaskManager.Tests.WorkflowSecurityTest" assertions="4" time="0.177340"/>
+        <testcase name="test_downgrade_refuses_to_discard_external_identity" file="D:\my-packages\task-manager\tests\WorkflowSecurityTest.php" line="64" class="Karnoweb\TaskManager\Tests\WorkflowSecurityTest" classname="Karnoweb.TaskManager.Tests.WorkflowSecurityTest" assertions="3" time="0.173313"/>
+        <testcase name="test_default_revision_migration_preserves_closed_history_and_type_overrides" file="D:\my-packages\task-manager\tests\WorkflowSecurityTest.php" line="74" class="Karnoweb\TaskManager\Tests\WorkflowSecurityTest" classname="Karnoweb.TaskManager.Tests.WorkflowSecurityTest" assertions="4" time="0.215723"/>
+        <testcase name="test_inaccessible_and_nonexistent_case_timelines_are_indistinguishable" file="D:\my-packages\task-manager\tests\WorkflowSecurityTest.php" line="95" class="Karnoweb\TaskManager\Tests\WorkflowSecurityTest" classname="Karnoweb.TaskManager.Tests.WorkflowSecurityTest" assertions="2" time="0.138126"/>
+      </testsuite>
+    </testsuite>
+  </testsuite>
+</testsuites>

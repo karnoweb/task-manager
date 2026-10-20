@@ -20,6 +20,7 @@ final class Definition
             if (!is_array($edge) || !is_string($edge['from'] ?? null) || !is_string($edge['to'] ?? null)
                 || !isset($states[$edge['from']], $states[$edge['to']])) { throw new DomainError('transition_invalid'); }
             if (isset($edge['reason_required']) && !is_bool($edge['reason_required'])) { throw new DomainError('transition_invalid'); }
+            if (isset($edge['allow_while_waiting']) && !is_bool($edge['allow_while_waiting'])) { throw new DomainError('transition_invalid'); }
             if (isset($edge['conditions']) && (!is_array($edge['conditions']) || !array_is_list($edge['conditions']))) { throw new DomainError('condition_invalid'); }
             foreach (['required_fields', 'roles', 'guards', 'reason_codes'] as $field) {
                 if (isset($edge[$field]) && (!is_array($edge[$field]) || !array_is_list($edge[$field]))) { throw new DomainError('transition_invalid'); }

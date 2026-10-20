@@ -84,7 +84,7 @@ final class InstanceService
         if (($revision['definition']['states'][$initial]['terminal'] ?? 'none') !== 'none') { throw new DomainError('initial_state_terminal'); }
         return $this->command($context, $operation, ['action' => 'start_instance', 'type' => $type, 'subject' => $subjectId, 'revision' => $revisionId, 'slot' => $slot, 'pipeline' => $pipelineKey, 'stage' => $stageKey, 'case' => $caseKey], function () use ($context, $type, $subjectId, $revisionId, $revision, $pipeline, $stageKey, $initial, $slot, $caseKey, $operation) {
             $subject = $this->subject($context, $type, $subjectId, 'edit', true);
-            $this->subjects->handler($type)->guard($context, $subjectId, [], 'start', []);
+            $this->subjects->handler($type)->guard($context, $subjectId, [], 'start', ['pipeline_key' => $pipeline['pipeline_key'] ?? null, 'revision_id' => $revisionId, 'slot' => $slot, 'state' => $initial, 'stage_key' => $stageKey]);
             $caseId = null;
             if ($caseKey !== null) {
                 $case = $this->db->table('tm_process_cases')->where('scope_key', $context->scope)->where('case_key', $caseKey)->where('owner_ref', $context->actor)->first();
@@ -116,6 +116,7 @@ final class InstanceService
             $definition = $this->workflows->revision($context, $instance['workflow_revision_id'])['definition'];
             $edge = $definition['transitions'][$transition] ?? null;
             if (!$edge || $edge['from'] !== $instance['current_state_key']) { throw new DomainError('transition_invalid'); }
+            if ($instance['lifecycle'] === 'waiting' && !($edge['allow_while_waiting'] ?? false)) { throw new DomainError('instance_on_hold'); }
             foreach ($edge['required_fields'] ?? [] as $field) { if (!array_key_exists($field, $payload) || $payload[$field] === null || $payload[$field] === '') { throw new DomainError('required_field_missing'); } }
             $needsReason = ($edge['reason_required'] ?? false) || in_array($definition['states'][$edge['to']]['terminal'] ?? 'none', ['failure', 'cancelled'], true);
             if ($needsReason && (!is_string($payload['reason_code'] ?? null) || trim($payload['reason_code']) === '')) { throw new DomainError('reason_required'); }
@@ -141,6 +142,7 @@ final class InstanceService
             $stage = $instance['pipeline_id'] === null ? null : $this->stage($instance['pipeline_id'], $state, $stageKey);
             $oldStage = $instance['pipeline_id'] === null ? null : $this->db->table('tm_pipeline_stages')->where('pipeline_id', $instance['pipeline_id'])->where('stage_key', $instance['active_stage_key'])->first();
             $stageChanged = $stage !== null && $stage->stage_key !== $instance['active_stage_key'];
+            if ($instance['lifecycle'] === 'waiting' && !$terminal && $stageChanged) { throw new DomainError('instance_on_hold'); }
             $this->lockStages(array_filter([$oldStage?->id, $stage?->id]));
             if ($stage !== null && !$terminal) { $this->capacity($context, $stage, $instance['id']); }
             if ($terminal) { $this->db->table('tm_active_process_slots')->where('instance_id', $instance['id'])->delete(); }
@@ -152,7 +154,7 @@ final class InstanceService
             }
             if ($stage === null && !$terminal && $instance['lifecycle'] === 'closed') { $this->lifecycle?->activated($context, $instance['id'], $operation); }
             $this->db->table('tm_workflow_instances')->where('id', $instance['id'])->update(['current_state_key' => $state, 'active_stage_key' => $stage?->stage_key,
-                'version' => $version + 1, 'lifecycle' => $terminal ? 'closed' : 'active', 'completed_at' => $terminal ? $this->now() : null]);
+                'version' => $version + 1, 'lifecycle' => $terminal ? 'closed' : ($instance['lifecycle'] === 'waiting' ? 'waiting' : 'active'), 'completed_at' => $terminal ? $this->now() : null]);
             if ($instance['task_id'] !== null) { $this->db->table('tm_tasks')->where('id', $instance['task_id'])->increment('version'); }
             $this->history($context, $instance, $state, $operation);
             if (!$stageChanged && !$terminal) { $this->lifecycle?->activity($context, $instance['id']); }
