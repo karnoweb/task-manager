@@ -8,4 +8,4 @@ query is bounded/paginated; count and facets apply SQL visibility predicates. ac
 
 createTodo accepts a typed CreateTodo command and returns a typed TaskResult. AuthorizationProvider is container-bound and adds host SQL constraints while retaining core owner/scope/capability restrictions. Tests verify that host denial applies to reads, counts, facets, updates, sharing and cached command replay.
 
-These signatures remain provisional until phase-six API freeze. Typed mutation/query/result DTOs still need expansion to constitute the complete DTO contract required by the plan.
+change accepts a typed MutateTask and returns TaskResult. findTasks accepts a typed TaskQuery and returns typed TaskResult objects with one SQL statement. inContext returns an immutable TaskSession supporting create/get/complete; the service and facade never retain its context. changeList supports optimistic name/rank/archive/restore mutations; Inbox changes and archiving a populated list are rejected. These signatures remain provisional until phase-six API freeze.

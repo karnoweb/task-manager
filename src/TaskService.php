@@ -19,6 +19,19 @@ final class TaskService
         return \Karnoweb\TaskManager\DTO\TaskResult::fromArray($this->create($command->context, $command->title, $command->operationId));
     }
 
+    public function inContext(ExecutionContext $context): TaskSession { return new TaskSession($this, $context); }
+
+    public function change(\Karnoweb\TaskManager\DTO\MutateTask $command): \Karnoweb\TaskManager\DTO\TaskResult
+    {
+        return \Karnoweb\TaskManager\DTO\TaskResult::fromArray($this->mutate($command->context, $command->publicKey, $command->expectedVersion, $command->operationId, $command->action, $command->values));
+    }
+
+    /** @return list<\Karnoweb\TaskManager\DTO\TaskResult> */
+    public function findTasks(\Karnoweb\TaskManager\DTO\TaskQuery $query): array
+    {
+        return array_map(\Karnoweb\TaskManager\DTO\TaskResult::fromArray(...), $this->query($query->context, $query->page, $query->limit));
+    }
+
     private function now(): string { return $this->clock->now()->setTimezone(new \DateTimeZone('UTC'))->format('Y-m-d H:i:s'); }
 
     private function authorize(ExecutionContext $context, string $capability): void
@@ -76,7 +89,10 @@ final class TaskService
     public function query(ExecutionContext $context, int $page = 1, int $limit = 30): array
     {
         if ($page < 1 || $limit < 1 || $limit > 100) { throw new DomainError('pagination_invalid'); }
-        return $this->visible($context)->whereNull('deleted_at')->whereNull('archived_at')->orderBy('public_key')
+        return $this->visible($context)->select('tm_tasks.*')
+            ->selectSub($this->db->table('tm_workflow_instances')->select('current_state_key')->whereColumn('task_id', 'tm_tasks.id')->limit(1), 'state')
+            ->selectSub($this->db->table('tm_workflow_instances')->select('completed_at')->whereColumn('task_id', 'tm_tasks.id')->limit(1), 'completed_at')
+            ->whereNull('deleted_at')->whereNull('archived_at')->orderBy('public_key')
             ->forPage($page, $limit)->get()->map(fn ($row) => (array) $row)->all();
     }
 
@@ -92,10 +108,11 @@ final class TaskService
             ->map(fn ($row) => ['priority' => $row->priority, 'total' => (int) $row->total])->all();
     }
 
-    private function ownedList(ExecutionContext $context, string $id): object
+    private function ownedList(ExecutionContext $context, string $id, bool $lock = false): object
     {
         $query = $this->db->table('tm_lists')->where('scope_key', $context->scope)->where('owner_ref', $context->actor)->where('id', $id);
         $this->authorization->constrain($query, $context, 'list', 'view');
+        if ($lock) { $query->lockForUpdate(); }
         $list = $query->first();
         if (!$list) { throw new DomainError('not_found'); }
         return $list;
@@ -106,7 +123,7 @@ final class TaskService
         $this->authorize($context, 'list.view');
         $query = $this->db->table('tm_lists')->where('scope_key', $context->scope)->where('owner_ref', $context->actor);
         $this->authorization->constrain($query, $context, 'list', 'view');
-        return $query->orderBy('id')->limit(100)->get()->map(fn ($row) => (array) $row)->all();
+        return $query->whereNull('archived_at')->orderBy('rank')->orderBy('id')->limit(100)->get()->map(fn ($row) => (array) $row)->all();
     }
 
     public function createList(ExecutionContext $context, string $name, string $operation): array
@@ -138,6 +155,29 @@ final class TaskService
             $this->db->table('tm_tasks')->where('public_key', $id)->update(['version' => $version + 1]);
             $this->record($context, $id, $revoke ? 'share_revoked' : 'shared', $operation);
             return $this->get($context, $id);
+        });
+    }
+
+    public function changeList(ExecutionContext $context, int $id, int $version, string $operation, array $values): array
+    {
+        $this->authorize($context, 'list.create');
+        return $this->command($context, $operation, ['action' => 'change_list', 'id' => $id, 'version' => $version, 'values' => $values], function () use ($context, $id, $version, $operation, $values) {
+            $this->ownedList($context, (string) $id);
+            $list = $this->db->table('tm_lists')->where('id', $id)->where('scope_key', $context->scope)->lockForUpdate()->first();
+            if ($list->version !== $version) { throw new DomainError('version_conflict'); }
+            if ($list->is_inbox) { throw new DomainError('inbox_immutable'); }
+            $changes = ['version' => $version + 1];
+            foreach ($values as $key => $value) {
+                if ($key === 'name' && is_string($value) && trim($value) !== '' && mb_strlen($value) <= 255 && $value !== 'Inbox') { $changes['name'] = trim($value); }
+                elseif ($key === 'rank' && is_string($value) && preg_match('/^-?\d{1,11}(\.\d{1,8})?$/D', $value)) { $changes['rank'] = $value; }
+                elseif ($key === 'archived' && is_bool($value)) {
+                    if ($value && $this->db->table('tm_tasks')->where('list_id', $id)->whereNull('deleted_at')->whereNull('archived_at')->exists()) { throw new DomainError('list_not_empty'); }
+                    $changes['archived_at'] = $value ? $this->now() : null;
+                } else { throw new DomainError('list_value_invalid'); }
+            }
+            $this->db->table('tm_lists')->where('id', $id)->update($changes);
+            $this->record($context, null, 'list_changed', $operation, metadata: ['list_id' => $id, 'fields' => array_keys($values)]);
+            return ['list_id' => $id, ...(array) $this->ownedList($context, (string) $id)];
         });
     }
 
@@ -194,7 +234,7 @@ final class TaskService
                 'key' => 'personal', 'revision' => 1, 'definition' => json_encode(['states' => ['pending', 'done'], 'transitions' => ['pending' => ['done'], 'done' => ['pending']]], JSON_THROW_ON_ERROR)]);
             $list = $this->db->table('tm_lists')->where('scope_key', $context->scope)->where('owner_ref', $context->actor)->where('name', 'Inbox')->first();
             if (!$list) {
-                $this->db->table('tm_lists')->insertOrIgnore(['scope_key' => $context->scope, 'owner_ref' => $context->actor, 'name' => 'Inbox']);
+                $this->db->table('tm_lists')->insertOrIgnore(['scope_key' => $context->scope, 'owner_ref' => $context->actor, 'name' => 'Inbox', 'is_inbox' => true]);
                 $listId = $this->db->table('tm_lists')->where('scope_key', $context->scope)->where('owner_ref', $context->actor)->where('name', 'Inbox')->value('id');
             } else { $listId = $list->id; }
             $id = (string) Str::uuid();
@@ -220,7 +260,8 @@ final class TaskService
             $changes = ['version' => $version + 1, 'updated_at' => $this->now()];
             if ($action === 'move_list') {
                 if ($task->owner_ref !== $context->actor) { throw new DomainError('access_denied'); }
-                $this->ownedList($context, $values['list_id'] ?? '');
+                $list = $this->ownedList($context, $values['list_id'] ?? '', true);
+                if ($list->archived_at !== null) { throw new DomainError('list_archived'); }
                 $changes['list_id'] = $values['list_id'];
                 // Moving lists preserves the task's existing rank.
             }
