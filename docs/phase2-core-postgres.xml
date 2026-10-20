@@ -1,0 +1,21 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<testsuites>
+  <testsuite name="D:\my-packages\task-manager\phpunit.xml" tests="12" assertions="73" errors="0" failures="0" skipped="0" time="5.895266">
+    <testsuite name="Package" tests="12" assertions="73" errors="0" failures="0" skipped="0" time="5.895266">
+      <testsuite name="Karnoweb\TaskManager\Tests\WorkflowCoreTest" file="D:\my-packages\task-manager\tests\WorkflowCoreTest.php" tests="12" assertions="73" errors="0" failures="0" skipped="0" time="5.895266">
+        <testcase name="test_external_subject_keeps_identity_and_is_not_copied_to_tasks" file="D:\my-packages\task-manager\tests\WorkflowCoreTest.php" line="10" class="Karnoweb\TaskManager\Tests\WorkflowCoreTest" classname="Karnoweb.TaskManager.Tests.WorkflowCoreTest" assertions="6" time="0.632404"/>
+        <testcase name="test_invalid_transition_required_fields_self_action_and_cancel" file="D:\my-packages\task-manager\tests\WorkflowCoreTest.php" line="19" class="Karnoweb\TaskManager\Tests\WorkflowCoreTest" classname="Karnoweb.TaskManager.Tests.WorkflowCoreTest" assertions="8" time="0.377860"/>
+        <testcase name="test_host_veto_rolls_back_host_domain_history_journal_and_outbox" file="D:\my-packages\task-manager\tests\WorkflowCoreTest.php" line="33" class="Karnoweb\TaskManager\Tests\WorkflowCoreTest" classname="Karnoweb.TaskManager.Tests.WorkflowCoreTest" assertions="7" time="0.356382"/>
+        <testcase name="test_external_permissions_are_applied_before_count_facets_and_paging" file="D:\my-packages\task-manager\tests\WorkflowCoreTest.php" line="43" class="Karnoweb\TaskManager\Tests\WorkflowCoreTest" classname="Karnoweb.TaskManager.Tests.WorkflowCoreTest" assertions="7" time="0.490376"/>
+        <testcase name="test_slots_are_independent_duplicates_rejected_and_terminal_frees_slot" file="D:\my-packages\task-manager\tests\WorkflowCoreTest.php" line="53" class="Karnoweb\TaskManager\Tests\WorkflowCoreTest" classname="Karnoweb.TaskManager.Tests.WorkflowCoreTest" assertions="7" time="0.493875"/>
+        <testcase name="test_stage_reentry_and_pipeline_move_preserve_visits_and_subject_identity" file="D:\my-packages\task-manager\tests\WorkflowCoreTest.php" line="66" class="Karnoweb\TaskManager\Tests\WorkflowCoreTest" classname="Karnoweb.TaskManager.Tests.WorkflowCoreTest" assertions="7" time="0.527933"/>
+        <testcase name="test_stage_mapping_validation_ambiguity_and_capacity" file="D:\my-packages\task-manager\tests\WorkflowCoreTest.php" line="79" class="Karnoweb\TaskManager\Tests\WorkflowCoreTest" classname="Karnoweb.TaskManager.Tests.WorkflowCoreTest" assertions="5" time="0.530315"/>
+        <testcase name="test_project_membership_revocation_is_immediate_even_for_task_owner" file="D:\my-packages\task-manager\tests\WorkflowCoreTest.php" line="94" class="Karnoweb\TaskManager\Tests\WorkflowCoreTest" classname="Karnoweb.TaskManager.Tests.WorkflowCoreTest" assertions="9" time="0.557750"/>
+        <testcase name="test_project_workflow_revisions_are_immutable_and_migration_requires_fresh_complete_map" file="D:\my-packages\task-manager\tests\WorkflowCoreTest.php" line="109" class="Karnoweb\TaskManager\Tests\WorkflowCoreTest" classname="Karnoweb.TaskManager.Tests.WorkflowCoreTest" assertions="6" time="0.599946"/>
+        <testcase name="test_case_timeline_filters_subject_permissions_without_private_host_text" file="D:\my-packages\task-manager\tests\WorkflowCoreTest.php" line="124" class="Karnoweb\TaskManager\Tests\WorkflowCoreTest" classname="Karnoweb.TaskManager.Tests.WorkflowCoreTest" assertions="4" time="0.452281"/>
+        <testcase name="test_legacy_host_writer_is_reported_as_conflict_and_alias_remains_stable" file="D:\my-packages\task-manager\tests\WorkflowCoreTest.php" line="134" class="Karnoweb\TaskManager\Tests\WorkflowCoreTest" classname="Karnoweb.TaskManager.Tests.WorkflowCoreTest" assertions="4" time="0.409865"/>
+        <testcase name="test_board_visibility_does_not_mutate_state_journal_or_events" file="D:\my-packages\task-manager\tests\WorkflowCoreTest.php" line="142" class="Karnoweb\TaskManager\Tests\WorkflowCoreTest" classname="Karnoweb.TaskManager.Tests.WorkflowCoreTest" assertions="3" time="0.466278"/>
+      </testsuite>
+    </testsuite>
+  </testsuite>
+</testsuites>

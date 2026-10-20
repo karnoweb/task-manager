@@ -50,20 +50,34 @@ final class TaskService
         $this->authorize($context, 'task.'.$capability);
         $query = $this->db->table('tm_tasks')->where('scope_key', $context->scope)
             ->where(function (Builder $q) use ($context, $capability) {
-                $q->where('owner_ref', $context->actor)->orWhereExists(function (Builder $grant) use ($context, $capability) {
+                $q->where(function (Builder $personal) use ($context, $capability) {
+                    $personal->whereNull('project_id')->where(function (Builder $owner) use ($context, $capability) {
+                        $owner->where('owner_ref', $context->actor)->orWhereExists(function (Builder $grant) use ($context, $capability) {
                     $grant->selectRaw('1')->from('tm_task_grants')->whereColumn('task_id', 'tm_tasks.id')
                         ->where('actor_ref', $context->actor)->where('capability', $capability);
+                        });
+                    });
+                })->orWhereExists(function (Builder $members) use ($context, $capability) {
+                    $members->selectRaw('1')->from('tm_project_members')->whereColumn('project_id', 'tm_tasks.project_id')->where('actor_ref', $context->actor)
+                        ->whereIn('role', $capability === 'view' ? ['manager', 'member', 'viewer'] : ['manager', 'member']);
                 });
             });
         $this->authorization->constrain($query, $context, 'task', $capability);
         return $query;
     }
 
+    public function authorizedQuery(ExecutionContext $context, string $capability = 'view'): Builder
+    {
+        if (!in_array($capability, ['view', 'edit'], true)) { throw new DomainError('capability_invalid'); }
+        return $this->visible($context, $capability);
+    }
+
     public function get(ExecutionContext $context, string $id): array
     {
+        if (!Str::isUuid($id)) { throw new DomainError('not_found'); }
         $task = $this->visible($context)->where('public_key', $id)->first();
         if (!$task) { throw new DomainError('not_found'); }
-        $instance = $this->db->table('tm_workflow_instances')->where('task_id', $task->id)->where('scope_key', $context->scope)->first();
+        $instance = $this->db->table('tm_workflow_instances')->where('task_id', $task->id)->where('scope_key', $context->scope)->where('slot_key', 'main')->orderByDesc('id')->first();
         return [...(array) $task, 'state' => $instance->current_state_key, 'completed_at' => $instance->completed_at];
     }
 
@@ -90,8 +104,8 @@ final class TaskService
     {
         if ($page < 1 || $limit < 1 || $limit > 100) { throw new DomainError('pagination_invalid'); }
         return $this->visible($context)->select('tm_tasks.*')
-            ->selectSub($this->db->table('tm_workflow_instances')->select('current_state_key')->whereColumn('task_id', 'tm_tasks.id')->limit(1), 'state')
-            ->selectSub($this->db->table('tm_workflow_instances')->select('completed_at')->whereColumn('task_id', 'tm_tasks.id')->limit(1), 'completed_at')
+            ->selectSub($this->db->table('tm_workflow_instances')->select('current_state_key')->whereColumn('task_id', 'tm_tasks.id')->where('slot_key', 'main')->orderByDesc('id')->limit(1), 'state')
+            ->selectSub($this->db->table('tm_workflow_instances')->select('completed_at')->whereColumn('task_id', 'tm_tasks.id')->where('slot_key', 'main')->orderByDesc('id')->limit(1), 'completed_at')
             ->whereNull('deleted_at')->whereNull('archived_at')->orderBy('public_key')
             ->forPage($page, $limit)->get()->map(fn ($row) => (array) $row)->all();
     }
@@ -213,6 +227,8 @@ final class TaskService
         $safeFields = array_flip(['version', 'priority', 'list_id', 'archived_at', 'deleted_at']);
         $snapshot = ['task_id' => $id, 'changed_field_paths' => array_keys($changed), 'before_redacted' => array_intersect_key($before, $safeFields),
             'after_redacted' => array_intersect_key((array) $task, $safeFields), 'metadata' => $metadata];
+        if (array_key_exists('title', $before)) { $snapshot['before_redacted']['title_hash'] = hash('sha256', $before['title']); }
+        if ($task !== null) { $snapshot['after_redacted']['title_hash'] = hash('sha256', $task->title); }
         $event = ['event_id' => (string) Str::uuid(), 'scope_key' => $context->scope, 'actor_ref' => $context->actor,
             'task_id' => $task?->id, 'action' => $action, 'operation_id' => $operation, 'correlation_id' => $context->correlationId,
             'payload' => json_encode($snapshot, JSON_THROW_ON_ERROR), 'occurred_at' => $this->now()];
@@ -243,7 +259,9 @@ final class TaskService
             $internalId = $this->db->table('tm_tasks')->insertGetId(['public_key' => $id, 'display_key' => $displayKey, 'scope_key' => $context->scope,
                 'owner_ref' => $context->actor, 'list_id' => $listId, 'title' => $title, 'description' => $description, 'priority' => $priority, 'title_search_normalized' => $this->normalize($title), 'created_at' => $now, 'updated_at' => $now]);
             $revisionId = $this->db->table('tm_workflow_definitions')->where('scope_key', $context->scope)->where('key', 'personal')->where('revision', 1)->value('id');
-            $this->db->table('tm_workflow_instances')->insert(['instance_key' => (string) Str::uuid(), 'scope_key' => $context->scope, 'task_id' => $internalId, 'workflow_revision_id' => $revisionId]);
+            $instanceId = $this->db->table('tm_workflow_instances')->insertGetId(['instance_key' => (string) Str::uuid(), 'scope_key' => $context->scope, 'task_id' => $internalId, 'workflow_revision_id' => $revisionId,
+                'subject_type' => 'task', 'subject_id' => $id, 'owner_ref' => $context->actor, 'primary_assignee' => $context->actor, 'started_at' => $now]);
+            $this->db->table('tm_active_process_slots')->insert(['scope_key' => $context->scope, 'subject_type' => 'task', 'subject_id' => $id, 'slot_key' => 'main', 'instance_id' => $instanceId]);
             $this->db->table('tm_task_key_aliases')->insert(['scope_key' => $context->scope, 'task_id' => $internalId, 'display_key' => $displayKey]);
             $this->record($context, $id, 'created', $operation);
             return $this->get($context, $id);
@@ -279,13 +297,19 @@ final class TaskService
             if (in_array($action, ['archive', 'restore'], true)) { $changes['archived_at'] = $action === 'archive' ? $now : null; }
             if (in_array($action, ['delete', 'undelete'], true)) { $changes['deleted_at'] = $action === 'delete' ? $now : null; }
             if (in_array($action, ['complete', 'reopen'], true)) {
-                $instance = $this->db->table('tm_workflow_instances')->where('task_id', $task->id)->lockForUpdate()->first();
+                if ($task->project_id !== null) { throw new DomainError('workflow_command_required'); }
+                $instance = $this->db->table('tm_workflow_instances')->where('task_id', $task->id)->where('slot_key', 'main')->orderByDesc('id')->lockForUpdate()->first();
                 $state = $action === 'complete' ? 'done' : 'pending';
                 if ($instance->current_state_key === $state) { throw new DomainError('transition_invalid'); }
                 $this->db->table('tm_instance_transitions')->insert(['scope_key' => $context->scope, 'instance_id' => $instance->id,
                     'from_state' => $instance->current_state_key, 'to_state' => $state, 'actor_ref' => $context->actor, 'operation_id' => $operation, 'occurred_at' => $now]);
-                $this->db->table('tm_workflow_instances')->where('task_id', $task->id)->update(['current_state_key' => $state,
+                $this->db->table('tm_workflow_instances')->where('id', $instance->id)->update(['current_state_key' => $state, 'lifecycle' => $state === 'done' ? 'closed' : 'active',
                     'completed_at' => $state === 'done' ? $now : null, 'version' => $instance->version + 1]);
+                if ($state === 'done') { $this->db->table('tm_active_process_slots')->where('instance_id', $instance->id)->delete(); }
+                else {
+                    $reserved = $this->db->table('tm_active_process_slots')->insertOrIgnore(['scope_key' => $context->scope, 'subject_type' => 'task', 'subject_id' => $id, 'slot_key' => 'main', 'instance_id' => $instance->id]);
+                    if (!$reserved) { throw new DomainError('active_slot_conflict'); }
+                }
             }
             $changed = $this->visible($context, 'edit')->where('public_key', $id)->where('version', $version)->update($changes);
             if ($changed !== 1) { throw new DomainError('version_conflict'); }

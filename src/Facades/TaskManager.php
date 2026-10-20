@@ -9,6 +9,6 @@ final class TaskManager extends Facade
 {
     protected static function getFacadeAccessor(): string
     {
-        return TaskService::class;
+        return \Karnoweb\TaskManager\TaskManager::class;
     }
 }

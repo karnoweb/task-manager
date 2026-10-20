@@ -1,35 +1,35 @@
 # Acceptance implementation status
 
-Work in progress. This is not a phase-seven run. Only observed phase-one scenario results are marked PASS; all other required IDs remain NOT RUN.
+Work in progress. This is not a phase-seven run. PASS records only the observed phase-one/two scope in the PostgreSQL report; final cross-module and UI acceptance remain pending.
 
 | ID | Current evidence |
 |---|---|
-| TM-001 | PASS (foundation PostgreSQL only) |
-| TM-002 | PASS (foundation PostgreSQL only) |
-| TM-003 | PASS (foundation PostgreSQL only) |
+| TM-001 | PASS (phase-one/two PostgreSQL scope) |
+| TM-002 | PASS (phase-one/two PostgreSQL scope) |
+| TM-003 | PASS (phase-one/two PostgreSQL scope) |
 | TM-004 | NOT RUN |
-| TM-005 | PASS (foundation PostgreSQL only) |
-| TM-006 | PASS (foundation PostgreSQL only) |
-| TM-007 | PASS (foundation PostgreSQL only) |
-| TM-008 | PASS (foundation PostgreSQL only) |
-| TM-009 | PASS (foundation PostgreSQL only) |
-| TM-010 | NOT RUN |
-| TM-011 | PASS (foundation PostgreSQL only) |
-| TM-012 | PASS (foundation PostgreSQL only) |
+| TM-005 | PASS (phase-one/two PostgreSQL scope) |
+| TM-006 | PASS (phase-one/two PostgreSQL scope) |
+| TM-007 | PASS (phase-one/two PostgreSQL scope) |
+| TM-008 | PASS (phase-one/two PostgreSQL scope) |
+| TM-009 | PASS (phase-one/two PostgreSQL scope) |
+| TM-010 | PASS (phase-one/two PostgreSQL scope) |
+| TM-011 | PASS (phase-one/two PostgreSQL scope) |
+| TM-012 | PASS (phase-one/two PostgreSQL scope) |
 | TM-013 | NOT RUN |
-| TM-014 | NOT RUN |
-| TM-015 | NOT RUN |
-| TM-016 | NOT RUN |
-| TM-017 | NOT RUN |
-| TM-018 | NOT RUN |
-| TM-019 | NOT RUN |
-| TM-020 | NOT RUN |
-| TM-021 | NOT RUN |
-| TM-022 | NOT RUN |
-| TM-023 | NOT RUN |
+| TM-014 | PASS (phase-one/two PostgreSQL scope) |
+| TM-015 | PASS (phase-one/two PostgreSQL scope) |
+| TM-016 | PASS (phase-one/two PostgreSQL scope) |
+| TM-017 | PASS (phase-one/two PostgreSQL scope) |
+| TM-018 | PASS (phase-one/two PostgreSQL scope) |
+| TM-019 | PASS (phase-one/two PostgreSQL scope) |
+| TM-020 | PASS (phase-one/two PostgreSQL scope) |
+| TM-021 | PASS (phase-one/two PostgreSQL scope) |
+| TM-022 | PASS (phase-one/two PostgreSQL scope) |
+| TM-023 | PASS (phase-one/two PostgreSQL scope) |
 | TM-024 | NOT RUN |
-| TM-025 | NOT RUN |
-| TM-026 | NOT RUN |
+| TM-025 | PASS (phase-one/two PostgreSQL scope) |
+| TM-026 | PASS (phase-one/two PostgreSQL scope) |
 | TM-027 | NOT RUN |
 | TM-028 | NOT RUN |
 | TM-029 | NOT RUN |
@@ -76,14 +76,14 @@ Work in progress. This is not a phase-seven run. Only observed phase-one scenari
 | TM-070 | NOT RUN |
 | TM-071 | NOT RUN |
 | TM-072 | NOT RUN |
-| TM-073 | PASS (foundation PostgreSQL only) |
+| TM-073 | PASS (phase-one/two PostgreSQL scope) |
 | TM-074 | NOT RUN |
 | TM-075 | NOT RUN |
-| TM-076 | PASS (foundation PostgreSQL only) |
-| TM-077 | NOT RUN |
-| TM-078 | PASS (foundation PostgreSQL only) |
-| TM-079 | PASS (foundation PostgreSQL only) |
-| TM-080 | PASS (foundation PostgreSQL only) |
+| TM-076 | PASS (phase-one/two PostgreSQL scope) |
+| TM-077 | PASS (phase-one/two PostgreSQL scope) |
+| TM-078 | PASS (phase-one/two PostgreSQL scope) |
+| TM-079 | PASS (phase-one/two PostgreSQL scope) |
+| TM-080 | PASS (phase-one/two PostgreSQL scope) |
 | TM-081 | NOT RUN |
 | TM-082 | NOT RUN |
 | TM-083 | NOT RUN |
@@ -94,16 +94,16 @@ Work in progress. This is not a phase-seven run. Only observed phase-one scenari
 | TM-088 | NOT RUN |
 | TM-089 | NOT RUN |
 | TM-090 | NOT RUN |
-| TM-091 | PASS (foundation PostgreSQL only) |
-| TM-092 | PASS (foundation PostgreSQL only) |
+| TM-091 | PASS (phase-one/two PostgreSQL scope) |
+| TM-092 | PASS (phase-one/two PostgreSQL scope) |
 | TM-093 | NOT RUN |
 | TM-094 | NOT RUN |
-| TM-095 | PASS (foundation PostgreSQL only) |
-| TM-096 | NOT RUN |
-| TM-097 | NOT RUN |
-| TM-098 | PASS (foundation PostgreSQL only) |
-| TM-099 | PASS (foundation PostgreSQL only) |
-| TM-100 | NOT RUN |
+| TM-095 | PASS (phase-one/two PostgreSQL scope) |
+| TM-096 | PASS (phase-one/two PostgreSQL scope) |
+| TM-097 | PASS (phase-one/two PostgreSQL scope) |
+| TM-098 | PASS (phase-one/two PostgreSQL scope) |
+| TM-099 | PASS (phase-one/two PostgreSQL scope) |
+| TM-100 | PASS (phase-one/two PostgreSQL scope) |
 | TM-101 | NOT RUN |
 | TM-102 | NOT RUN |
 | TM-103 | NOT RUN |
@@ -129,10 +129,10 @@ Work in progress. This is not a phase-seven run. Only observed phase-one scenari
 | TM-123 | NOT RUN |
 | TM-124 | NOT RUN |
 | TM-125 | NOT RUN |
-| TM-126 | PASS (foundation PostgreSQL only) |
-| TM-127 | NOT RUN |
-| TM-128 | PASS (foundation PostgreSQL only) |
-| TM-129 | PASS (foundation PostgreSQL only) |
+| TM-126 | PASS (phase-one/two PostgreSQL scope) |
+| TM-127 | PASS (phase-one/two PostgreSQL scope) |
+| TM-128 | PASS (phase-one/two PostgreSQL scope) |
+| TM-129 | PASS (phase-one/two PostgreSQL scope) |
 | TM-130 | NOT RUN |
 | TM-131 | NOT RUN |
 | TM-132 | NOT RUN |
@@ -151,24 +151,24 @@ Work in progress. This is not a phase-seven run. Only observed phase-one scenari
 | TM-145 | NOT RUN |
 | TM-146 | NOT RUN |
 | TM-147 | NOT RUN |
-| TM-148 | NOT RUN |
-| TM-149 | NOT RUN |
-| TM-150 | NOT RUN |
-| TM-151 | NOT RUN |
-| TM-152 | NOT RUN |
-| TM-153 | PASS (foundation PostgreSQL only) |
-| TM-154 | NOT RUN |
-| TM-155 | NOT RUN |
-| TM-156 | NOT RUN |
-| TM-157 | NOT RUN |
-| TM-158 | NOT RUN |
-| TM-159 | NOT RUN |
-| TM-160 | NOT RUN |
-| TM-161 | NOT RUN |
-| TM-162 | NOT RUN |
-| TM-163 | NOT RUN |
-| TM-164 | NOT RUN |
-| TM-165 | NOT RUN |
+| TM-148 | PASS (phase-one/two PostgreSQL scope) |
+| TM-149 | PASS (phase-one/two PostgreSQL scope) |
+| TM-150 | PASS (phase-one/two PostgreSQL scope) |
+| TM-151 | PASS (phase-one/two PostgreSQL scope) |
+| TM-152 | PASS (phase-one/two PostgreSQL scope) |
+| TM-153 | PASS (phase-one/two PostgreSQL scope) |
+| TM-154 | PASS (phase-one/two PostgreSQL scope) |
+| TM-155 | PASS (phase-one/two PostgreSQL scope) |
+| TM-156 | PASS (phase-one/two PostgreSQL scope) |
+| TM-157 | PASS (phase-one/two PostgreSQL scope) |
+| TM-158 | PASS (phase-one/two PostgreSQL scope) |
+| TM-159 | PASS (phase-one/two PostgreSQL scope) |
+| TM-160 | PASS (phase-one/two PostgreSQL scope) |
+| TM-161 | PASS (phase-one/two PostgreSQL scope) |
+| TM-162 | PASS (phase-one/two PostgreSQL scope) |
+| TM-163 | PASS (phase-one/two PostgreSQL scope) |
+| TM-164 | PASS (phase-one/two PostgreSQL scope) |
+| TM-165 | PASS (phase-one/two PostgreSQL scope) |
 | TM-166 | NOT RUN |
 | TM-167 | NOT RUN |
 | TM-168 | NOT RUN |
@@ -208,14 +208,14 @@ Work in progress. This is not a phase-seven run. Only observed phase-one scenari
 | TM-202 | NOT RUN |
 | TM-203 | NOT RUN |
 | TM-204 | NOT RUN |
-| TM-205 | NOT RUN |
+| TM-205 | PASS (phase-one/two PostgreSQL scope) |
 | TM-206 | NOT RUN |
-| TM-207 | NOT RUN |
-| TM-208 | PASS (foundation PostgreSQL only) |
+| TM-207 | PASS (phase-one/two PostgreSQL scope) |
+| TM-208 | PASS (phase-one/two PostgreSQL scope) |
 | TM-209 | NOT RUN |
 | TM-210 | NOT RUN |
 | TM-211 | NOT RUN |
-| TM-212 | NOT RUN |
+| TM-212 | PASS (phase-one/two PostgreSQL scope) |
 | TM-213 | NOT RUN |
 | TM-214 | NOT RUN |
 | TM-215 | NOT RUN |
