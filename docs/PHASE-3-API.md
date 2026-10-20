@@ -10,4 +10,6 @@ WorkingCalendar and immutable CalendarRegistry allow versioned host calendars. W
 
 TaskManager.assignments() exposes assignment get/assign, explicit instance policy configuration, stage policy publication and member-departure policies. Every mutation requires assignment.manage, the current process version and a unique operation. ResponsibilityResolver supplies current scoped eligibility/candidates; the default resolver permits only the context actor and infers no host organization. Instance overrides are explicit and persist across stage changes; stage policies otherwise apply to new visits. Active primary uniqueness is enforced in the database. Ownership and read permissions are independent of assignment.
 
-Approval, handoff and group APIs are still pending. This is not the final phase-three public API contract.
+TaskManager.approvals() exposes immutable stage policy configuration, manual begin, active/get, vote, explicit execute and administrative cancel. Voting requires approval.vote, current view permission and host eligibility; it does not grant task edit. State exit requires the policy's resolved outcome transition. A pending executor or host veto is represented explicitly rather than reported as completed business state.
+
+Handoff and group APIs are still pending. This is not the final phase-three public API contract.

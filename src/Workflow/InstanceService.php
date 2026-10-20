@@ -136,7 +136,7 @@ final class InstanceService
                 if (($this->guards[$guard])($context, $instance, $payload) !== true) { throw new DomainError('guard_veto'); }
             }
             $this->subjects->handler($instance['subject_type'])->guard($context, $instance['subject_id'], $instance, $transition, $payload);
-            $this->lifecycle?->beforeTransition($context, $instance, $edge, $payload);
+            $this->lifecycle?->beforeTransition($context, $instance, ['key' => $transition, ...$edge], $payload);
             $state = $edge['to']; $terminal = ($definition['states'][$state]['terminal'] ?? 'none') !== 'none';
             $stage = $instance['pipeline_id'] === null ? null : $this->stage($instance['pipeline_id'], $state, $stageKey);
             $oldStage = $instance['pipeline_id'] === null ? null : $this->db->table('tm_pipeline_stages')->where('pipeline_id', $instance['pipeline_id'])->where('stage_key', $instance['active_stage_key'])->first();
@@ -188,6 +188,7 @@ final class InstanceService
             if (!$terminal) { $this->capacity($context, $stage, $instance['id']); $this->reserve($context, $instance); }
             else { $this->db->table('tm_active_process_slots')->where('instance_id', $instance['id'])->delete(); }
             $this->subjects->handler($instance['subject_type'])->guard($context, $instance['subject_id'], $instance, 'move_pipeline', ['pipeline_key' => $pipeline['pipeline_key'], 'state' => $state]);
+            $this->lifecycle?->beforeTransition($context, $instance, ['key' => 'move_pipeline', 'from' => $instance['current_state_key'], 'to' => $state, 'force_exit' => true], []);
             $this->closeVisit($context, $instance['id']); $this->visit($context, $instance['id'], $stage, $operation);
             if ($terminal) { $this->closeVisit($context, $instance['id']); }
             $this->db->table('tm_workflow_instances')->where('id', $instance['id'])->update(['pipeline_id' => $pipeline['id'], 'workflow_revision_id' => $pipeline['workflow_revision_id'],
@@ -214,19 +215,20 @@ final class InstanceService
         } catch (DomainError $error) { return ['instance_key' => $key, 'status' => 'conflict', 'reason' => 'host_guard_conflict']; }
     }
 
-    private function locked(ExecutionContext $context, string $key, int $version): array
+    private function locked(ExecutionContext $context, string $key, int $version, string $subjectCapability = 'edit'): array
     {
         $before = $this->get($context, $key);
-        $subject = $this->subject($context, $before['subject_type'], $before['subject_id'], 'edit', true);
+        $subject = $this->subject($context, $before['subject_type'], $before['subject_id'], $subjectCapability, true);
         $instance = $this->db->table('tm_workflow_instances')->where('scope_key', $context->scope)->where('id', $before['id'])->lockForUpdate()->first();
         if ($instance->version !== $version) { throw new DomainError('version_conflict'); }
         if ($instance->subject_type !== $before['subject_type'] || $instance->subject_id !== $before['subject_id']) { throw new DomainError('subject_identity_conflict'); }
         return [(array) $instance, $subject];
     }
-    public function lockForCommand(ExecutionContext $context, string $key, int $version): array
+    public function lockForCommand(ExecutionContext $context, string $key, int $version, string $subjectCapability = 'edit'): array
     {
         if ($this->db->transactionLevel() < 1) { throw new DomainError('lock_requires_transaction'); }
-        return $this->locked($context, $key, $version);
+        if (!in_array($subjectCapability, ['view', 'edit'], true)) { throw new DomainError('capability_invalid'); }
+        return $this->locked($context, $key, $version, $subjectCapability);
     }
     private function stage(int $pipeline, string $state, ?string $key): object
     {

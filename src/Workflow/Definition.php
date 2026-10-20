@@ -23,7 +23,10 @@ final class Definition
             if (isset($edge['conditions']) && (!is_array($edge['conditions']) || !array_is_list($edge['conditions']))) { throw new DomainError('condition_invalid'); }
             foreach (['required_fields', 'roles', 'guards', 'reason_codes'] as $field) {
                 if (isset($edge[$field]) && (!is_array($edge[$field]) || !array_is_list($edge[$field]))) { throw new DomainError('transition_invalid'); }
-                foreach ($edge[$field] ?? [] as $value) { if (!is_string($value)) { throw new DomainError('transition_invalid'); } }
+                foreach ($edge[$field] ?? [] as $value) {
+                    if (!is_string($value)) { throw new DomainError('transition_invalid'); }
+                    if ($field === 'reason_codes') { self::key($value); }
+                }
             }
             $needsReason = ($edge['reason_required'] ?? false) || in_array($states[$edge['to']]['terminal'] ?? 'none', ['failure', 'cancelled'], true);
             if ($needsReason && empty($edge['reason_codes'])) { throw new DomainError('reason_catalog_required'); }

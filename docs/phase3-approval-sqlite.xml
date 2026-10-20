@@ -1,0 +1,20 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<testsuites>
+  <testsuite name="D:\my-packages\task-manager\phpunit.xml" tests="11" assertions="69" errors="0" failures="0" skipped="0" time="1.493722">
+    <testsuite name="Package" tests="11" assertions="69" errors="0" failures="0" skipped="0" time="1.493722">
+      <testsuite name="Karnoweb\TaskManager\Tests\ApprovalCoreTest" file="D:\my-packages\task-manager\tests\ApprovalCoreTest.php" tests="11" assertions="69" errors="0" failures="0" skipped="0" time="1.493722">
+        <testcase name="test_quorum_votes_resolve_once_and_duplicate_vote_or_replay_does_not_count_twice" file="D:\my-packages\task-manager\tests\ApprovalCoreTest.php" line="10" class="Karnoweb\TaskManager\Tests\ApprovalCoreTest" classname="Karnoweb.TaskManager.Tests.ApprovalCoreTest" assertions="12" time="0.471406"/>
+        <testcase name="test_sequential_votes_reject_early_next_actor_and_stale_version" file="D:\my-packages\task-manager\tests\ApprovalCoreTest.php" line="24" class="Karnoweb\TaskManager\Tests\ApprovalCoreTest" classname="Karnoweb.TaskManager.Tests.ApprovalCoreTest" assertions="7" time="0.098920"/>
+        <testcase name="test_revocation_before_vote_is_rechecked_and_manager_can_cancel_for_explicit_repair" file="D:\my-packages\task-manager\tests\ApprovalCoreTest.php" line="35" class="Karnoweb\TaskManager\Tests\ApprovalCoreTest" classname="Karnoweb.TaskManager.Tests.ApprovalCoreTest" assertions="8" time="0.094150"/>
+        <testcase name="test_reject_requires_catalog_reason_and_uses_distinct_return_transition" file="D:\my-packages\task-manager\tests\ApprovalCoreTest.php" line="46" class="Karnoweb\TaskManager\Tests\ApprovalCoreTest" classname="Karnoweb.TaskManager.Tests.ApprovalCoreTest" assertions="6" time="0.091869"/>
+        <testcase name="test_pending_approval_cannot_be_bypassed_by_transition_or_pipeline_move" file="D:\my-packages\task-manager\tests\ApprovalCoreTest.php" line="55" class="Karnoweb\TaskManager\Tests\ApprovalCoreTest" classname="Karnoweb.TaskManager.Tests.ApprovalCoreTest" assertions="5" time="0.105077"/>
+        <testcase name="test_view_only_voter_records_consent_but_needs_authorized_executor" file="D:\my-packages\task-manager\tests\ApprovalCoreTest.php" line="65" class="Karnoweb\TaskManager\Tests\ApprovalCoreTest" classname="Karnoweb.TaskManager.Tests.ApprovalCoreTest" assertions="6" time="0.120045"/>
+        <testcase name="test_host_veto_retains_valid_votes_without_faking_workflow_completion" file="D:\my-packages\task-manager\tests\ApprovalCoreTest.php" line="79" class="Karnoweb\TaskManager\Tests\ApprovalCoreTest" classname="Karnoweb.TaskManager.Tests.ApprovalCoreTest" assertions="6" time="0.124845"/>
+        <testcase name="test_native_todo_complete_archive_delete_and_conversion_respect_pending_step" file="D:\my-packages\task-manager\tests\ApprovalCoreTest.php" line="90" class="Karnoweb\TaskManager\Tests\ApprovalCoreTest" classname="Karnoweb.TaskManager.Tests.ApprovalCoreTest" assertions="7" time="0.111093"/>
+        <testcase name="test_self_approval_and_invalid_quorum_fail_closed" file="D:\my-packages\task-manager\tests\ApprovalCoreTest.php" line="107" class="Karnoweb\TaskManager\Tests\ApprovalCoreTest" classname="Karnoweb.TaskManager.Tests.ApprovalCoreTest" assertions="4" time="0.077700"/>
+        <testcase name="test_project_migration_cannot_bypass_a_pending_manual_step" file="D:\my-packages\task-manager\tests\ApprovalCoreTest.php" line="115" class="Karnoweb\TaskManager\Tests\ApprovalCoreTest" classname="Karnoweb.TaskManager.Tests.ApprovalCoreTest" assertions="4" time="0.107362"/>
+        <testcase name="test_native_owner_can_execute_consented_completion_without_leaving_stale_execution_projection" file="D:\my-packages\task-manager\tests\ApprovalCoreTest.php" line="128" class="Karnoweb\TaskManager\Tests\ApprovalCoreTest" classname="Karnoweb.TaskManager.Tests.ApprovalCoreTest" assertions="4" time="0.091256"/>
+      </testsuite>
+    </testsuite>
+  </testsuite>
+</testsuites>

@@ -1,0 +1,10 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<testsuites>
+  <testsuite name="D:\my-packages\task-manager\phpunit.xml" tests="1" assertions="7" errors="0" failures="0" skipped="0" time="1.822248">
+    <testsuite name="Package" tests="1" assertions="7" errors="0" failures="0" skipped="0" time="1.822248">
+      <testsuite name="Karnoweb\TaskManager\Tests\ApprovalConcurrencyTest" file="D:\my-packages\task-manager\tests\ApprovalConcurrencyTest.php" tests="1" assertions="7" errors="0" failures="0" skipped="0" time="1.822248">
+        <testcase name="test_parallel_votes_have_explicit_conflict_retry_and_one_completion" file="D:\my-packages\task-manager\tests\ApprovalConcurrencyTest.php" line="10" class="Karnoweb\TaskManager\Tests\ApprovalConcurrencyTest" classname="Karnoweb.TaskManager.Tests.ApprovalConcurrencyTest" assertions="7" time="1.822248"/>
+      </testsuite>
+    </testsuite>
+  </testsuite>
+</testsuites>

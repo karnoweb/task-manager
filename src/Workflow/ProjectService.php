@@ -15,7 +15,7 @@ use Karnoweb\TaskManager\TaskService;
 
 final class ProjectService
 {
-    public function __construct(private readonly Connection $db, private readonly Clock $clock, private readonly AuthorizationProvider $authorization, private readonly WorkflowService $workflows, private readonly TaskService $tasks) {}
+    public function __construct(private readonly Connection $db, private readonly Clock $clock, private readonly AuthorizationProvider $authorization, private readonly WorkflowService $workflows, private readonly TaskService $tasks, private readonly \Karnoweb\TaskManager\Contracts\StageLifecycle $lifecycle) {}
     public function get(ExecutionContext $context, string $key, string $capability = 'view', bool $lock = false): array
     {
         if (!Str::isUuid($key)) { throw new DomainError('not_found'); }
@@ -116,6 +116,7 @@ final class ProjectService
             $this->db->table('tm_task_grants')->where('task_id', $task->id)->delete();
             $instance = $this->db->table('tm_workflow_instances')->where('task_id', $task->id)->where('slot_key', 'main')->orderByDesc('id')->lockForUpdate()->first();
             if ($instance->pipeline_id !== null) { throw new DomainError('pipeline_move_required'); }
+            $this->lifecycle->beforeTransition($context, (array) $instance, ['key' => 'project_move', 'from' => $instance->current_state_key, 'to' => $preview['state'], 'force_exit' => true], []);
             $terminal = ($definition['states'][$preview['state']]['terminal'] ?? 'none') !== 'none';
             $this->db->table('tm_workflow_instances')->where('id', $instance->id)->update(['workflow_revision_id' => $effectiveRevision, 'workflow_key' => $this->db->table('tm_workflow_definitions')->where('id', $effectiveRevision)->value('key'),
                 'current_state_key' => $preview['state'], 'version' => $instance->version + 1, 'lifecycle' => $terminal ? 'closed' : 'active', 'completed_at' => $terminal ? $this->now() : null]);
@@ -169,6 +170,7 @@ final class ProjectService
                 $task = $this->tasks->authorizedQuery($context, 'edit')->where('id', $instance->task_id)->first();
                 if (!$task || $task->project_id !== $project['id']) { throw new DomainError('not_found'); }
                 $state = $preview['state_map'][$instance->current_state_key];
+                $this->lifecycle->beforeTransition($context, (array) $instance, ['key' => 'workflow_migrate', 'from' => $instance->current_state_key, 'to' => $state, 'force_exit' => true], []);
                 $terminal = ($revision['definition']['states'][$state]['terminal'] ?? 'none') !== 'none';
                 $this->db->table('tm_workflow_instances')->where('id', $instance->id)->update(['workflow_revision_id' => $revision['id'], 'workflow_key' => $revision['key'],
                     'current_state_key' => $state, 'version' => $instance->version + 1, 'lifecycle' => $terminal ? 'closed' : 'active', 'completed_at' => $terminal ? $this->now() : null]);

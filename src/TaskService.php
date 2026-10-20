@@ -294,6 +294,10 @@ final class TaskService
                 }
             }
             $now = $this->now();
+            if (in_array($action, ['archive', 'delete'], true)) {
+                $guarded = $this->db->table('tm_workflow_instances')->where('task_id', $task->id)->where('slot_key', 'main')->orderByDesc('id')->lockForUpdate()->first();
+                $this->lifecycle?->beforeTransition($context, (array) $guarded, ['key' => $action, 'from' => $guarded->current_state_key, 'to' => $guarded->current_state_key, 'force_exit' => true], []);
+            }
             if (in_array($action, ['archive', 'restore'], true)) { $changes['archived_at'] = $action === 'archive' ? $now : null; }
             if (in_array($action, ['delete', 'undelete'], true)) { $changes['deleted_at'] = $action === 'delete' ? $now : null; }
             if (in_array($action, ['complete', 'reopen'], true)) {
@@ -302,7 +306,7 @@ final class TaskService
                 if ($instance->workflow_key !== 'personal' || $instance->pipeline_id !== null) { throw new DomainError('workflow_command_required'); }
                 $state = $action === 'complete' ? 'done' : 'pending';
                 if ($instance->current_state_key === $state) { throw new DomainError('transition_invalid'); }
-                $this->lifecycle?->beforeTransition($context, (array) $instance, ['from' => $instance->current_state_key, 'to' => $state], []);
+                $this->lifecycle?->beforeTransition($context, (array) $instance, ['key' => $action, 'from' => $instance->current_state_key, 'to' => $state], []);
                 if ($state === 'done') { $this->lifecycle?->leaving($context, $instance->id); }
                 $this->db->table('tm_instance_transitions')->insert(['scope_key' => $context->scope, 'instance_id' => $instance->id,
                     'from_state' => $instance->current_state_key, 'to_state' => $state, 'actor_ref' => $context->actor, 'operation_id' => $operation, 'occurred_at' => $now]);

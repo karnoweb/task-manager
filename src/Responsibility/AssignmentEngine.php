@@ -16,6 +16,7 @@ final class AssignmentEngine implements StageLifecycle
     public function validate(array $policy): array
     {
         $policy += ['mode' => 'fixed', 'max_assignees' => 1, 'secondary' => [], 'allow_unassigned' => false];
+        if (array_diff(array_keys($policy), ['mode', 'max_assignees', 'secondary', 'allow_unassigned', 'primary', 'reference'])) { throw new DomainError('assignment_policy_invalid'); }
         if (!in_array($policy['mode'], ['fixed', 'manual', 'follow_owner', 'team', 'round_robin'], true) || !is_int($policy['max_assignees']) || $policy['max_assignees'] < 1 || $policy['max_assignees'] > 100
             || !is_array($policy['secondary']) || !array_is_list($policy['secondary']) || !is_bool($policy['allow_unassigned'])) { throw new DomainError('assignment_policy_invalid'); }
         foreach ($policy['secondary'] as $actor) { $this->actor($actor); }

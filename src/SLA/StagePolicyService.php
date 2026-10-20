@@ -21,6 +21,7 @@ final class StagePolicyService
         if (!is_int($policy['duration_seconds'] ?? null) || $policy['duration_seconds'] <= 0 || $policy['duration_seconds'] > 315360000) { throw new DomainError('sla_duration_invalid'); }
         $policy += ['clock_kind' => 'elapsed', 'warning_before_seconds' => 0, 'stale_after_seconds' => null, 'reentry' => 'reset', 'dead_candidate' => false,
             'pause_reasons' => ['manual', 'handoff', 'approval'], 'max_pause_seconds' => 31536000];
+        if (array_diff(array_keys($policy), ['duration_seconds', 'clock_kind', 'warning_before_seconds', 'stale_after_seconds', 'reentry', 'dead_candidate', 'pause_reasons', 'max_pause_seconds', 'calendar_ref', 'breach_transition', 'breach_reason'])) { throw new DomainError('sla_policy_invalid'); }
         if (!in_array($policy['clock_kind'], ['elapsed', 'business'], true) || !in_array($policy['reentry'], ['reset', 'cumulative'], true)
             || !is_int($policy['warning_before_seconds']) || $policy['warning_before_seconds'] < 0 || $policy['warning_before_seconds'] >= $policy['duration_seconds']
             || ($policy['stale_after_seconds'] !== null && (!is_int($policy['stale_after_seconds']) || $policy['stale_after_seconds'] < 1))
@@ -28,6 +29,7 @@ final class StagePolicyService
         foreach ($policy['pause_reasons'] as $reason) { if (!is_string($reason) || !preg_match('/^[a-z][a-z0-9_]{0,99}$/D', $reason)) { throw new DomainError('sla_policy_invalid'); } }
         if ($policy['clock_kind'] === 'business') { $this->calendars->get($policy['calendar_ref'] ?? ''); }
         if (isset($policy['breach_transition']) && (!is_string($policy['breach_transition']) || !is_string($policy['breach_reason'] ?? null))) { throw new DomainError('sla_action_invalid'); }
+        if (isset($policy['breach_transition'])) { \Karnoweb\TaskManager\Workflow\Definition::key($policy['breach_transition']); \Karnoweb\TaskManager\Workflow\Definition::key($policy['breach_reason']); }
         return (new CommandExecutor($this->db))->execute($context, $operation, ['action' => 'publish_sla', 'pipeline' => $pipelineKey, 'stage' => $stageKey, 'version' => $pipelineVersion, 'policy' => $policy], function () use ($context, $pipelineKey, $stageKey, $pipelineVersion, $operation, $policy) {
             $pipeline = $this->pipelines->get($context, $pipelineKey);
             $row = $this->db->table('tm_pipelines')->where('id', $pipeline['id'])->lockForUpdate()->first();
