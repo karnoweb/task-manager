@@ -1,0 +1,10 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<testsuites>
+  <testsuite name="D:\my-packages\task-manager\phpunit.xml" tests="1" assertions="8" errors="0" failures="0" skipped="0" time="0.488341">
+    <testsuite name="Package" tests="1" assertions="8" errors="0" failures="0" skipped="0" time="0.488341">
+      <testsuite name="Karnoweb\TaskManager\Tests\Scenarios\TM196Test" file="D:\my-packages\task-manager\tests\Scenarios\TM196Test.php" tests="1" assertions="8" errors="0" failures="0" skipped="0" time="0.488341">
+        <testcase name="test_scenario" file="D:\my-packages\task-manager\tests\Scenarios\TM196Test.php" line="10" class="Karnoweb\TaskManager\Tests\Scenarios\TM196Test" classname="Karnoweb.TaskManager.Tests.Scenarios.TM196Test" assertions="8" time="0.488341"/>
+      </testsuite>
+    </testsuite>
+  </testsuite>
+</testsuites>

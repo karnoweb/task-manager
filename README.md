@@ -10,4 +10,4 @@ Run `composer test` for the SQLite baseline. The PostgreSQL profile currently us
 
 OutboxDispatcher delivers committed events synchronously without requiring an external queue. Delivery is at least once: consumers must deduplicate using event_id. Never pass a browser-supplied scope directly to an operational dispatcher. Public task commands always recheck explicit context and visibility.
 
-Current combined evidence is in `docs/phase2-all-sqlite.xml` and `docs/phase2-all-postgres.xml`. There are 113 tests including the 63 owned scenarios of phases one/two; the remaining phases and final acceptance are still pending. These are not phase-seven acceptance results.
+Current combined evidence is in `docs/phase3-all-sqlite.xml` and `docs/phase3-all-postgres.xml`: 138 tests, including 63 phase-one/two scenario IDs and eight phase-three SLA scenario IDs. Stage SLA clocks, business calendars, pause/resume/reset and deduplicated watchdogs are implemented; the rest of phase three and phases four through seven remain pending. These are not phase-seven acceptance results.

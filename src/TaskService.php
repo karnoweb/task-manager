@@ -299,6 +299,7 @@ final class TaskService
             if (in_array($action, ['complete', 'reopen'], true)) {
                 if ($task->project_id !== null) { throw new DomainError('workflow_command_required'); }
                 $instance = $this->db->table('tm_workflow_instances')->where('task_id', $task->id)->where('slot_key', 'main')->orderByDesc('id')->lockForUpdate()->first();
+                if ($instance->workflow_key !== 'personal' || $instance->pipeline_id !== null) { throw new DomainError('workflow_command_required'); }
                 $state = $action === 'complete' ? 'done' : 'pending';
                 if ($instance->current_state_key === $state) { throw new DomainError('transition_invalid'); }
                 $this->db->table('tm_instance_transitions')->insert(['scope_key' => $context->scope, 'instance_id' => $instance->id,

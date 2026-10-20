@@ -4,14 +4,14 @@ namespace Karnoweb\TaskManager\Tests\Support;
 
 final class ProcessBarrier
 {
-    public static function run(array $commands): array
+    public static function run(array $commands, string $script = 'concurrent-workflow.php'): array
     {
         $server = stream_socket_server('tcp://127.0.0.1:0', $error, $message);
         if (!$server) { throw new \RuntimeException($message); }
         $address = 'tcp://'.stream_socket_get_name($server, false); $workers = []; $clients = [];
         try {
             foreach ($commands as $command) {
-                $process = proc_open([PHP_BINARY, __DIR__.'/concurrent-workflow.php', $address, ...array_map(strval(...), $command)], [0 => ['pipe', 'r'], 1 => ['pipe', 'w'], 2 => ['pipe', 'w']], $pipes);
+                $process = proc_open([PHP_BINARY, __DIR__.'/'.$script, $address, ...array_map(strval(...), $command)], [0 => ['pipe', 'r'], 1 => ['pipe', 'w'], 2 => ['pipe', 'w']], $pipes);
                 if (!is_resource($process)) { throw new \RuntimeException('Worker failed to start'); }
                 $workers[] = [$process, $pipes];
             }
