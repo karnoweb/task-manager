@@ -1,0 +1,10 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<testsuites>
+  <testsuite name="D:\my-packages\task-manager\phpunit.xml" tests="1" assertions="5" errors="0" failures="0" skipped="0" time="1.590003">
+    <testsuite name="Package" tests="1" assertions="5" errors="0" failures="0" skipped="0" time="1.590003">
+      <testsuite name="Karnoweb\TaskManager\Tests\AssignmentConcurrencyTest" file="D:\my-packages\task-manager\tests\AssignmentConcurrencyTest.php" tests="1" assertions="5" errors="0" failures="0" skipped="0" time="1.590003">
+        <testcase name="test_round_robin_serializes_shared_team_across_two_independent_stage_rows" file="D:\my-packages\task-manager\tests\AssignmentConcurrencyTest.php" line="10" class="Karnoweb\TaskManager\Tests\AssignmentConcurrencyTest" classname="Karnoweb.TaskManager.Tests.AssignmentConcurrencyTest" assertions="5" time="1.590003"/>
+      </testsuite>
+    </testsuite>
+  </testsuite>
+</testsuites>

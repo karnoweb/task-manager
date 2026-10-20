@@ -12,7 +12,7 @@ use Karnoweb\TaskManager\Contracts\AuthorizationProvider;
 
 final class TaskService
 {
-    public function __construct(private readonly Connection $db, private readonly Clock $clock = new SystemClock(), private readonly AuthorizationProvider $authorization = new ContextAuthorization()) {}
+    public function __construct(private readonly Connection $db, private readonly Clock $clock = new SystemClock(), private readonly AuthorizationProvider $authorization = new ContextAuthorization(), private readonly ?\Karnoweb\TaskManager\Contracts\StageLifecycle $lifecycle = null) {}
 
     public function createTodo(\Karnoweb\TaskManager\DTO\CreateTodo $command): \Karnoweb\TaskManager\DTO\TaskResult
     {
@@ -302,6 +302,8 @@ final class TaskService
                 if ($instance->workflow_key !== 'personal' || $instance->pipeline_id !== null) { throw new DomainError('workflow_command_required'); }
                 $state = $action === 'complete' ? 'done' : 'pending';
                 if ($instance->current_state_key === $state) { throw new DomainError('transition_invalid'); }
+                $this->lifecycle?->beforeTransition($context, (array) $instance, ['from' => $instance->current_state_key, 'to' => $state], []);
+                if ($state === 'done') { $this->lifecycle?->leaving($context, $instance->id); }
                 $this->db->table('tm_instance_transitions')->insert(['scope_key' => $context->scope, 'instance_id' => $instance->id,
                     'from_state' => $instance->current_state_key, 'to_state' => $state, 'actor_ref' => $context->actor, 'operation_id' => $operation, 'occurred_at' => $now]);
                 $this->db->table('tm_workflow_instances')->where('id', $instance->id)->update(['current_state_key' => $state, 'lifecycle' => $state === 'done' ? 'closed' : 'active',
@@ -310,6 +312,7 @@ final class TaskService
                 else {
                     $reserved = $this->db->table('tm_active_process_slots')->insertOrIgnore(['scope_key' => $context->scope, 'subject_type' => 'task', 'subject_id' => $id, 'slot_key' => 'main', 'instance_id' => $instance->id]);
                     if (!$reserved) { throw new DomainError('active_slot_conflict'); }
+                    $this->lifecycle?->activated($context, $instance->id, $operation);
                 }
             }
             $changed = $this->visible($context, 'edit')->where('public_key', $id)->where('version', $version)->update($changes);

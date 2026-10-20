@@ -12,7 +12,8 @@ final class TaskManager
 {
     public function __construct(private readonly TaskService $tasks, private readonly WorkflowService $workflows, private readonly PipelineService $pipelines,
         private readonly InstanceService $instances, private readonly ProjectService $projects, private readonly CaseService $cases,
-        private readonly \Karnoweb\TaskManager\SLA\SlaService $sla, private readonly \Karnoweb\TaskManager\SLA\StagePolicyService $stagePolicies) {}
+        private readonly \Karnoweb\TaskManager\SLA\SlaService $sla, private readonly \Karnoweb\TaskManager\SLA\StagePolicyService $stagePolicies,
+        private readonly \Karnoweb\TaskManager\Responsibility\AssignmentService $assignments) {}
     public function tasks(): TaskService { return $this->tasks; }
     public function workflows(): WorkflowService { return $this->workflows; }
     public function pipelines(): PipelineService { return $this->pipelines; }
@@ -21,6 +22,7 @@ final class TaskManager
     public function cases(): CaseService { return $this->cases; }
     public function sla(): \Karnoweb\TaskManager\SLA\SlaService { return $this->sla; }
     public function stagePolicies(): \Karnoweb\TaskManager\SLA\StagePolicyService { return $this->stagePolicies; }
+    public function assignments(): \Karnoweb\TaskManager\Responsibility\AssignmentService { return $this->assignments; }
     public function __call(string $method, array $arguments): mixed
     {
         if (!is_callable([$this->tasks, $method])) { throw new \BadMethodCallException('Unknown task method'); }

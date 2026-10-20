@@ -12,6 +12,7 @@ final class SlaEngine implements StageLifecycle
 {
     public function __construct(private readonly Connection $db, private readonly Clock $clock, private readonly CalendarRegistry $calendars) {}
     public function now(): \DateTimeImmutable { return $this->clock->now()->setTimezone(new \DateTimeZone('UTC')); }
+    public function activated(ExecutionContext $context, int $instanceId, string $operationId): void {}
     public function date(string $value): \DateTimeImmutable { return new \DateTimeImmutable($value, new \DateTimeZone('UTC')); }
     public function format(\DateTimeImmutable $value): string { return $value->setTimezone(new \DateTimeZone('UTC'))->format('Y-m-d H:i:s'); }
     public function policy(object $visit): array
@@ -39,7 +40,7 @@ final class SlaEngine implements StageLifecycle
         }
         return max(0, $seconds);
     }
-    public function entered(ExecutionContext $context, int $instanceId, int $visitId, object $stage): void
+    public function entered(ExecutionContext $context, int $instanceId, int $visitId, object $stage, string $operationId): void
     {
         if ($stage->policy_id === null) { return; }
         $row = $this->db->table('tm_stage_policies')->where('id', $stage->policy_id)->where('scope_key', $context->scope)->first();

@@ -101,7 +101,7 @@ final class InstanceService
             $this->reserve($context, ['id' => $id, 'subject_type' => $type, 'subject_id' => $subjectId, 'slot_key' => $slot]);
             if ($type === 'task') { $this->db->table('tm_tasks')->where('id', $subject->id)->increment('version'); }
             if ($caseId !== null) { $this->db->table('tm_case_subjects')->insertOrIgnore(['case_id' => $caseId, 'subject_type' => $type, 'subject_id' => $subjectId]); }
-            if ($stage !== null) { $this->visit($context, $id, $stage); }
+            if ($stage !== null) { $this->visit($context, $id, $stage, $operation); }
             $this->event($context, $key, 'instance_started', $operation, ['state' => $initial, 'slot' => $slot], $type === 'task' ? $subject->id : null);
             return $this->get($context, $key);
         });
@@ -147,9 +147,10 @@ final class InstanceService
             else { $this->reserve($context, $instance); }
             if ($stageChanged || $terminal) { $this->closeVisit($context, $instance['id']); }
             if ($stage !== null && ($stageChanged || (!$terminal && $instance['lifecycle'] === 'closed'))) {
-                $this->visit($context, $instance['id'], $stage);
+                $this->visit($context, $instance['id'], $stage, $operation);
                 if ($terminal) { $this->closeVisit($context, $instance['id']); }
             }
+            if ($stage === null && !$terminal && $instance['lifecycle'] === 'closed') { $this->lifecycle?->activated($context, $instance['id'], $operation); }
             $this->db->table('tm_workflow_instances')->where('id', $instance['id'])->update(['current_state_key' => $state, 'active_stage_key' => $stage?->stage_key,
                 'version' => $version + 1, 'lifecycle' => $terminal ? 'closed' : 'active', 'completed_at' => $terminal ? $this->now() : null]);
             if ($instance['task_id'] !== null) { $this->db->table('tm_tasks')->where('id', $instance['task_id'])->increment('version'); }
@@ -187,7 +188,7 @@ final class InstanceService
             if (!$terminal) { $this->capacity($context, $stage, $instance['id']); $this->reserve($context, $instance); }
             else { $this->db->table('tm_active_process_slots')->where('instance_id', $instance['id'])->delete(); }
             $this->subjects->handler($instance['subject_type'])->guard($context, $instance['subject_id'], $instance, 'move_pipeline', ['pipeline_key' => $pipeline['pipeline_key'], 'state' => $state]);
-            $this->closeVisit($context, $instance['id']); $this->visit($context, $instance['id'], $stage);
+            $this->closeVisit($context, $instance['id']); $this->visit($context, $instance['id'], $stage, $operation);
             if ($terminal) { $this->closeVisit($context, $instance['id']); }
             $this->db->table('tm_workflow_instances')->where('id', $instance['id'])->update(['pipeline_id' => $pipeline['id'], 'workflow_revision_id' => $pipeline['workflow_revision_id'],
                 'workflow_key' => $this->db->table('tm_workflow_definitions')->where('id', $pipeline['workflow_revision_id'])->value('key'),
@@ -250,11 +251,12 @@ final class InstanceService
         $slot = $this->db->table('tm_active_process_slots')->where($key)->first();
         if (!$slot || $slot->instance_id !== $instance['id']) { throw new DomainError('active_slot_conflict'); }
     }
-    private function visit(ExecutionContext $context, int $instanceId, object $stage): void
+    private function visit(ExecutionContext $context, int $instanceId, object $stage, string $operation): void
     {
+        $stage = $this->db->table('tm_pipeline_stages')->where('id', $stage->id)->first();
         $number = ($this->db->table('tm_stage_visits')->where('instance_id', $instanceId)->max('visit_no') ?? 0) + 1;
         $visitId = $this->db->table('tm_stage_visits')->insertGetId(['scope_key' => $context->scope, 'instance_id' => $instanceId, 'pipeline_id' => $stage->pipeline_id, 'stage_key' => $stage->stage_key, 'visit_no' => $number, 'entered_at' => $this->now()]);
-        $this->lifecycle?->entered($context, $instanceId, $visitId, $stage);
+        $this->lifecycle?->entered($context, $instanceId, $visitId, $stage, $operation);
     }
     private function closeVisit(ExecutionContext $context, int $instanceId): void
     {

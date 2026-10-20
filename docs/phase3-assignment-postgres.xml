@@ -1,0 +1,17 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<testsuites>
+  <testsuite name="D:\my-packages\task-manager\phpunit.xml" tests="8" assertions="46" errors="0" failures="0" skipped="0" time="5.180808">
+    <testsuite name="Package" tests="8" assertions="46" errors="0" failures="0" skipped="0" time="5.180808">
+      <testsuite name="Karnoweb\TaskManager\Tests\AssignmentCoreTest" file="D:\my-packages\task-manager\tests\AssignmentCoreTest.php" tests="8" assertions="46" errors="0" failures="0" skipped="0" time="5.180808">
+        <testcase name="test_primary_and_secondary_capacity_duplicate_and_owner_invariants" file="D:\my-packages\task-manager\tests\AssignmentCoreTest.php" line="10" class="Karnoweb\TaskManager\Tests\AssignmentCoreTest" classname="Karnoweb.TaskManager.Tests.AssignmentCoreTest" assertions="10" time="0.692787"/>
+        <testcase name="test_stage_dynamic_assignment_changes_executor_but_not_owner_and_keeps_intervals" file="D:\my-packages\task-manager\tests\AssignmentCoreTest.php" line="22" class="Karnoweb\TaskManager\Tests\AssignmentCoreTest" classname="Karnoweb.TaskManager.Tests.AssignmentCoreTest" assertions="7" time="0.382209"/>
+        <testcase name="test_empty_or_revoked_resolver_cannot_activate_stage" file="D:\my-packages\task-manager\tests\AssignmentCoreTest.php" line="33" class="Karnoweb\TaskManager\Tests\AssignmentCoreTest" classname="Karnoweb.TaskManager.Tests.AssignmentCoreTest" assertions="5" time="0.470315"/>
+        <testcase name="test_round_robin_uses_locked_scoped_queue_and_is_fair_for_stable_candidates" file="D:\my-packages\task-manager\tests\AssignmentCoreTest.php" line="43" class="Karnoweb\TaskManager\Tests\AssignmentCoreTest" classname="Karnoweb.TaskManager.Tests.AssignmentCoreTest" assertions="3" time="0.682114"/>
+        <testcase name="test_departure_policies_reject_or_restore_owner_and_close_old_history" file="D:\my-packages\task-manager\tests\AssignmentCoreTest.php" line="56" class="Karnoweb\TaskManager\Tests\AssignmentCoreTest" classname="Karnoweb.TaskManager.Tests.AssignmentCoreTest" assertions="7" time="0.623471"/>
+        <testcase name="test_explicit_unassigned_policy_is_required_to_remove_last_primary" file="D:\my-packages\task-manager\tests\AssignmentCoreTest.php" line="66" class="Karnoweb\TaskManager\Tests\AssignmentCoreTest" classname="Karnoweb.TaskManager.Tests.AssignmentCoreTest" assertions="3" time="0.762219"/>
+        <testcase name="test_personal_complete_and_reopen_close_and_restore_fixed_assignments" file="D:\my-packages\task-manager\tests\AssignmentCoreTest.php" line="73" class="Karnoweb\TaskManager\Tests\AssignmentCoreTest" classname="Karnoweb.TaskManager.Tests.AssignmentCoreTest" assertions="7" time="0.847635"/>
+        <testcase name="test_assignment_capability_scope_and_stale_version_fail_closed" file="D:\my-packages\task-manager\tests\AssignmentCoreTest.php" line="85" class="Karnoweb\TaskManager\Tests\AssignmentCoreTest" classname="Karnoweb.TaskManager.Tests.AssignmentCoreTest" assertions="4" time="0.720059"/>
+      </testsuite>
+    </testsuite>
+  </testsuite>
+</testsuites>

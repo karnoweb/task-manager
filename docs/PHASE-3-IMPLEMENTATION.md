@@ -1,4 +1,4 @@
-# Phase 3 progress — SLA subset, not a completed phase
+# Phase 3 progress — SLA and assignment subsets, not a completed phase
 
 Completed in this checkpoint: immutable stage SLA policy revisions; per-visit policy snapshots; elapsed/business clocks; versioned calendar registry; Iranian working-week/holiday handling; exact warning/breach boundaries; reset/cumulative reentry; explicit pause/resume with remaining budget and pause intervals; independent reset epochs; inactivity/stale/dead-candidate labels; guarded optional automatic transitions; scoped bounded watchdog; persistent threshold deduplication; notification intents via the outbox; recovery of a pending dead-candidate threshold after earlier markers committed.
 
@@ -6,6 +6,8 @@ StageLifecycle integrates stage entry/exit/activity with the process engine. Ter
 
 Owned scenarios implemented here: TM-196, TM-197, TM-198, TM-200, TM-201, TM-202, TM-203, TM-204. They have independent PHP/Markdown files. Supplemental SLA tests cover pause/reset distinctions, immutable policy snapshots, clock rollback, reason/version/capability guards, authorized and vetoed automated transitions, DST boundary rejection, repeated stale epochs and watchdog crash-boundary recovery.
 
-Still required before the full phase-three gate: configurable assignment/resolvers/round-robin/member departure, multiple assignees, sequential/parallel/quorum approvals, handoff modes and versioned return policies, joins/lineage/timeout/recall, real host spawn/Saga confirmation/compensation, trusted committed milestones, campaign preview/enrollment/cutoff policies and resumable leased/chunked group execution. The 75/15/10 campaign acceptance scenario has NOT been implemented or run. No phase-four work is declared started.
+Assignment/responsibility foundation is also implemented: host eligibility resolver, immutable stage/instance policy snapshots, fixed/manual/follow-owner/team/round-robin selection, bounded distinct primary/secondary actors, portable active-assignment slots, immutable assignment intervals, immediate eligibility checks, explicit unassigned policy, reject/unassign/reassign-owner departure behavior, native Todo complete/reopen restoration and scoped queue locking. Assigned actors do not gain subject visibility automatically. Its independent owned scenarios are TM-024, TM-146, TM-188..191.
+
+Still required before the full phase-three gate: sequential/parallel/quorum approvals, handoff modes and versioned return policies, joins/lineage/timeout/recall, real host spawn/Saga confirmation/compensation, trusted committed milestones, campaign preview/enrollment/cutoff policies and resumable leased/chunked group execution. The 75/15/10 campaign acceptance scenario has NOT been implemented or run. No phase-four work is declared started.
 
 This file explicitly does not certify all 58 phase-three scenarios, E2E flows or release readiness.

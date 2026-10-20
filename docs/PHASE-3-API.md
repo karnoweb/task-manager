@@ -8,4 +8,6 @@ SlaService.run requires explicit sla.run scope/capabilities, selects bounded cur
 
 WorkingCalendar and immutable CalendarRegistry allow versioned host calendars. WeeklyWorkingCalendar uses IANA zones, explicit ISO weekdays, half-open local shifts and holiday dates. Nonexistent/ambiguous DST shift boundaries fail explicitly. It does not implement Jalali recurrence, which remains phase-five scope.
 
-Assignment, approval, handoff and group APIs are still pending. This is not the final phase-three public API contract.
+TaskManager.assignments() exposes assignment get/assign, explicit instance policy configuration, stage policy publication and member-departure policies. Every mutation requires assignment.manage, the current process version and a unique operation. ResponsibilityResolver supplies current scoped eligibility/candidates; the default resolver permits only the context actor and infers no host organization. Instance overrides are explicit and persist across stage changes; stage policies otherwise apply to new visits. Active primary uniqueness is enforced in the database. Ownership and read permissions are independent of assignment.
+
+Approval, handoff and group APIs are still pending. This is not the final phase-three public API contract.
