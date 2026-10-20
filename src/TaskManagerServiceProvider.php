@@ -11,6 +11,10 @@ final class TaskManagerServiceProvider extends ServiceProvider
         $this->mergeConfigFrom(__DIR__.'/../config/task-manager.php', 'task-manager');
         $this->app->bindIf(\Karnoweb\TaskManager\Contracts\Clock::class, SystemClock::class);
         $this->app->bindIf(\Karnoweb\TaskManager\Contracts\AuthorizationProvider::class, ContextAuthorization::class);
+        $this->app->bindIf(\Karnoweb\TaskManager\Handoff\SubjectRouteRegistry::class, fn () => new \Karnoweb\TaskManager\Handoff\SubjectRouteRegistry());
+        foreach ([\Karnoweb\TaskManager\Handoff\LocalRouteService::class, \Karnoweb\TaskManager\Handoff\ExternalSagaService::class] as $routeService) {
+            $this->app->bind($routeService, fn ($app) => new $routeService($app['db']->connection(), $app->make(\Karnoweb\TaskManager\Contracts\Clock::class), $app->make(\Karnoweb\TaskManager\Contracts\AuthorizationProvider::class), $app->make(\Karnoweb\TaskManager\Workflow\InstanceService::class), $app->make(\Karnoweb\TaskManager\Workflow\CaseService::class), $app->make(\Karnoweb\TaskManager\Handoff\SubjectRouteRegistry::class)));
+        }
         $this->app->bind(TaskService::class, fn ($app) => new TaskService($app['db']->connection(), $app->make(\Karnoweb\TaskManager\Contracts\Clock::class), $app->make(\Karnoweb\TaskManager\Contracts\AuthorizationProvider::class), $app->make(\Karnoweb\TaskManager\Contracts\StageLifecycle::class)));
         $this->app->bindIf(SubjectRegistry::class, fn ($app) => new SubjectRegistry(['task' => new \Karnoweb\TaskManager\Workflow\TaskSubjectHandler($app->make(TaskService::class))]));
         $this->app->bindIf(\Karnoweb\TaskManager\SLA\CalendarRegistry::class, fn () => new \Karnoweb\TaskManager\SLA\CalendarRegistry());

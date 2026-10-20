@@ -182,7 +182,7 @@ final class HandoffService
             ->whereIn('origin_id', clone $visible)->whereIn('destination_id', clone $visible)
             ->where(function ($query) {
                 $query->whereIn('destination_id', $this->db->table('tm_workflow_instances')->where('lifecycle', 'closed')->select('id'))
-                    ->orWhere('deadline_at', '<=', $this->now());
+                    ->orWhere(fn ($due) => $due->where('status', 'active')->where('deadline_at', '<=', $this->now()));
             })->orderBy('id')->limit($limit)->get();
         $processed = 0; $conflicts = 0;
         foreach ($items as $item) {
@@ -252,7 +252,7 @@ final class HandoffService
                 }
                 $this->db->table('tm_active_handoff_origins')->where('origin_id', $origin['id'])->delete();
             });
-        } catch (DomainError $error) { $status = 'return_conflict'; $failure = $error->getMessage(); }
+        } catch (DomainError $error) { $status = 'return_conflict'; $failure = preg_match('/^[a-z][a-z0-9_.-]{0,99}$/D', $error->getMessage()) ? $error->getMessage() : 'host_guard_denied'; }
         $this->db->table('tm_handoffs')->where('id', $handoff['id'])->update(['outcome' => $memberOutcome, 'status' => $status, 'failure_code' => $failure,
             'version' => $handoff['version'] + 1, 'resolved_at' => $status === 'resolved' ? $this->now() : null]);
         if ($handoff['group_id'] !== null) {

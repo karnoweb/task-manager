@@ -1,0 +1,10 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<testsuites>
+  <testsuite name="D:\my-packages\task-manager\phpunit.xml" tests="1" assertions="7" errors="0" failures="0" skipped="0" time="2.266228">
+    <testsuite name="Package" tests="1" assertions="7" errors="0" failures="0" skipped="0" time="2.266228">
+      <testsuite name="Karnoweb\TaskManager\Tests\ExternalSagaConcurrencyTest" file="D:\my-packages\task-manager\tests\ExternalSagaConcurrencyTest.php" tests="1" assertions="7" errors="0" failures="0" skipped="0" time="2.266228">
+        <testcase name="test_two_workers_use_one_remote_idempotency_key_and_one_local_confirmation" file="D:\my-packages\task-manager\tests\ExternalSagaConcurrencyTest.php" line="10" class="Karnoweb\TaskManager\Tests\ExternalSagaConcurrencyTest" classname="Karnoweb.TaskManager.Tests.ExternalSagaConcurrencyTest" assertions="7" time="2.266228"/>
+      </testsuite>
+    </testsuite>
+  </testsuite>
+</testsuites>

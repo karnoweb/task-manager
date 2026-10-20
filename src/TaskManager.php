@@ -14,7 +14,8 @@ final class TaskManager
         private readonly InstanceService $instances, private readonly ProjectService $projects, private readonly CaseService $cases,
         private readonly \Karnoweb\TaskManager\SLA\SlaService $sla, private readonly \Karnoweb\TaskManager\SLA\StagePolicyService $stagePolicies,
         private readonly \Karnoweb\TaskManager\Responsibility\AssignmentService $assignments, private readonly \Karnoweb\TaskManager\Approval\ApprovalService $approvals,
-        private readonly \Karnoweb\TaskManager\Handoff\HandoffService $handoffs) {}
+        private readonly \Karnoweb\TaskManager\Handoff\HandoffService $handoffs, private readonly \Karnoweb\TaskManager\Handoff\LocalRouteService $routes,
+        private readonly \Karnoweb\TaskManager\Handoff\ExternalSagaService $sagas) {}
     public function tasks(): TaskService { return $this->tasks; }
     public function workflows(): WorkflowService { return $this->workflows; }
     public function pipelines(): PipelineService { return $this->pipelines; }
@@ -26,6 +27,8 @@ final class TaskManager
     public function assignments(): \Karnoweb\TaskManager\Responsibility\AssignmentService { return $this->assignments; }
     public function approvals(): \Karnoweb\TaskManager\Approval\ApprovalService { return $this->approvals; }
     public function handoffs(): \Karnoweb\TaskManager\Handoff\HandoffService { return $this->handoffs; }
+    public function routes(): \Karnoweb\TaskManager\Handoff\LocalRouteService { return $this->routes; }
+    public function sagas(): \Karnoweb\TaskManager\Handoff\ExternalSagaService { return $this->sagas; }
     public function __call(string $method, array $arguments): mixed
     {
         if (!is_callable([$this->tasks, $method])) { throw new \BadMethodCallException('Unknown task method'); }

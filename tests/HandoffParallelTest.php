@@ -63,4 +63,14 @@ final class HandoffParallelTest extends HandoffTestCase
         self::assertSame(1, DB::table('tm_workflow_instances')->count());
         self::assertSame('active', $this->instances()->get($this->manager(), $origin['instance_key'])['lifecycle']);
     }
+    public function test_detached_active_remainder_is_not_recalled_by_the_expired_group_deadline(): void
+    {
+        [$origin, $group] = $this->parallelFixture('any');
+        $this->complete($group['members'][0], 'one'); $this->clock->advance('+600 seconds');
+        self::assertSame(['processed' => 0, 'conflicts' => 0], $this->handoffs()->run($this->manager()));
+        foreach (array_slice($group['members'], 1) as $member) {
+            self::assertSame('detached', $this->handoffs()->get($this->manager(), $member['handoff_key'])['status']);
+            self::assertSame('active', DB::table('tm_workflow_instances')->where('id', $member['destination_id'])->value('lifecycle'));
+        }
+    }
 }
