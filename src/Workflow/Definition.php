@@ -21,6 +21,10 @@ final class Definition
                 || !isset($states[$edge['from']], $states[$edge['to']])) { throw new DomainError('transition_invalid'); }
             if (isset($edge['reason_required']) && !is_bool($edge['reason_required'])) { throw new DomainError('transition_invalid'); }
             if (isset($edge['allow_while_waiting']) && !is_bool($edge['allow_while_waiting'])) { throw new DomainError('transition_invalid'); }
+            if (isset($edge['milestones'])) {
+                if (!is_array($edge['milestones']) || !array_is_list($edge['milestones']) || count($edge['milestones']) > 20 || count(array_unique($edge['milestones'])) !== count($edge['milestones'])) { throw new DomainError('milestone_invalid'); }
+                foreach ($edge['milestones'] as $milestone) { self::key($milestone); }
+            }
             if (isset($edge['conditions']) && (!is_array($edge['conditions']) || !array_is_list($edge['conditions']))) { throw new DomainError('condition_invalid'); }
             foreach (['required_fields', 'roles', 'guards', 'reason_codes'] as $field) {
                 if (isset($edge[$field]) && (!is_array($edge[$field]) || !array_is_list($edge[$field]))) { throw new DomainError('transition_invalid'); }

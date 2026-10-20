@@ -6,6 +6,8 @@
 - Reserve a unique command journal key before executing writes; include actor and canonicalized payload in the hash; recheck authorization before returning a prior result.
 - Keep events transactional and require at-least-once delivery with consumer deduplication. Acknowledged delivery is not retried; a crash between consumer action and acknowledgment may redeliver the same event ID.
 - Use a project-specific PostgreSQL cluster on localhost:55439. Existing EnvKit service data is not used or changed. Runtime data is ignored by Git.
-- Human phase pauses are removed by direct user instruction. This does not waive tests, hide failures or permit claiming features absent from source.
+- The current user instruction restores a report and stop at each phase boundary. Earlier authorization to continue without pauses is superseded; tests and truthful scenario evidence remain required.
 
 Remaining design review items are listed in PHASE-1-IMPLEMENTATION.md. No final release/version matrix is approved or claimed. No phase-seven result exists yet.
+
+Migration 000012 and fresh schema defaults enforce exact binary/no-padding security identifiers on MySQL-family engines. This fixes a demonstrated cross-scope disclosure on a case-insensitive MariaDB default. New package migrations must use Schema\IdentifierCollation for their table defaults. See EXACT-IDENTIFIER-DECISION.md for reproduced failure, upgrade behavior and host-table obligations. Oracle MySQL 8 collation selection is implemented but its runtime is not yet verified.

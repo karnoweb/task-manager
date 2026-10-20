@@ -1,4 +1,4 @@
-# Phase 3 progress — SLA, assignment and approval subsets, not a completed phase
+# Phase 3 implementation and verification
 
 Completed in this checkpoint: immutable stage SLA policy revisions; per-visit policy snapshots; elapsed/business clocks; versioned calendar registry; Iranian working-week/holiday handling; exact warning/breach boundaries; reset/cumulative reentry; explicit pause/resume with remaining budget and pause intervals; independent reset epochs; inactivity/stale/dead-candidate labels; guarded optional automatic transitions; scoped bounded watchdog; persistent threshold deduplication; notification intents via the outbox; recovery of a pending dead-candidate threshold after earlier markers committed.
 
@@ -12,6 +12,6 @@ Approval foundation is implemented with immutable policies, sequential/parallel/
 
 Same-subject handoff now includes durable source waiting/version snapshots, independent destination slots/clocks, configured terminal return mappings, current assignee eligibility, recall/timeout, lineage/cycle protection, all/any/quorum joins with explicit detached remainder policy, append-only destination outcome evidence and bounded recovery scans. Focused tests cover successful/failed/conflicting returns, independent clocks, same-connection rollback and real delegation/return races. See PHASE-3-HANDOFFS.md; the latest combined run is still the authority for accepted scenario counts.
 
-Still required before the full phase-three gate: real host move/spawn/Saga confirmation/compensation, trusted committed milestones, campaign preview/enrollment/cutoff policies and resumable leased/chunked group execution. Manual join and return repair APIs also remain pending. The 75/15/10 campaign acceptance scenario has NOT been implemented or run. No phase-four work is declared started.
+Local owner move/spawn, remote Saga confirmation/compensation, trusted committed milestones and campaign preview/closure are implemented. Manual join and versioned handoff conflict repair are implemented. All 58 owned phase-three TM IDs passed the complete PostgreSQL suite. See PHASE-3-GROUPS.md, PHASE-3-SUBJECT-ROUTES.md and PHASE-3-TEST-REPORT.md for exact scope and evidence.
 
-This file explicitly does not certify all 58 phase-three scenarios, E2E flows or release readiness.
+The owned phase-three gate passed after complete post-fix PostgreSQL/SQLite reruns and targeted MariaDB integration. Bounded scale smoke is recorded separately. Full release matrix/load/host acceptance remains later scope. No phase-four work or phase-seven release acceptance is declared.

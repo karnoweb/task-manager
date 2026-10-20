@@ -1,9 +1,9 @@
-# Remaining phase-three gate
+# Phase-three gate passed — stop before phase four
 
-Do not enter phase four yet. Preserve phase-one/two regression, SLA/assignment/approval concurrency evidence while completing the remaining 17 owned phase-three IDs (206,221..236).
+All 58 owned phase-three TM IDs passed, independently verified from every actual JUnit data case in phase3-all-postgres.xml and recorded in PHASE-3-GATE.json. Complete post-fix PostgreSQL regression: 298 tests / 1709 assertions, zero failures/errors, one explicit MariaDB-only upgrade skip. SQLite: 298 / 1512, 22 engine-specific skips. Targeted actual EnvKit MariaDB: 30 / 236, one PostgreSQL-only E2E skip; independent MariaDB worker/crash recovery passed.
 
-Next implementation work: manual handoff join/repair tools; trusted committed milestone history; group enrollment and immutable closure policy; versioned preview/delta; leased chunk processing, crash/replay and per-item authorization.
+SLA, responsibility, approvals, versioned handoff/return/repair, local move/spawn, remote Saga and milestone/campaign closure are implemented. Exact 75/15/10 outcomes, five active delegated contracts, twelve independent breaches, real 40/60 crash recovery and native commit-boundary evidence passed. Review found and fixed a foundation MariaDB scope disclosure, with upgrade and complete SQLite/PostgreSQL reruns. See PHASE-3-TEST-REPORT.md and EXACT-IDENTIFIER-DECISION.md.
 
-Required campaign proof remains exactly 75 failed with campaign_ended, 15 continued including five delegated contracts, and 10 already terminal after retry/crash recovery. This scenario and all six full E2E flows remain unexecuted. A complete phase-three gate report must not be inferred from the currently passing implemented subsets.
+Scale smoke is bounded evidence, not full-load acceptance. Oracle MySQL 8, the full version/load matrix and installed commercial host/browser integration remain explicit later limitations. No phase-seven release result is claimed.
 
-
+The user now requires reporting and stopping at every phase boundary. Phase three is complete; do not begin phase four until the user continues. Phase four owns full task/project hierarchy, dependencies, scheduling, rollups, advanced collaboration/files and bulk operations under its exact scenario ownership.

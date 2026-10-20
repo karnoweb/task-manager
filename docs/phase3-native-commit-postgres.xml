@@ -1,0 +1,11 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<testsuites>
+  <testsuite name="D:\my-packages\task-manager\phpunit.xml" tests="2" assertions="17" errors="0" failures="0" skipped="0" time="2.846909">
+    <testsuite name="Package" tests="2" assertions="17" errors="0" failures="0" skipped="0" time="2.846909">
+      <testsuite name="Karnoweb\TaskManager\Tests\NativeCommitEvidenceTest" file="D:\my-packages\task-manager\tests\NativeCommitEvidenceTest.php" tests="2" assertions="17" errors="0" failures="0" skipped="0" time="2.846909">
+        <testcase name="test_actual_postgres_commit_timestamps_define_before_equal_and_after_cutoff" file="D:\my-packages\task-manager\tests\NativeCommitEvidenceTest.php" line="12" class="Karnoweb\TaskManager\Tests\NativeCommitEvidenceTest" classname="Karnoweb.TaskManager.Tests.NativeCommitEvidenceTest" assertions="12" time="1.856828"/>
+        <testcase name="test_uncommitted_transition_cannot_create_verified_evidence_and_rollback_removes_intent" file="D:\my-packages\task-manager\tests\NativeCommitEvidenceTest.php" line="36" class="Karnoweb\TaskManager\Tests\NativeCommitEvidenceTest" classname="Karnoweb.TaskManager.Tests.NativeCommitEvidenceTest" assertions="5" time="0.990081"/>
+      </testsuite>
+    </testsuite>
+  </testsuite>
+</testsuites>

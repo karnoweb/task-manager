@@ -1,0 +1,6 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<testsuites>
+  <testsuite name="Karnoweb\TaskManager\Tests\Benchmarks\GroupScaleBenchmarkTest" file="D:\my-packages\task-manager\benchmarks\GroupScaleBenchmarkTest.php" tests="1" assertions="26" errors="0" failures="0" skipped="0" time="464.409101">
+    <testcase name="test_bounded_preview_materialization_and_processing_for_10k_and_100k" file="D:\my-packages\task-manager\benchmarks\GroupScaleBenchmarkTest.php" line="62" class="Karnoweb\TaskManager\Tests\Benchmarks\GroupScaleBenchmarkTest" classname="Karnoweb.TaskManager.Tests.Benchmarks.GroupScaleBenchmarkTest" assertions="26" time="464.409101"/>
+  </testsuite>
+</testsuites>

@@ -10,7 +10,7 @@ abstract class HandoffTestCase extends AssignmentTestCase
     protected function manager(string $actor = 'a', string $scope = 'one'): ExecutionContext
     {
         $base = parent::manager($actor, $scope);
-        return new ExecutionContext($scope, $actor, 'handoff-test', capabilities: [...$base->capabilities, 'handoff.manage', 'handoff.view', 'handoff.recall', 'handoff.timeout', 'handoff.run']);
+        return new ExecutionContext($scope, $actor, 'handoff-test', capabilities: [...$base->capabilities, 'handoff.manage', 'handoff.view', 'handoff.recall', 'handoff.timeout', 'handoff.run', 'handoff.repair']);
     }
     protected function handoffs(): HandoffService { return $this->app->make(HandoffService::class); }
     protected function handoffFixture(bool $sla = true): array

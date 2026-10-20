@@ -15,7 +15,8 @@ final class TaskManager
         private readonly \Karnoweb\TaskManager\SLA\SlaService $sla, private readonly \Karnoweb\TaskManager\SLA\StagePolicyService $stagePolicies,
         private readonly \Karnoweb\TaskManager\Responsibility\AssignmentService $assignments, private readonly \Karnoweb\TaskManager\Approval\ApprovalService $approvals,
         private readonly \Karnoweb\TaskManager\Handoff\HandoffService $handoffs, private readonly \Karnoweb\TaskManager\Handoff\LocalRouteService $routes,
-        private readonly \Karnoweb\TaskManager\Handoff\ExternalSagaService $sagas) {}
+        private readonly \Karnoweb\TaskManager\Handoff\ExternalSagaService $sagas, private readonly \Karnoweb\TaskManager\Group\GroupService $groups,
+        private readonly \Karnoweb\TaskManager\Group\MilestoneService $milestones) {}
     public function tasks(): TaskService { return $this->tasks; }
     public function workflows(): WorkflowService { return $this->workflows; }
     public function pipelines(): PipelineService { return $this->pipelines; }
@@ -29,6 +30,8 @@ final class TaskManager
     public function handoffs(): \Karnoweb\TaskManager\Handoff\HandoffService { return $this->handoffs; }
     public function routes(): \Karnoweb\TaskManager\Handoff\LocalRouteService { return $this->routes; }
     public function sagas(): \Karnoweb\TaskManager\Handoff\ExternalSagaService { return $this->sagas; }
+    public function groups(): \Karnoweb\TaskManager\Group\GroupService { return $this->groups; }
+    public function milestones(): \Karnoweb\TaskManager\Group\MilestoneService { return $this->milestones; }
     public function __call(string $method, array $arguments): mixed
     {
         if (!is_callable([$this->tasks, $method])) { throw new \BadMethodCallException('Unknown task method'); }

@@ -1,0 +1,299 @@
+{
+  "phase": 3,
+  "gate": "PASS",
+  "owned_scenarios": 58,
+  "verified_from": "phase3-all-postgres.xml",
+  "phase_seven_acceptance": false,
+  "results": [
+    {
+      "id": "TM-024",
+      "result": "PASS",
+      "data_cases": 1
+    },
+    {
+      "id": "TM-146",
+      "result": "PASS",
+      "data_cases": 1
+    },
+    {
+      "id": "TM-166",
+      "result": "PASS",
+      "data_cases": 1
+    },
+    {
+      "id": "TM-167",
+      "result": "PASS",
+      "data_cases": 1
+    },
+    {
+      "id": "TM-168",
+      "result": "PASS",
+      "data_cases": 1
+    },
+    {
+      "id": "TM-169",
+      "result": "PASS",
+      "data_cases": 1
+    },
+    {
+      "id": "TM-170",
+      "result": "PASS",
+      "data_cases": 1
+    },
+    {
+      "id": "TM-171",
+      "result": "PASS",
+      "data_cases": 1
+    },
+    {
+      "id": "TM-172",
+      "result": "PASS",
+      "data_cases": 1
+    },
+    {
+      "id": "TM-173",
+      "result": "PASS",
+      "data_cases": 1
+    },
+    {
+      "id": "TM-174",
+      "result": "PASS",
+      "data_cases": 1
+    },
+    {
+      "id": "TM-175",
+      "result": "PASS",
+      "data_cases": 1
+    },
+    {
+      "id": "TM-176",
+      "result": "PASS",
+      "data_cases": 1
+    },
+    {
+      "id": "TM-177",
+      "result": "PASS",
+      "data_cases": 1
+    },
+    {
+      "id": "TM-178",
+      "result": "PASS",
+      "data_cases": 1
+    },
+    {
+      "id": "TM-179",
+      "result": "PASS",
+      "data_cases": 1
+    },
+    {
+      "id": "TM-180",
+      "result": "PASS",
+      "data_cases": 1
+    },
+    {
+      "id": "TM-181",
+      "result": "PASS",
+      "data_cases": 1
+    },
+    {
+      "id": "TM-182",
+      "result": "PASS",
+      "data_cases": 1
+    },
+    {
+      "id": "TM-183",
+      "result": "PASS",
+      "data_cases": 1
+    },
+    {
+      "id": "TM-184",
+      "result": "PASS",
+      "data_cases": 1
+    },
+    {
+      "id": "TM-185",
+      "result": "PASS",
+      "data_cases": 1
+    },
+    {
+      "id": "TM-186",
+      "result": "PASS",
+      "data_cases": 1
+    },
+    {
+      "id": "TM-187",
+      "result": "PASS",
+      "data_cases": 1
+    },
+    {
+      "id": "TM-188",
+      "result": "PASS",
+      "data_cases": 1
+    },
+    {
+      "id": "TM-189",
+      "result": "PASS",
+      "data_cases": 1
+    },
+    {
+      "id": "TM-190",
+      "result": "PASS",
+      "data_cases": 1
+    },
+    {
+      "id": "TM-191",
+      "result": "PASS",
+      "data_cases": 1
+    },
+    {
+      "id": "TM-192",
+      "result": "PASS",
+      "data_cases": 3
+    },
+    {
+      "id": "TM-193",
+      "result": "PASS",
+      "data_cases": 1
+    },
+    {
+      "id": "TM-194",
+      "result": "PASS",
+      "data_cases": 1
+    },
+    {
+      "id": "TM-195",
+      "result": "PASS",
+      "data_cases": 1
+    },
+    {
+      "id": "TM-196",
+      "result": "PASS",
+      "data_cases": 1
+    },
+    {
+      "id": "TM-197",
+      "result": "PASS",
+      "data_cases": 1
+    },
+    {
+      "id": "TM-198",
+      "result": "PASS",
+      "data_cases": 1
+    },
+    {
+      "id": "TM-199",
+      "result": "PASS",
+      "data_cases": 1
+    },
+    {
+      "id": "TM-200",
+      "result": "PASS",
+      "data_cases": 1
+    },
+    {
+      "id": "TM-201",
+      "result": "PASS",
+      "data_cases": 1
+    },
+    {
+      "id": "TM-202",
+      "result": "PASS",
+      "data_cases": 1
+    },
+    {
+      "id": "TM-203",
+      "result": "PASS",
+      "data_cases": 1
+    },
+    {
+      "id": "TM-204",
+      "result": "PASS",
+      "data_cases": 1
+    },
+    {
+      "id": "TM-206",
+      "result": "PASS",
+      "data_cases": 1
+    },
+    {
+      "id": "TM-221",
+      "result": "PASS",
+      "data_cases": 1
+    },
+    {
+      "id": "TM-222",
+      "result": "PASS",
+      "data_cases": 1
+    },
+    {
+      "id": "TM-223",
+      "result": "PASS",
+      "data_cases": 1
+    },
+    {
+      "id": "TM-224",
+      "result": "PASS",
+      "data_cases": 1
+    },
+    {
+      "id": "TM-225",
+      "result": "PASS",
+      "data_cases": 1
+    },
+    {
+      "id": "TM-226",
+      "result": "PASS",
+      "data_cases": 1
+    },
+    {
+      "id": "TM-227",
+      "result": "PASS",
+      "data_cases": 1
+    },
+    {
+      "id": "TM-228",
+      "result": "PASS",
+      "data_cases": 1
+    },
+    {
+      "id": "TM-229",
+      "result": "PASS",
+      "data_cases": 1
+    },
+    {
+      "id": "TM-230",
+      "result": "PASS",
+      "data_cases": 1
+    },
+    {
+      "id": "TM-231",
+      "result": "PASS",
+      "data_cases": 1
+    },
+    {
+      "id": "TM-232",
+      "result": "PASS",
+      "data_cases": 1
+    },
+    {
+      "id": "TM-233",
+      "result": "PASS",
+      "data_cases": 1
+    },
+    {
+      "id": "TM-234",
+      "result": "PASS",
+      "data_cases": 1
+    },
+    {
+      "id": "TM-235",
+      "result": "PASS",
+      "data_cases": 1
+    },
+    {
+      "id": "TM-236",
+      "result": "PASS",
+      "data_cases": 1
+    }
+  ]
+}

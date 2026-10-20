@@ -14,33 +14,40 @@ return new class extends Migration {
         Schema::table('tm_tasks', fn (Blueprint $t) => $t->dropColumn('project_id'));
         Schema::table('tm_tasks', fn (Blueprint $t) => $t->unsignedBigInteger('project_id')->nullable());
         Schema::create('tm_workflow_heads', function (Blueprint $t) {
+            $t->collation = \Karnoweb\TaskManager\Schema\IdentifierCollation::forConnection(Schema::getConnection());
             $t->string('scope_key', 120); $t->string('key', 120); $t->unsignedInteger('revision')->default(0);
             $t->primary(['scope_key', 'key']);
         });
         Schema::create('tm_projects', function (Blueprint $t) {
+            $t->collation = \Karnoweb\TaskManager\Schema\IdentifierCollation::forConnection(Schema::getConnection());
             $t->bigIncrements('id'); $t->uuid('project_key')->unique(); $t->string('scope_key', 120); $t->string('key', 80); $t->string('name');
             $t->string('owner_ref', 120); $t->foreignId('workflow_revision_id')->constrained('tm_workflow_definitions')->restrictOnDelete();
             $t->string('status')->default('active'); $t->unsignedInteger('version')->default(1); $t->unique(['scope_key', 'key']);
         });
         Schema::create('tm_project_members', function (Blueprint $t) {
+            $t->collation = \Karnoweb\TaskManager\Schema\IdentifierCollation::forConnection(Schema::getConnection());
             $t->unsignedBigInteger('project_id'); $t->string('actor_ref', 120); $t->string('role', 30);
             $t->foreign('project_id')->references('id')->on('tm_projects')->restrictOnDelete(); $t->primary(['project_id', 'actor_ref']);
         });
         Schema::create('tm_project_type_workflows', function (Blueprint $t) {
+            $t->collation = \Karnoweb\TaskManager\Schema\IdentifierCollation::forConnection(Schema::getConnection());
             $t->unsignedBigInteger('project_id'); $t->string('type_key', 100); $t->foreignId('workflow_revision_id')->constrained('tm_workflow_definitions')->restrictOnDelete();
             $t->foreign('project_id')->references('id')->on('tm_projects')->restrictOnDelete(); $t->primary(['project_id', 'type_key']);
         });
         Schema::create('tm_pipelines', function (Blueprint $t) {
+            $t->collation = \Karnoweb\TaskManager\Schema\IdentifierCollation::forConnection(Schema::getConnection());
             $t->bigIncrements('id'); $t->uuid('pipeline_key')->unique(); $t->string('scope_key', 120); $t->string('name', 120);
             $t->string('owner_ref', 120); $t->foreignId('workflow_revision_id')->constrained('tm_workflow_definitions')->restrictOnDelete();
             $t->unsignedInteger('version')->default(1); $t->unique(['scope_key', 'name']);
         });
         Schema::create('tm_pipeline_stages', function (Blueprint $t) {
+            $t->collation = \Karnoweb\TaskManager\Schema\IdentifierCollation::forConnection(Schema::getConnection());
             $t->bigIncrements('id'); $t->foreignId('pipeline_id')->constrained('tm_pipelines')->restrictOnDelete();
             $t->string('stage_key', 100); $t->string('state_key', 100); $t->unsignedInteger('capacity')->nullable();
             $t->unique(['pipeline_id', 'stage_key']);
         });
         Schema::create('tm_process_cases', function (Blueprint $t) {
+            $t->collation = \Karnoweb\TaskManager\Schema\IdentifierCollation::forConnection(Schema::getConnection());
             $t->bigIncrements('id'); $t->uuid('case_key')->unique(); $t->string('scope_key', 120);
             $t->string('owner_ref', 120); $t->string('title'); $t->unsignedInteger('version')->default(1);
         });
@@ -63,21 +70,25 @@ return new class extends Migration {
             $t->index(['scope_key', 'pipeline_id', 'active_stage_key', 'lifecycle'], 'tm_instance_stage_lifecycle');
         });
         Schema::create('tm_active_process_slots', function (Blueprint $t) {
+            $t->collation = \Karnoweb\TaskManager\Schema\IdentifierCollation::forConnection(Schema::getConnection());
             $t->string('scope_key', 120); $t->string('subject_type', 100); $t->string('subject_id', 120); $t->string('slot_key', 100);
             $t->foreignId('instance_id')->unique()->constrained('tm_workflow_instances')->restrictOnDelete();
             $t->primary(['scope_key', 'subject_type', 'subject_id', 'slot_key'], 'tm_active_slot_pk');
         });
         Schema::create('tm_case_subjects', function (Blueprint $t) {
+            $t->collation = \Karnoweb\TaskManager\Schema\IdentifierCollation::forConnection(Schema::getConnection());
             $t->foreignId('case_id')->constrained('tm_process_cases')->restrictOnDelete();
             $t->string('subject_type', 100); $t->string('subject_id', 120); $t->primary(['case_id', 'subject_type', 'subject_id']);
         });
         Schema::create('tm_stage_visits', function (Blueprint $t) {
+            $t->collation = \Karnoweb\TaskManager\Schema\IdentifierCollation::forConnection(Schema::getConnection());
             $t->bigIncrements('id'); $t->string('scope_key', 120); $t->foreignId('instance_id')->constrained('tm_workflow_instances')->restrictOnDelete();
             $t->foreignId('pipeline_id')->constrained('tm_pipelines')->restrictOnDelete(); $t->string('stage_key', 100);
             $t->unsignedInteger('visit_no'); $t->timestamp('entered_at'); $t->timestamp('exited_at')->nullable();
             $t->unique(['instance_id', 'visit_no']);
         });
         Schema::create('tm_security_decisions', function (Blueprint $t) {
+            $t->collation = \Karnoweb\TaskManager\Schema\IdentifierCollation::forConnection(Schema::getConnection());
             $t->bigIncrements('id'); $t->string('scope_key', 120); $t->string('actor_ref', 120); $t->string('action', 80);
             $t->string('reason', 80); $t->string('target_hash', 64); $t->timestamp('occurred_at');
         });

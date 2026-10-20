@@ -9,28 +9,8 @@ use Karnoweb\TaskManager\TaskManagerServiceProvider;
 use Karnoweb\TaskManager\TaskService;
 use Orchestra\Testbench\TestCase;
 
-final class FoundationTest extends TestCase
+final class FoundationTest extends PackageTestCase
 {
-    protected function getPackageProviders($app): array { return [TaskManagerServiceProvider::class]; }
-
-    protected function defineEnvironment($app): void
-    {
-        $app['config']->set('database.default', 'testing');
-        $driver = getenv('TM_TEST_DRIVER') ?: 'sqlite';
-        $app['config']->set('database.connections.testing', $driver === 'pgsql'
-            ? ['driver' => 'pgsql', 'host' => '127.0.0.1', 'port' => 55439, 'database' => 'tm_acceptance', 'username' => 'tm_test', 'password' => '', 'prefix' => '', 'search_path' => 'public']
-            : ['driver' => 'sqlite', 'database' => ':memory:', 'prefix' => '']);
-    }
-
-    protected function setUp(): void
-    {
-        parent::setUp();
-        $this->artisan('migrate:fresh')->run();
-    }
-
-    private function context(string $actor = 'a', string $scope = 'one'): ExecutionContext { return new ExecutionContext($scope, $actor, 'test'); }
-    private function service(): TaskService { return $this->app->make(TaskService::class); }
-
     public function test_create_complete_reopen_records_atomic_history(): void
     {
         $s = $this->service(); $c = $this->context();

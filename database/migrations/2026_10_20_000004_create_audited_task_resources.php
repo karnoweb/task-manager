@@ -10,6 +10,7 @@ return new class extends Migration {
     {
         foreach (['tm_comments', 'tm_attachments'] as $table) {
             Schema::create($table, function (Blueprint $t) use ($table) {
+            $t->collation = \Karnoweb\TaskManager\Schema\IdentifierCollation::forConnection(Schema::getConnection());
                 $t->bigIncrements('id'); $t->uuid('public_key')->unique(); $t->string('scope_key', 120);
                 $t->foreignId('task_id')->constrained('tm_tasks')->restrictOnDelete(); $t->string('author_ref', 120);
                 if ($table === 'tm_comments') { $t->text('body'); }

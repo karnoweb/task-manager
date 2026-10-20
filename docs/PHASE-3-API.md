@@ -1,4 +1,4 @@
-# SLA API checkpoint
+# Phase-three API
 
 TaskManager exposes stagePolicies() and sla(). StagePolicyService.publishSla requires context, pipeline key, stage key, expected pipeline version, operation ID and a policy. Policies specify positive duration, elapsed/business clock, versioned calendar reference, warning offset, inactivity duration, reentry mode, dead-candidate labeling, pause reasons/limit and an optional explicit breach transition/reason.
 
@@ -14,4 +14,8 @@ TaskManager.approvals() exposes immutable stage policy configuration, manual beg
 
 TaskManager.handoffs() exposes get/delegate/parallel/settle/recall/run. Delegation requires an expected source version, independent target slot, accepted pipeline/revision and explicit immutable return policy. Settle reads terminal destination evidence. Recall/timeout require a configured guarded cancellation transition. Parallel groups declare qualifying outcomes, priority and all/any/quorum at creation; remaining independent destinations are explicitly detached after the join. Bounded run recovers committed destination outcomes after a worker restart. See PHASE-3-HANDOFFS.md for limitations and capabilities.
 
-Host-owned move/spawn, Saga, manual return repair and group closure APIs are still pending. This is not the final phase-three public API contract.
+TaskManager.routes() exposes same-connection owner-service move/spawn. TaskManager.sagas() exposes remote pending/confirm/compensate, durable receipt lookup, bounded recovery and explicit versioned repair. See PHASE-3-SUBJECT-ROUTES.md.
+
+TaskManager.groups() exposes register/publishPolicy/enroll/previewClosure/previewDelta/executeClosure/process/runInfo/report. TaskManager.milestones() exposes committed-intent get/verify/run. Source campaign closure and commit evidence require trusted registered providers; there is no browser timestamp setter. Reports use current parent SQL authorization. See PHASE-3-GROUPS.md.
+
+Handoff getGroup reauthorizes current member visibility. manualJoin/retryReturn/closeConflict require a separate handoff.repair capability, expected versions and an append-only repair ledger. Original policy/source snapshots are retained. Installed commercial host integration, full database/scale matrix and phase-seven acceptance still require later evidence.

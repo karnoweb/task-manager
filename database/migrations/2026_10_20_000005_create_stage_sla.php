@@ -9,6 +9,7 @@ return new class extends Migration {
     public function up(): void
     {
         Schema::create('tm_stage_policies', function (Blueprint $t) {
+            $t->collation = \Karnoweb\TaskManager\Schema\IdentifierCollation::forConnection(Schema::getConnection());
             $t->bigIncrements('id'); $t->string('scope_key', 120); $t->foreignId('stage_id')->constrained('tm_pipeline_stages')->restrictOnDelete();
             $t->unsignedInteger('revision'); $t->text('sla'); $t->boolean('dead_candidate')->default(false); $t->unique(['stage_id', 'revision']);
         });
@@ -22,10 +23,12 @@ return new class extends Migration {
             $t->index(['scope_key', 'deadline_at'], 'tm_sla_due'); $t->index(['scope_key', 'warning_at'], 'tm_sla_warning'); $t->index(['scope_key', 'stale_at'], 'tm_sla_stale');
         });
         Schema::create('tm_sla_pauses', function (Blueprint $t) {
+            $t->collation = \Karnoweb\TaskManager\Schema\IdentifierCollation::forConnection(Schema::getConnection());
             $t->bigIncrements('id'); $t->foreignId('visit_id')->constrained('tm_stage_visits')->restrictOnDelete();
             $t->timestamp('started_at'); $t->timestamp('ended_at')->nullable(); $t->string('reason_code', 100); $t->string('actor_ref', 120);
         });
         Schema::create('tm_sla_events', function (Blueprint $t) {
+            $t->collation = \Karnoweb\TaskManager\Schema\IdentifierCollation::forConnection(Schema::getConnection());
             $t->bigIncrements('id'); $t->string('scope_key', 120); $t->foreignId('visit_id')->constrained('tm_stage_visits')->restrictOnDelete();
             $t->foreignId('policy_id')->constrained('tm_stage_policies')->restrictOnDelete(); $t->string('event_key', 30); $t->timestamp('threshold_at'); $t->timestamp('detected_at');
             $t->unsignedInteger('generation')->default(1);

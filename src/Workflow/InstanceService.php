@@ -157,6 +157,14 @@ final class InstanceService
                 'version' => $version + 1, 'lifecycle' => $terminal ? 'closed' : ($instance['lifecycle'] === 'waiting' ? 'waiting' : 'active'), 'completed_at' => $terminal ? $this->now() : null]);
             if ($instance['task_id'] !== null) { $this->db->table('tm_tasks')->where('id', $instance['task_id'])->increment('version'); }
             $this->history($context, $instance, $state, $operation);
+            if (!empty($edge['milestones'])) {
+                $transaction = $this->db->getDriverName() === 'pgsql' ? 'pgsql:'.$this->db->selectOne('SELECT pg_current_xact_id()::text AS xid')->xid : null;
+                foreach ($edge['milestones'] as $milestone) {
+                    $this->db->table('tm_milestone_intents')->insert(['intent_key' => (string) Str::uuid(), 'scope_key' => $context->scope, 'instance_id' => $instance['id'],
+                        'milestone_key' => $milestone, 'instance_version' => $version + 1, 'operation_id' => $operation, 'transaction_ref' => $transaction,
+                        'created_at' => $this->clock->now()->setTimezone(new \DateTimeZone('UTC'))->format('Y-m-d H:i:s.u')]);
+                }
+            }
             if (!$stageChanged && !$terminal) { $this->lifecycle?->activity($context, $instance['id']); }
             $this->event($context, $key, 'instance_transitioned', $operation, ['from' => $instance['current_state_key'], 'to' => $state, 'transition' => $transition, 'reason_code' => $payload['reason_code'] ?? null], $instance['task_id']);
             return $this->get($context, $key);

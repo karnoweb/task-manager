@@ -17,6 +17,7 @@ final class HostLocalRouter implements LocalSubjectRouter
     {
         $this->assertOrigin($context, $origin);
         $this->db->table('host_subjects')->where('id', $origin['subject_id'])->where('scope_key', $context->scope)->update(['department' => 'sales']);
+        $this->db->table('host_permissions')->insertOrIgnore(['subject_id' => $origin['subject_id'], 'actor' => 'b', 'can_edit' => true]);
         $this->db->table('host_route_operations')->insert(['operation_id' => $operation, 'kind' => 'move']);
         if ($this->failAfterWrite) { throw new DomainError('host_route_failed'); }
     }

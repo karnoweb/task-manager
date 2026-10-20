@@ -295,8 +295,11 @@ final class TaskService
             }
             $now = $this->now();
             if (in_array($action, ['archive', 'delete'], true)) {
-                $guarded = $this->db->table('tm_workflow_instances')->where('task_id', $task->id)->where('slot_key', 'main')->orderByDesc('id')->lockForUpdate()->first();
-                $this->lifecycle?->beforeTransition($context, (array) $guarded, ['key' => $action, 'from' => $guarded->current_state_key, 'to' => $guarded->current_state_key, 'force_exit' => true], []);
+                $processes = $this->db->table('tm_workflow_instances')->where('scope_key', $context->scope)->where('task_id', $task->id)->where('lifecycle', '!=', 'closed')->orderBy('id')->lockForUpdate()->get();
+                foreach ($processes as $guarded) {
+                    $this->lifecycle?->beforeTransition($context, (array) $guarded, ['key' => $action, 'from' => $guarded->current_state_key, 'to' => $guarded->current_state_key, 'force_exit' => true], []);
+                    if ($guarded->pipeline_id !== null || $guarded->slot_key !== 'main') { throw new DomainError('active_process_blocks_archive'); }
+                }
             }
             if (in_array($action, ['archive', 'restore'], true)) { $changes['archived_at'] = $action === 'archive' ? $now : null; }
             if (in_array($action, ['delete', 'undelete'], true)) { $changes['deleted_at'] = $action === 'delete' ? $now : null; }

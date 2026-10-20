@@ -68,10 +68,10 @@ final class HandoffService
         $this->authorize($context, 'handoff.manage');
         if (!array_is_list($destinations) || count($destinations) < 2 || count($destinations) > 20
             || array_diff(array_keys($join), ['mode', 'quorum', 'outcomes', 'priority', 'remaining'])
-            || !in_array($join['mode'] ?? null, ['all', 'any', 'quorum'], true)
+            || !in_array($join['mode'] ?? null, ['all', 'any', 'quorum', 'manual'], true)
             || ($join['remaining'] ?? null) !== 'keep_active_detached') { throw new DomainError('handoff_join_invalid'); }
-        $join['quorum'] = match ($join['mode']) { 'all' => count($destinations), 'any' => 1, default => $join['quorum'] ?? null };
-        if (!is_int($join['quorum']) || $join['quorum'] < 1 || $join['quorum'] > count($destinations)) { throw new DomainError('handoff_join_invalid'); }
+        $join['quorum'] = match ($join['mode']) { 'all' => count($destinations), 'any' => 1, 'manual' => count($destinations) + 1, default => $join['quorum'] ?? null };
+        if (!is_int($join['quorum']) || $join['quorum'] < 1 || ($join['mode'] !== 'manual' && $join['quorum'] > count($destinations))) { throw new DomainError('handoff_join_invalid'); }
         foreach (['outcomes', 'priority'] as $field) {
             if (!is_array($join[$field] ?? null) || !array_is_list($join[$field]) || !$join[$field] || count(array_unique($join[$field])) !== count($join[$field])
                 || array_diff($join[$field], ['approved', 'rejected', 'cancelled', 'recalled', 'timed_out'])) { throw new DomainError('handoff_join_invalid'); }
@@ -83,13 +83,14 @@ final class HandoffService
         }
         return (new CommandExecutor($this->db))->execute($context, $operation, ['action' => 'parallel', 'origin' => $originKey, 'version' => $version, 'destinations' => $destinations, 'policy' => $policy, 'join' => $join], function () use ($context, $originKey, $version, $destinations, $policy, $join, $operation) {
             [$origin] = $this->instances->lockForCommand($context, $originKey, $version);
-            $groupId = $this->db->table('tm_handoff_groups')->insertGetId(['group_key' => (string) Str::uuid(), 'scope_key' => $context->scope,
+            $groupKey = (string) Str::uuid();
+            $groupId = $this->db->table('tm_handoff_groups')->insertGetId(['group_key' => $groupKey, 'scope_key' => $context->scope,
                 'origin_id' => $origin['id'], 'join_policy' => json_encode($join, JSON_THROW_ON_ERROR), 'expected_count' => count($destinations)]);
             $members = [];
             foreach ($destinations as $index => $destination) {
                 $members[] = $this->createDelegate($context, $originKey, $index === 0 ? $version : $version + 1, $destination['pipeline_key'], $destination['revision_id'], $destination['slot'], $policy, $this->child($operation, 'member-'.$index), $groupId);
             }
-            return ['group_id' => $groupId, 'members' => $members];
+            return ['group_id' => $groupId, 'group_key' => $groupKey, 'members' => $members];
         }, function ($result) use ($context) { foreach ($result['members'] as $member) { $this->get($context, $member['handoff_key']); } });
     }
     private function createDelegate(ExecutionContext $context, string $originKey, int $version, string $pipelineKey, int $revisionId, string $slot, array $policy, string $operation, ?int $groupId = null): array
@@ -139,7 +140,7 @@ final class HandoffService
         $this->authorize($context, 'handoff.manage');
         return $this->command($context, $operation, ['action' => 'settle', 'key' => $key, 'version' => $version], function () use ($context, $key, $version, $operation) {
             [$handoff, $origin, $destination] = $this->locked($context, $key);
-            if (in_array($handoff['status'], ['resolved', 'awaiting_join', 'detached_resolved'], true)) {
+            if (in_array($handoff['status'], ['resolved', 'awaiting_join', 'detached_resolved', 'manually_closed'], true)) {
                 $actual = $this->terminal($context, $destination);
                 if ($actual !== $handoff['outcome'] && !(in_array($handoff['outcome'], ['recalled', 'timed_out'], true) && $actual === 'cancelled')) { throw new DomainError('handoff_already_resolved'); }
                 return $this->get($context, $key);
@@ -164,6 +165,75 @@ final class HandoffService
             if ($this->terminal($context, $destination) !== 'cancelled') { throw new DomainError('handoff_cancel_transition_invalid'); }
             return $this->returnOrigin($context, $handoff, $origin, $destination, $timeout ? 'timed_out' : 'recalled', $operation);
         });
+    }
+    public function getGroup(ExecutionContext $context, string $key): array
+    {
+        $this->authorize($context, 'handoff.view');
+        if (!Str::isUuid($key)) { throw new DomainError('not_found'); }
+        $group = $this->db->table('tm_handoff_groups')->where('scope_key', $context->scope)->where('group_key', $key)->first();
+        if (!$group) { throw new DomainError('not_found'); }
+        $members = $this->db->table('tm_handoffs')->where('scope_key', $context->scope)->where('group_id', $group->id)->orderBy('id')->pluck('handoff_key');
+        $visible = []; foreach ($members as $member) { $visible[] = $this->get($context, $member); }
+        return [...(array) $group, 'members' => $visible];
+    }
+    public function manualJoin(ExecutionContext $context, string $groupKey, int $version, string $operation): array
+    {
+        $this->authorize($context, 'handoff.manage'); $this->authorize($context, 'handoff.repair');
+        return $this->command($context, $operation, ['action' => 'manual_join', 'group' => $groupKey, 'version' => $version], function () use ($context, $groupKey, $version, $operation) {
+            $group = $this->getGroup($context, $groupKey); $join = json_decode($group['join_policy'], true, flags: JSON_THROW_ON_ERROR);
+            if ($join['mode'] !== 'manual') { throw new DomainError('handoff_join_invalid'); }
+            $chosen = null;
+            foreach ($join['priority'] as $outcome) {
+                if (!in_array($outcome, $join['outcomes'], true)) { continue; }
+                foreach ($group['members'] as $member) { if ($member['outcome'] === $outcome) { $chosen = $member; break 2; } }
+            }
+            if ($chosen === null) { throw new DomainError('handoff_join_no_result'); }
+            [$handoff, $origin, $destination] = $this->locked($context, $chosen['handoff_key']);
+            $locked = $this->db->table('tm_handoff_groups')->where('id', $group['id'])->lockForUpdate()->first();
+            if ($locked->version !== $version) { throw new DomainError('version_conflict'); }
+            $this->repairRecord($context, $handoff, $origin['version'], 'manual_join', 'manual_resolution', $operation);
+            return $this->returnOrigin($context, $handoff, $origin, $destination, $handoff['outcome'], $operation, true);
+        });
+    }
+    public function retryReturn(ExecutionContext $context, string $key, int $version, int $originVersion, string $reason, string $operation): array
+    {
+        $this->authorize($context, 'handoff.manage'); $this->authorize($context, 'handoff.repair');
+        if (!in_array($reason, ['source_change_reviewed', 'host_guard_repaired', 'assignee_repaired', 'clock_policy_reviewed'], true)) { throw new DomainError('reason_invalid'); }
+        return $this->command($context, $operation, ['action' => 'handoff_retry', 'key' => $key, 'version' => $version, 'origin_version' => $originVersion, 'reason' => $reason], function () use ($context, $key, $version, $originVersion, $reason, $operation) {
+            [$handoff, $origin, $destination] = $this->locked($context, $key);
+            if ($handoff['version'] !== $version || $origin['version'] !== $originVersion) { throw new DomainError('version_conflict'); }
+            if ($handoff['status'] !== 'return_conflict' || $origin['lifecycle'] !== 'waiting') { throw new DomainError('handoff_repair_invalid'); }
+            $snapshot = json_decode($handoff['origin_snapshot'], true, flags: JSON_THROW_ON_ERROR);
+            foreach (['current_state_key', 'active_stage_key', 'workflow_revision_id', 'owner_ref', 'pipeline_id'] as $field) { if ($origin[$field] !== $snapshot[$field]) { throw new DomainError('handoff_return_conflict'); } }
+            $outcome = $this->terminal($context, $destination);
+            if ($outcome !== $handoff['outcome'] && !(in_array($handoff['outcome'], ['recalled', 'timed_out'], true) && $outcome === 'cancelled')) { throw new DomainError('handoff_already_resolved'); }
+            $this->repairRecord($context, $handoff, $originVersion, 'retry_return', $reason, $operation);
+            $this->db->table('tm_handoffs')->where('id', $handoff['id'])->update(['repair_origin_version' => $originVersion]); $handoff['repair_origin_version'] = $originVersion;
+            return $this->returnOrigin($context, $handoff, $origin, $destination, $handoff['outcome'], $operation);
+        });
+    }
+    public function closeConflict(ExecutionContext $context, string $key, int $version, string $operation): array
+    {
+        $this->authorize($context, 'handoff.manage'); $this->authorize($context, 'handoff.repair');
+        return $this->command($context, $operation, ['action' => 'handoff_conflict_close', 'key' => $key, 'version' => $version], function () use ($context, $key, $version, $operation) {
+            [$handoff, $origin, $destination] = $this->locked($context, $key);
+            if ($handoff['version'] !== $version) { throw new DomainError('version_conflict'); }
+            if ($handoff['status'] !== 'return_conflict' || $origin['lifecycle'] !== 'closed' || $handoff['outcome'] === null) { throw new DomainError('handoff_repair_invalid'); }
+            $this->repairRecord($context, $handoff, $origin['version'], 'close_conflict', 'origin_closed_reviewed', $operation);
+            $this->db->table('tm_handoffs')->where('id', $handoff['id'])->update(['status' => 'manually_closed', 'version' => $version + 1, 'resolved_at' => $this->now()]);
+            $this->db->table('tm_active_handoff_origins')->where('origin_id', $origin['id'])->delete();
+            if ($handoff['group_id'] !== null) {
+                $this->db->table('tm_handoff_groups')->where('id', $handoff['group_id'])->update(['status' => 'manually_closed', 'version' => $this->db->raw('version + 1')]);
+                $this->db->table('tm_handoffs')->where('group_id', $handoff['group_id'])->whereNull('outcome')->update(['status' => 'detached']);
+            }
+            $this->event($context, $origin, 'handoff_conflict_closed', $operation, ['handoff_key' => $key, 'reason_code' => 'origin_closed_reviewed', 'outcome' => $handoff['outcome']]);
+            return $this->get($context, $key);
+        });
+    }
+    private function repairRecord(ExecutionContext $context, array $handoff, int $originVersion, string $action, string $reason, string $operation): void
+    {
+        $this->db->table('tm_handoff_repairs')->insert(['handoff_id' => $handoff['id'], 'action' => $action, 'accepted_origin_version' => $originVersion,
+            'actor_ref' => $context->actor, 'reason_code' => $reason, 'operation_id' => $operation, 'occurred_at' => $this->now()]);
     }
     private function terminal(ExecutionContext $context, array $destination): string
     {
@@ -209,7 +279,7 @@ final class HandoffService
         $handoff = (array) $this->db->table('tm_handoffs')->where('id', $before['id'])->lockForUpdate()->first();
         return [$handoff, $instances[$before['origin_id']], $instances[$before['destination_id']]];
     }
-    private function returnOrigin(ExecutionContext $context, array $handoff, array $origin, array $destination, string $outcome, string $operation): array
+    private function returnOrigin(ExecutionContext $context, array $handoff, array $origin, array $destination, string $outcome, string $operation, bool $manualJoin = false): array
     {
         $memberOutcome = $outcome;
         if ($handoff['outcome'] !== null && $handoff['outcome'] !== $outcome) { throw new DomainError('handoff_already_resolved'); }
@@ -222,9 +292,14 @@ final class HandoffService
             $this->db->table('tm_handoffs')->where('id', $handoff['id'])->update(['outcome' => $outcome]);
             $outcomes = $this->db->table('tm_handoff_outcomes')->whereIn('handoff_id', $this->db->table('tm_handoffs')->where('group_id', $group->id)->select('id'))->pluck('outcome')->all();
             $qualified = array_values(array_filter($outcomes, fn ($value) => in_array($value, $join['outcomes'], true)));
-            if ($group->status === 'resolved' || count($qualified) < $join['quorum']) {
-                $this->db->table('tm_handoffs')->where('id', $handoff['id'])->update(['status' => $group->status === 'resolved' ? 'detached_resolved' : 'awaiting_join', 'version' => $handoff['version'] + 1, 'resolved_at' => $this->now()]);
-                if ($group->status !== 'resolved' && count($outcomes) === $group->expected_count) { $this->db->table('tm_handoff_groups')->where('id', $group->id)->update(['status' => 'manual_review', 'version' => $group->version + 1]); }
+            $closedGroup = in_array($group->status, ['resolved', 'manually_closed'], true);
+            if ($manualJoin && ($join['mode'] !== 'manual' || !$qualified || $closedGroup)) { throw new DomainError('handoff_join_invalid'); }
+            if ($closedGroup || (!$manualJoin && count($qualified) < $join['quorum'])) {
+                $this->db->table('tm_handoffs')->where('id', $handoff['id'])->update(['status' => $closedGroup ? 'detached_resolved' : 'awaiting_join', 'version' => $handoff['version'] + 1, 'resolved_at' => $this->now()]);
+                if (!$closedGroup) {
+                    $state = $join['mode'] === 'manual' ? 'awaiting_manual' : (count($outcomes) === $group->expected_count ? 'manual_review' : $group->status);
+                    $this->db->table('tm_handoff_groups')->where('id', $group->id)->update(['status' => $state, 'version' => $group->version + 1]);
+                }
                 $this->event($context, $origin, 'handoff_outcome_recorded', $operation, ['handoff_key' => $handoff['handoff_key'], 'outcome' => $outcome, 'group_id' => $group->id]);
                 return $this->get($context, $handoff['handoff_key']);
             }
@@ -234,7 +309,7 @@ final class HandoffService
         $status = 'resolved'; $failure = null;
         try {
             $this->db->transaction(function () use ($context, $handoff, $origin, $destination, $outcome, $operation, $policy) {
-                if ($origin['version'] !== $handoff['origin_version'] || $origin['lifecycle'] !== 'waiting') { throw new DomainError('handoff_return_conflict'); }
+                if ($origin['version'] !== ($handoff['repair_origin_version'] ?? $handoff['origin_version']) || $origin['lifecycle'] !== 'waiting') { throw new DomainError('handoff_return_conflict'); }
                 $return = $policy['returns'][$outcome] ?? null;
                 if ($return === null) { throw new DomainError('handoff_return_policy_missing'); }
                 $this->db->table('tm_workflow_instances')->where('id', $origin['id'])->update(['lifecycle' => 'active']);
@@ -273,4 +348,3 @@ final class HandoffService
         (new EventRecorder($this->db, $this->clock))->append($context, 'instance', $origin['instance_key'], $action, $operation, $payload, $origin['task_id']);
     }
 }
-

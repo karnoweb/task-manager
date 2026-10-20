@@ -94,7 +94,7 @@ final class SlaService
         $this->authorize($context, 'sla.run'); if ($limit < 1 || $limit > 1000) { throw new DomainError('batch_size_invalid'); }
         $now = $this->engine->format($this->engine->now());
         $visits = $this->db->table('tm_stage_visits')->where('scope_key', $context->scope)->whereNotNull('policy_id')->whereNull('exited_at')->whereNull('paused_at')
-            ->whereIn('instance_id', $this->instances->authorizedQuery($context)->select('id'))->where(function ($q) use ($now) {
+            ->whereIn('instance_id', $this->instances->authorizedQuery($context)->where(fn ($q) => $q->whereNull('task_id')->orWhereIn('task_id', $this->db->table('tm_tasks')->whereNull('archived_at')->whereNull('deleted_at')->select('id')))->select('id'))->where(function ($q) use ($now) {
                 $q->where(fn ($x) => $x->where('deadline_at', '<=', $now)->whereNull('breached_at'))
                     ->orWhere(fn ($x) => $x->where('warning_at', '<=', $now)->whereNull('warned_at'))
                     ->orWhere(fn ($x) => $x->where('stale_at', '<=', $now)->whereNull('stale_detected_at'))
@@ -131,6 +131,7 @@ final class SlaService
         $result = $this->command($context, $operation, ['action' => 'sla_'.$key, 'visit' => $visitId, 'policy' => $initial->policy_id, 'generation' => $generation], function () use ($context, $visitId, $initial, $generation, $key, $operation, &$executed) {
             $executed = true;
             [$visit, $instance, $policy] = $this->locked($context, $visitId);
+            if ($instance['task_id'] !== null && !$this->db->table('tm_tasks')->where('id', $instance['task_id'])->whereNull('archived_at')->whereNull('deleted_at')->exists()) { throw new DomainError('sla_inactive'); }
             $currentGeneration = in_array($key, ['stale', 'dead_candidate'], true) ? $visit->stale_generation : $visit->sla_generation;
             $threshold = $this->threshold($visit, $policy, $key);
             if ($instance['lifecycle'] !== 'active' || $threshold === null || $generation !== $currentGeneration || $visit->policy_id !== $initial->policy_id) { return ['id' => $visitId, 'processed' => false]; }

@@ -1,6 +1,6 @@
 # Acceptance implementation status
 
-Work in progress. This is not a phase-seven run. PASS records only observed phase-one/two and implemented SLA/assignment/approval/handoff/route subsets of phase three. Campaign scenarios and final host integration and final cross-module/UI acceptance remain pending.
+Work in progress. This is not a phase-seven run. PASS records observed phase-one/two and all 58 owned phase-three TM scenarios on PostgreSQL. Final installed host integration and cross-module/UI acceptance remain pending.
 
 | ID | Current evidence |
 |---|---|
@@ -209,7 +209,7 @@ Work in progress. This is not a phase-seven run. PASS records only observed phas
 | TM-203 | PASS (implemented PostgreSQL phase scope) |
 | TM-204 | PASS (implemented PostgreSQL phase scope) |
 | TM-205 | PASS (implemented PostgreSQL phase scope) |
-| TM-206 | NOT RUN |
+| TM-206 | PASS (implemented PostgreSQL phase scope) |
 | TM-207 | PASS (implemented PostgreSQL phase scope) |
 | TM-208 | PASS (implemented PostgreSQL phase scope) |
 | TM-209 | NOT RUN |
@@ -224,28 +224,28 @@ Work in progress. This is not a phase-seven run. PASS records only observed phas
 | TM-218 | NOT RUN |
 | TM-219 | NOT RUN |
 | TM-220 | NOT RUN |
-| TM-221 | NOT RUN |
-| TM-222 | NOT RUN |
-| TM-223 | NOT RUN |
-| TM-224 | NOT RUN |
-| TM-225 | NOT RUN |
-| TM-226 | NOT RUN |
-| TM-227 | NOT RUN |
-| TM-228 | NOT RUN |
-| TM-229 | NOT RUN |
-| TM-230 | NOT RUN |
-| TM-231 | NOT RUN |
-| TM-232 | NOT RUN |
-| TM-233 | NOT RUN |
-| TM-234 | NOT RUN |
-| TM-235 | NOT RUN |
-| TM-236 | NOT RUN |
+| TM-221 | PASS (implemented PostgreSQL phase scope) |
+| TM-222 | PASS (implemented PostgreSQL phase scope) |
+| TM-223 | PASS (implemented PostgreSQL phase scope) |
+| TM-224 | PASS (implemented PostgreSQL phase scope) |
+| TM-225 | PASS (implemented PostgreSQL phase scope) |
+| TM-226 | PASS (implemented PostgreSQL phase scope) |
+| TM-227 | PASS (implemented PostgreSQL phase scope) |
+| TM-228 | PASS (implemented PostgreSQL phase scope) |
+| TM-229 | PASS (implemented PostgreSQL phase scope) |
+| TM-230 | PASS (implemented PostgreSQL phase scope) |
+| TM-231 | PASS (implemented PostgreSQL phase scope) |
+| TM-232 | PASS (implemented PostgreSQL phase scope) |
+| TM-233 | PASS (implemented PostgreSQL phase scope) |
+| TM-234 | PASS (implemented PostgreSQL phase scope) |
+| TM-235 | PASS (implemented PostgreSQL phase scope) |
+| TM-236 | PASS (implemented PostgreSQL phase scope) |
 | E2E-01 | NOT RUN |
-| E2E-02 | NOT RUN |
-| E2E-03 | NOT RUN |
-| E2E-04 | NOT RUN |
-| E2E-05 | NOT RUN |
-| E2E-06 | NOT RUN |
+| E2E-02 | Backend fixture PASS on PostgreSQL; installed host/UI acceptance pending |
+| E2E-03 | Backend fixture PASS on PostgreSQL; installed host/UI acceptance pending |
+| E2E-04 | Backend fixture PASS on PostgreSQL; installed host/UI acceptance pending |
+| E2E-05 | Backend fixture PASS on PostgreSQL; installed host/UI acceptance pending |
+| E2E-06 | Backend fixture PASS on PostgreSQL; installed host/UI acceptance pending |
 | NET-001 | NOT RUN |
 | NET-002 | NOT RUN |
 | NET-003 | NOT RUN |
@@ -366,6 +366,3 @@ Work in progress. This is not a phase-seven run. PASS records only observed phas
 | REG-078 | NOT RUN |
 | REG-079 | NOT RUN |
 | REG-080 | NOT RUN |
-
-
-
