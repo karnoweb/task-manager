@@ -1,0 +1,14 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<testsuites>
+  <testsuite name="CLI Arguments" tests="5" assertions="41" errors="0" failures="0" skipped="0" time="1.163223">
+    <testsuite name="Karnoweb\TaskManager\Tests\WebhookCoreTest" file="D:\my-packages\task-manager\tests\WebhookCoreTest.php" tests="3" assertions="31" errors="0" failures="0" skipped="0" time="0.848355">
+      <testcase name="test_signed_redacted_webhook_and_receipt_replay_checks_bind_scope_time_and_body" file="D:\my-packages\task-manager\tests\WebhookCoreTest.php" line="11" class="Karnoweb\TaskManager\Tests\WebhookCoreTest" classname="Karnoweb.TaskManager.Tests.WebhookCoreTest" assertions="12" time="0.513381"/>
+      <testcase name="test_private_metadata_mixed_dns_rebinding_and_redirects_never_escape_policy" file="D:\my-packages\task-manager\tests\WebhookCoreTest.php" line="18" class="Karnoweb\TaskManager\Tests\WebhookCoreTest" classname="Karnoweb.TaskManager.Tests.WebhookCoreTest" assertions="14" time="0.164027"/>
+      <testcase name="test_bounded_backoff_dead_letter_and_versioned_manual_retry_are_observable" file="D:\my-packages\task-manager\tests\WebhookCoreTest.php" line="25" class="Karnoweb\TaskManager\Tests\WebhookCoreTest" classname="Karnoweb.TaskManager.Tests.WebhookCoreTest" assertions="5" time="0.170947"/>
+    </testsuite>
+    <testsuite name="Karnoweb\TaskManager\Tests\EventDeliveryTest" file="D:\my-packages\task-manager\tests\EventDeliveryTest.php" tests="2" assertions="10" errors="0" failures="0" skipped="0" time="0.314868">
+      <testcase name="test_durable_subscription_retry_and_replay_do_not_duplicate_successful_consumer_effects" file="D:\my-packages\task-manager\tests\EventDeliveryTest.php" line="13" class="Karnoweb\TaskManager\Tests\EventDeliveryTest" classname="Karnoweb.TaskManager.Tests.EventDeliveryTest" assertions="8" time="0.160466"/>
+      <testcase name="test_permission_revocation_after_enqueue_cancels_delivery_before_host_callback" file="D:\my-packages\task-manager\tests\EventDeliveryTest.php" line="18" class="Karnoweb\TaskManager\Tests\EventDeliveryTest" classname="Karnoweb.TaskManager.Tests.EventDeliveryTest" assertions="2" time="0.154402"/>
+    </testsuite>
+  </testsuite>
+</testsuites>

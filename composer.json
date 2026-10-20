@@ -13,9 +13,34 @@
     "orchestra/testbench": "^11.0",
     "phpunit/phpunit": "^12.0"
   },
-  "autoload": {"psr-4": {"Karnoweb\\TaskManager\\": "src/"}},
-  "autoload-dev": {"psr-4": {"Karnoweb\\TaskManager\\Tests\\": "tests/"}},
-  "extra": {"laravel": {"providers": ["Karnoweb\\TaskManager\\TaskManagerServiceProvider"], "aliases": {"TaskManager": "Karnoweb\\TaskManager\\Facades\\TaskManager"}}},
-  "scripts": {"test": "phpunit"},
-  "config": {"sort-packages": true}
+  "autoload": {
+    "psr-4": {
+      "Karnoweb\\TaskManager\\": "src/"
+    }
+  },
+  "autoload-dev": {
+    "psr-4": {
+      "Karnoweb\\TaskManager\\Tests\\": "tests/"
+    }
+  },
+  "extra": {
+    "laravel": {
+      "providers": [
+        "Karnoweb\\TaskManager\\TaskManagerServiceProvider"
+      ],
+      "aliases": {
+        "TaskManager": "Karnoweb\\TaskManager\\Facades\\TaskManager"
+      }
+    }
+  },
+  "scripts": {
+    "test": "phpunit"
+  },
+  "config": {
+    "sort-packages": true
+  },
+  "suggest": {
+    "ext-intl": "Required for Persian/Jalali recurrence; enables Unicode normalization.",
+    "ext-curl": "Required by the default pinned HTTPS webhook transport."
+  }
 }

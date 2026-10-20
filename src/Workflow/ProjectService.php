@@ -61,6 +61,7 @@ final class ProjectService
                 $this->db->table('tm_project_type_workflows')->updateOrInsert(['project_id' => $project['id'], 'type_key' => $data['type']], ['workflow_revision_id' => $revision['id']]);
             } else { throw new DomainError('action_invalid'); }
             $this->db->table('tm_projects')->where('id', $project['id'])->update($changes);
+            if ($action === 'member') { \Karnoweb\TaskManager\Enterprise\VisibilityEpoch::bump($this->db, $context->scope); }
             $this->event($context, $key, 'project_'.$action, $operation, ['version' => $version + 1]);
             return $this->get($context, $key);
         }, fn ($r) => $this->get($context, $r['project_key'], 'manage'));
@@ -169,6 +170,7 @@ final class ProjectService
             $this->db->table('tm_task_key_aliases')->insert(['scope_key' => $context->scope, 'task_id' => $task->id, 'display_key' => $display]);
             $this->db->table('tm_tasks')->where('id', $task->id)->update(['project_id' => $project['id'], 'type_key' => $preview['type'], 'display_key' => $display, 'parent_task_id' => $parentId, 'version' => $task->version + 1]);
             $this->db->table('tm_task_grants')->where('task_id', $task->id)->delete();
+            \Karnoweb\TaskManager\Enterprise\VisibilityEpoch::bump($this->db, $context->scope);
             $instance = $this->db->table('tm_workflow_instances')->where('task_id', $task->id)->where('slot_key', 'main')->orderByDesc('id')->lockForUpdate()->first();
             if ($instance->pipeline_id !== null) { throw new DomainError('pipeline_move_required'); }
             if (!$lifecycleChecked) { $this->lifecycle->beforeTransition($context, (array) $instance, ['key' => 'project_move', 'from' => $instance->current_state_key, 'to' => $preview['state'], 'target_revision_id' => $effectiveRevision, 'force_exit' => true], []); }

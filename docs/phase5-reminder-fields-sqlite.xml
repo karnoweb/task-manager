@@ -1,0 +1,14 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<testsuites>
+  <testsuite name="CLI Arguments" tests="5" assertions="32" errors="0" failures="0" skipped="0" time="1.229043">
+    <testsuite name="Karnoweb\TaskManager\Tests\ReminderCoreTest" file="D:\my-packages\task-manager\tests\ReminderCoreTest.php" tests="2" assertions="14" errors="0" failures="0" skipped="0" time="0.771368">
+      <testcase name="test_relative_reminder_queues_once_and_due_changes_invalidate_old_generation" file="D:\my-packages\task-manager\tests\ReminderCoreTest.php" line="15" class="Karnoweb\TaskManager\Tests\ReminderCoreTest" classname="Karnoweb.TaskManager.Tests.ReminderCoreTest" assertions="8" time="0.582249"/>
+      <testcase name="test_quiet_hours_snooze_and_permission_revocation_never_deliver_stale_work" file="D:\my-packages\task-manager\tests\ReminderCoreTest.php" line="25" class="Karnoweb\TaskManager\Tests\ReminderCoreTest" classname="Karnoweb.TaskManager.Tests.ReminderCoreTest" assertions="6" time="0.189119"/>
+    </testsuite>
+    <testsuite name="Karnoweb\TaskManager\Tests\EnterpriseQueryTest" file="D:\my-packages\task-manager\tests\EnterpriseQueryTest.php" tests="3" assertions="18" errors="0" failures="0" skipped="0" time="0.457675">
+      <testcase name="test_typed_fields_filter_sort_and_archive_without_destroying_values" file="D:\my-packages\task-manager\tests\EnterpriseQueryTest.php" line="13" class="Karnoweb\TaskManager\Tests\EnterpriseQueryTest" classname="Karnoweb.TaskManager.Tests.EnterpriseQueryTest" assertions="7" time="0.159864"/>
+      <testcase name="test_multiselect_rejects_unknown_options_and_uses_indexed_membership" file="D:\my-packages\task-manager\tests\EnterpriseQueryTest.php" line="25" class="Karnoweb\TaskManager\Tests\EnterpriseQueryTest" classname="Karnoweb.TaskManager.Tests.EnterpriseQueryTest" assertions="4" time="0.145580"/>
+      <testcase name="test_persian_search_and_cursor_visibility_are_filtered_before_counts_and_pages" file="D:\my-packages\task-manager\tests\EnterpriseQueryTest.php" line="32" class="Karnoweb\TaskManager\Tests\EnterpriseQueryTest" classname="Karnoweb.TaskManager.Tests.EnterpriseQueryTest" assertions="7" time="0.152231"/>
+    </testsuite>
+  </testsuite>
+</testsuites>

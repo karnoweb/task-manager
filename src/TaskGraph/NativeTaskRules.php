@@ -29,6 +29,7 @@ final class NativeTaskRules implements StageLifecycle
         if (!$starting && !$finishing) { return; }
         ScopeGraphLock::acquire($this->db, $context);
         if ($finishing) {
+            \Karnoweb\TaskManager\Scheduling\ReminderInvalidator::cancelTask($this->db, $instance['task_id']);
             $children = $this->db->table('tm_task_closure')->where('scope_key', $context->scope)->where('ancestor_task_id', $instance['task_id'])->where('depth', '>', 0)->select('descendant_task_id');
             $childInstances = $this->db->table('tm_workflow_instances')->where('scope_key', $context->scope)->whereIn('task_id', $children)->select('id');
             if ($this->db->table('tm_active_approval_steps')->whereIn('instance_id', $childInstances)->exists()) { throw new DomainError('child_approval_pending'); }

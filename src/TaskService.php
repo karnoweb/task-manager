@@ -42,7 +42,7 @@ final class TaskService
 
     private function normalize(string $value): string
     {
-        return strtr(mb_strtolower($value), ['ي' => 'ی', 'ك' => 'ک', '۰' => '0', '۱' => '1', '۲' => '2', '۳' => '3', '۴' => '4', '۵' => '5', '۶' => '6', '۷' => '7', '۸' => '8', '۹' => '9', '٠' => '0', '١' => '1', '٢' => '2', '٣' => '3', '٤' => '4', '٥' => '5', '٦' => '6', '٧' => '7', '٨' => '8', '٩' => '9']);
+        return \Karnoweb\TaskManager\Enterprise\TextNormalizer::normalize($value);
     }
 
     private function visible(ExecutionContext $context, string $capability = 'view'): Builder
@@ -167,6 +167,7 @@ final class TaskService
                 }
             }
             $this->db->table('tm_tasks')->where('public_key', $id)->update(['version' => $version + 1]);
+            \Karnoweb\TaskManager\Enterprise\VisibilityEpoch::bump($this->db, $context->scope);
             $this->record($context, $id, $revoke ? 'share_revoked' : 'shared', $operation);
             return $this->get($context, $id);
         });
@@ -233,10 +234,11 @@ final class TaskService
         if (array_key_exists('title', $before)) { $snapshot['before_redacted']['title_hash'] = hash('sha256', $before['title']); }
         if ($task !== null) { $snapshot['after_redacted']['title_hash'] = hash('sha256', $task->title); }
         $event = ['event_id' => (string) Str::uuid(), 'scope_key' => $context->scope, 'actor_ref' => $context->actor,
-            'task_id' => $task?->id, 'action' => $action, 'operation_id' => $operation, 'correlation_id' => $context->correlationId,
+            'task_id' => $task?->id, 'aggregate_type' => $task === null ? 'list' : 'task', 'aggregate_key' => $id, 'action' => $action, 'operation_id' => $operation, 'correlation_id' => $context->correlationId,
             'payload' => json_encode($snapshot, JSON_THROW_ON_ERROR), 'occurred_at' => $this->now()];
         $this->db->table('tm_audit_events')->insert($event);
         $this->db->table('tm_outbox')->insert($event);
+        if ($context->originEventId !== null) { $this->db->table('tm_event_lineage')->insert(['event_id'=>$event['event_id'],'root_event_id'=>$context->originEventId,'depth'=>$context->automationDepth]); }
     }
 
     public function create(ExecutionContext $context, string $title, string $operation): array
@@ -261,7 +263,7 @@ final class TaskService
             $now = $this->now();
             $displayKey = $this->nextDisplayKey($context);
             $internalId = $this->db->table('tm_tasks')->insertGetId(['public_key' => $id, 'display_key' => $displayKey, 'scope_key' => $context->scope,
-                'owner_ref' => $context->actor, 'list_id' => $listId, 'title' => $title, 'description' => $description, 'priority' => $priority, 'title_search_normalized' => $this->normalize($title), 'created_at' => $now, 'updated_at' => $now]);
+                'owner_ref' => $context->actor, 'list_id' => $listId, 'title' => $title, 'description' => $description, 'priority' => $priority, 'title_search_normalized' => $this->normalize($title), 'search_revision' => \Karnoweb\TaskManager\Enterprise\TextNormalizer::VERSION, 'created_at' => $now, 'updated_at' => $now]);
             \Karnoweb\TaskManager\TaskGraph\HierarchyIndex::root($this->db, $context, $internalId);
             \Karnoweb\TaskManager\TaskGraph\ScopeGraphLock::changed($this->db, $context);
             $revisionId = $this->db->table('tm_workflow_definitions')->where('scope_key', $context->scope)->where('key', 'personal')->where('revision', 1)->value('id');
@@ -299,7 +301,7 @@ final class TaskService
                     if ($key === 'priority' && !in_array($value, ['low', 'normal', 'high', 'urgent'], true)) { throw new DomainError('priority_invalid'); }
                     if ($key === 'description' && $value !== null && !is_string($value)) { throw new DomainError('description_invalid'); }
                     $changes[$key] = $value;
-                    if ($key === 'title') { $changes['title_search_normalized'] = $this->normalize($value); }
+                    if ($key === 'title') { $changes['title_search_normalized'] = $this->normalize($value); $changes['search_revision'] = \Karnoweb\TaskManager\Enterprise\TextNormalizer::VERSION; }
                 }
             }
             $now = $this->now();
@@ -336,6 +338,7 @@ final class TaskService
             }
             $changed = $this->visible($context, 'edit')->where('public_key', $id)->where('version', $version)->update($changes);
             if ($changed !== 1) { throw new DomainError('version_conflict'); }
+            if (in_array($action, ['complete', 'archive', 'delete'], true)) { \Karnoweb\TaskManager\Scheduling\ReminderInvalidator::cancelTask($this->db, $task->id); }
             $this->record($context, $id, $action, $operation, (array) $task, $changes);
             return $this->get($context, $id);
         });

@@ -1,0 +1,21 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<testsuites>
+  <testsuite name="CLI Arguments" tests="10" assertions="46" errors="0" failures="0" skipped="0" time="3.118373">
+    <testsuite name="Karnoweb\TaskManager\Tests\ReminderCoreTest" file="D:\my-packages\task-manager\tests\ReminderCoreTest.php" tests="2" assertions="14" errors="0" failures="0" skipped="0" time="0.740998">
+      <testcase name="test_relative_reminder_queues_once_and_due_changes_invalidate_old_generation" file="D:\my-packages\task-manager\tests\ReminderCoreTest.php" line="15" class="Karnoweb\TaskManager\Tests\ReminderCoreTest" classname="Karnoweb.TaskManager.Tests.ReminderCoreTest" assertions="8" time="0.581513"/>
+      <testcase name="test_quiet_hours_snooze_and_permission_revocation_never_deliver_stale_work" file="D:\my-packages\task-manager\tests\ReminderCoreTest.php" line="25" class="Karnoweb\TaskManager\Tests\ReminderCoreTest" classname="Karnoweb.TaskManager.Tests.ReminderCoreTest" assertions="6" time="0.159485"/>
+    </testsuite>
+    <testsuite name="Karnoweb\TaskManager\Tests\NotificationSafetyTest" file="D:\my-packages\task-manager\tests\NotificationSafetyTest.php" tests="3" assertions="15" errors="0" failures="0" skipped="0" time="0.503594">
+      <testcase name="test_queued_old_reminder_is_suppressed_and_unchanged_deadline_does_not_resend" file="D:\my-packages\task-manager\tests\NotificationSafetyTest.php" line="17" class="Karnoweb\TaskManager\Tests\NotificationSafetyTest" classname="Karnoweb.TaskManager.Tests.NotificationSafetyTest" assertions="6" time="0.174531"/>
+      <testcase name="test_notification_quiet_hours_defer_until_window_without_spending_retry_budget" file="D:\my-packages\task-manager\tests\NotificationSafetyTest.php" line="25" class="Karnoweb\TaskManager\Tests\NotificationSafetyTest" classname="Karnoweb.TaskManager.Tests.NotificationSafetyTest" assertions="5" time="0.162959"/>
+      <testcase name="test_unknown_event_schema_is_visible_as_dead_letter_and_keeps_outbox_evidence" file="D:\my-packages\task-manager\tests\NotificationSafetyTest.php" line="29" class="Karnoweb\TaskManager\Tests\NotificationSafetyTest" classname="Karnoweb.TaskManager.Tests.NotificationSafetyTest" assertions="4" time="0.166104"/>
+    </testsuite>
+    <testsuite name="Karnoweb\TaskManager\Tests\TaskPlanningTest" file="D:\my-packages\task-manager\tests\TaskPlanningTest.php" tests="5" assertions="17" errors="0" failures="0" skipped="0" time="1.873781">
+      <testcase name="test_date_propagation_is_read_only_until_execute_and_retains_successor_duration" file="D:\my-packages\task-manager\tests\TaskPlanningTest.php" line="11" class="Karnoweb\TaskManager\Tests\TaskPlanningTest" classname="Karnoweb.TaskManager.Tests.TaskPlanningTest" assertions="6" time="0.446253"/>
+      <testcase name="test_changed_version_or_forged_proposal_is_rejected_without_partial_date_writes" file="D:\my-packages\task-manager\tests\TaskPlanningTest.php" line="22" class="Karnoweb\TaskManager\Tests\TaskPlanningTest" classname="Karnoweb.TaskManager.Tests.TaskPlanningTest" assertions="3" time="0.342917"/>
+      <testcase name="test_successor_guard_does_not_treat_planned_predecessor_finish_as_actual_evidence" file="D:\my-packages\task-manager\tests\TaskPlanningTest.php" line="30" class="Karnoweb\TaskManager\Tests\TaskPlanningTest" classname="Karnoweb.TaskManager.Tests.TaskPlanningTest" assertions="1" time="0.284657"/>
+      <testcase name="test_critical_path_requires_evidence_then_calculates_real_elapsed_estimates_and_lag" file="D:\my-packages\task-manager\tests\TaskPlanningTest.php" line="36" class="Karnoweb\TaskManager\Tests\TaskPlanningTest" classname="Karnoweb.TaskManager.Tests.TaskPlanningTest" assertions="4" time="0.250148"/>
+      <testcase name="test_cross_project_dependency_requires_both_project_permissions" file="D:\my-packages\task-manager\tests\TaskPlanningTest.php" line="45" class="Karnoweb\TaskManager\Tests\TaskPlanningTest" classname="Karnoweb.TaskManager.Tests.TaskPlanningTest" assertions="3" time="0.549806"/>
+    </testsuite>
+  </testsuite>
+</testsuites>

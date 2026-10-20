@@ -25,7 +25,18 @@ final class TaskManager
         private readonly \Karnoweb\TaskManager\Planning\MarkerService $markers,
         private readonly \Karnoweb\TaskManager\Planning\ReportingService $reports,
         private readonly \Karnoweb\TaskManager\Planning\TemplateService $templates,
-        private readonly \Karnoweb\TaskManager\Planning\BulkService $bulk) {}
+        private readonly \Karnoweb\TaskManager\Planning\BulkService $bulk,
+        private readonly \Karnoweb\TaskManager\Scheduling\DateService $dates,
+        private readonly \Karnoweb\TaskManager\Scheduling\RecurrenceService $recurrences,
+        private readonly \Karnoweb\TaskManager\Scheduling\ReminderService $reminders,
+        private readonly \Karnoweb\TaskManager\Enterprise\CustomFieldService $fields,
+        private readonly \Karnoweb\TaskManager\Enterprise\QueryService $queries,
+        private readonly \Karnoweb\TaskManager\Enterprise\PresetService $presets,
+        private readonly \Karnoweb\TaskManager\Integration\AutomationService $automation,
+        private readonly \Karnoweb\TaskManager\Integration\EventPump $events,
+        private readonly \Karnoweb\TaskManager\Integration\WebhookService $webhooks,
+        private readonly \Karnoweb\TaskManager\Enterprise\ExportService $exports,
+        private readonly \Karnoweb\TaskManager\Enterprise\ReportService $enterpriseReports) {}
     public function tasks(): TaskService { return $this->tasks; }
     public function workflows(): WorkflowService { return $this->workflows; }
     public function pipelines(): PipelineService { return $this->pipelines; }
@@ -54,6 +65,17 @@ final class TaskManager
     public function reports(): \Karnoweb\TaskManager\Planning\ReportingService { return $this->reports; }
     public function templates(): \Karnoweb\TaskManager\Planning\TemplateService { return $this->templates; }
     public function bulk(): \Karnoweb\TaskManager\Planning\BulkService { return $this->bulk; }
+    public function dates(): \Karnoweb\TaskManager\Scheduling\DateService { return $this->dates; }
+    public function recurrences(): \Karnoweb\TaskManager\Scheduling\RecurrenceService { return $this->recurrences; }
+    public function reminders(): \Karnoweb\TaskManager\Scheduling\ReminderService { return $this->reminders; }
+    public function fields(): \Karnoweb\TaskManager\Enterprise\CustomFieldService { return $this->fields; }
+    public function queries(): \Karnoweb\TaskManager\Enterprise\QueryService { return $this->queries; }
+    public function presets(): \Karnoweb\TaskManager\Enterprise\PresetService { return $this->presets; }
+    public function automation(): \Karnoweb\TaskManager\Integration\AutomationService { return $this->automation; }
+    public function events(): \Karnoweb\TaskManager\Integration\EventPump { return $this->events; }
+    public function webhooks(): \Karnoweb\TaskManager\Integration\WebhookService { return $this->webhooks; }
+    public function exports(): \Karnoweb\TaskManager\Enterprise\ExportService { return $this->exports; }
+    public function enterpriseReports(): \Karnoweb\TaskManager\Enterprise\ReportService { return $this->enterpriseReports; }
     public function __call(string $method, array $arguments): mixed
     {
         if (!is_callable([$this->tasks, $method])) { throw new \BadMethodCallException('Unknown task method'); }

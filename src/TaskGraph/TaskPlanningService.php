@@ -90,7 +90,14 @@ final class TaskPlanningService
                 if ($item['before_start'] === $item['start'] && $item['before_finish'] === $item['finish']) { continue; }
                 $task = $this->tasks->authorizedQuery($context, 'edit')->where('public_key', $item['task_key'])->lockForUpdate()->first();
                 if (!$task || $task->version !== $item['version']) { throw new DomainError('preview_stale'); }
-                $this->db->table('tm_tasks')->where('id', $task->id)->update(['planned_start_at' => $item['start'], 'planned_finish_at' => $item['finish'], 'version' => $task->version + 1]); ++$changed;
+                $calendar = ['starts_at' => null, 'ends_at' => null, 'all_day' => false, 'local_start_date' => null, 'local_end_date' => null, 'due_at' => $task->due_at];
+                if ($item['start'] !== null && $item['finish'] !== null && $item['finish'] > $item['start']) {
+                    $calendar['starts_at'] = $item['start']; $calendar['ends_at'] = $item['finish'];
+                    $a = (new \DateTimeImmutable($item['start'], new \DateTimeZone('UTC')))->setTimezone(new \DateTimeZone($task->timezone)); $b = (new \DateTimeImmutable($item['finish'], new \DateTimeZone('UTC')))->setTimezone(new \DateTimeZone($task->timezone));
+                    if ($task->all_day && $a->format('H:i:s') === '00:00:00' && $b->format('H:i:s') === '00:00:00') { $calendar['all_day'] = true; $calendar['local_start_date'] = $a->format('Y-m-d'); $calendar['local_end_date'] = $b->format('Y-m-d'); }
+                }
+                $this->db->table('tm_tasks')->where('id', $task->id)->update([...$calendar, 'planned_start_at' => $item['start'], 'planned_finish_at' => $item['finish'], 'version' => $task->version + 1, 'date_revision' => $task->date_revision + 1]);
+                \Karnoweb\TaskManager\Scheduling\ReminderSchedule::refresh($this->db, $task, $calendar); ++$changed;
                 $this->event($context, $task->public_key, 'task_schedule_changed', $operation, ['start' => $item['start'], 'finish' => $item['finish']], $task->id);
             }
             ScopeGraphLock::changed($this->db, $context); return ['task_key' => $preview['task_key'], 'changed' => $changed, 'warnings' => $fresh['warnings']];

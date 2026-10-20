@@ -1,0 +1,8 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<testsuites>
+  <testsuite name="Karnoweb\TaskManager\Tests\EnterpriseHardeningTest" file="D:\my-packages\task-manager\tests\EnterpriseHardeningTest.php" tests="3" assertions="8" errors="0" failures="0" skipped="0" time="0.923098">
+    <testcase name="test_automation_current_state_conditions_throttle_and_rule_disabling_are_guarded" file="D:\my-packages\task-manager\tests\EnterpriseHardeningTest.php" line="15" class="Karnoweb\TaskManager\Tests\EnterpriseHardeningTest" classname="Karnoweb.TaskManager.Tests.EnterpriseHardeningTest" assertions="4" time="0.584840"/>
+    <testcase name="test_restricted_field_forms_respect_host_authorization_before_paging" file="D:\my-packages\task-manager\tests\EnterpriseHardeningTest.php" line="21" class="Karnoweb\TaskManager\Tests\EnterpriseHardeningTest" classname="Karnoweb.TaskManager.Tests.EnterpriseHardeningTest" assertions="1" time="0.166221"/>
+    <testcase name="test_moved_occurrence_is_listed_by_its_override_range_without_fabricating_new_identity" file="D:\my-packages\task-manager\tests\EnterpriseHardeningTest.php" line="27" class="Karnoweb\TaskManager\Tests\EnterpriseHardeningTest" classname="Karnoweb.TaskManager.Tests.EnterpriseHardeningTest" assertions="3" time="0.172037"/>
+  </testsuite>
+</testsuites>

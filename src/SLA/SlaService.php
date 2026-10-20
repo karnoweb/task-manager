@@ -89,6 +89,12 @@ final class SlaService
             return $this->get($context, $visitId);
         });
     }
+    public function markDeadCandidate(ExecutionContext $context, string $instanceKey, int $visitId): array
+    {
+        $this->authorize($context, 'sla.run'); $instance = $this->instances->get($context, $instanceKey);
+        if (!$this->db->table('tm_stage_visits')->where('id', $visitId)->where('instance_id', $instance['id'])->where('scope_key', $context->scope)->exists()) { throw new DomainError('not_found'); }
+        return ['processed' => $this->apply($context, $visitId, 'dead_candidate')];
+    }
     public function run(ExecutionContext $context, int $limit = 100): array
     {
         $this->authorize($context, 'sla.run'); if ($limit < 1 || $limit > 1000) { throw new DomainError('batch_size_invalid'); }

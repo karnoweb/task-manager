@@ -1,6 +1,6 @@
 # Acceptance implementation status
 
-Work in progress. This is not a phase-seven run. PASS records observed phase-one/two and all 58 owned phase-three TM scenarios on PostgreSQL. Phase-four owned cases passed the user-authorized SQLite scope; database matrix and physical races are deferred to phase seven. Final installed host integration and cross-module/UI acceptance remain pending.
+Work in progress. This is not a phase-seven run. PASS records observed phase-one/two and all 58 owned phase-three TM scenarios on PostgreSQL. Phase-four owned cases passed the user-authorized SQLite scope; database matrix and physical races are deferred to phase seven. Phase-five owned cases passed the user-authorized SQLite scope; physical generators and real transport remain later evidence. Final installed host integration and cross-module/UI acceptance remain pending.
 
 | ID | Current evidence |
 |---|---|
@@ -54,20 +54,20 @@ Work in progress. This is not a phase-seven run. PASS records observed phase-one
 | TM-048 | PASS (SQLite phase-four scope; comprehensive phase-seven acceptance pending) |
 | TM-049 | PASS (SQLite phase-four scope; comprehensive phase-seven acceptance pending) |
 | TM-050 | PASS (SQLite phase-four scope; comprehensive phase-seven acceptance pending) |
-| TM-051 | NOT RUN |
-| TM-052 | NOT RUN |
-| TM-053 | NOT RUN |
-| TM-054 | NOT RUN |
-| TM-055 | NOT RUN |
-| TM-056 | NOT RUN |
-| TM-057 | NOT RUN |
-| TM-058 | NOT RUN |
-| TM-059 | NOT RUN |
-| TM-060 | NOT RUN |
-| TM-061 | NOT RUN |
-| TM-062 | NOT RUN |
-| TM-063 | NOT RUN |
-| TM-064 | NOT RUN |
+| TM-051 | PASS (SQLite phase-five scope; comprehensive phase-seven acceptance pending) |
+| TM-052 | PASS (SQLite phase-five scope; comprehensive phase-seven acceptance pending) |
+| TM-053 | PASS (SQLite phase-five scope; comprehensive phase-seven acceptance pending) |
+| TM-054 | PASS (SQLite phase-five scope; comprehensive phase-seven acceptance pending) |
+| TM-055 | PASS (SQLite phase-five scope; comprehensive phase-seven acceptance pending) |
+| TM-056 | PASS (SQLite phase-five scope; comprehensive phase-seven acceptance pending) |
+| TM-057 | PASS (SQLite phase-five scope; comprehensive phase-seven acceptance pending) |
+| TM-058 | PASS (SQLite phase-five scope; comprehensive phase-seven acceptance pending) |
+| TM-059 | PASS (SQLite phase-five scope; comprehensive phase-seven acceptance pending) |
+| TM-060 | PASS (SQLite phase-five scope; comprehensive phase-seven acceptance pending) |
+| TM-061 | PASS (SQLite phase-five scope; comprehensive phase-seven acceptance pending) |
+| TM-062 | PASS (SQLite phase-five scope; comprehensive phase-seven acceptance pending) |
+| TM-063 | PASS (SQLite phase-five scope; comprehensive phase-seven acceptance pending) |
+| TM-064 | PASS (SQLite phase-five scope; comprehensive phase-seven acceptance pending) |
 | TM-065 | PASS (SQLite phase-four scope; comprehensive phase-seven acceptance pending) |
 | TM-066 | PASS (SQLite phase-four scope; comprehensive phase-seven acceptance pending) |
 | TM-067 | PASS (SQLite phase-four scope; comprehensive phase-seven acceptance pending) |
@@ -92,12 +92,12 @@ Work in progress. This is not a phase-seven run. PASS records observed phase-one
 | TM-086 | NOT RUN |
 | TM-087 | NOT RUN |
 | TM-088 | NOT RUN |
-| TM-089 | NOT RUN |
+| TM-089 | PASS (SQLite phase-five scope; comprehensive phase-seven acceptance pending) |
 | TM-090 | PASS (SQLite phase-four scope; comprehensive phase-seven acceptance pending) |
 | TM-091 | PASS (implemented PostgreSQL phase scope) |
 | TM-092 | PASS (implemented PostgreSQL phase scope) |
-| TM-093 | NOT RUN |
-| TM-094 | NOT RUN |
+| TM-093 | PASS (SQLite phase-five scope; comprehensive phase-seven acceptance pending) |
+| TM-094 | PASS (SQLite phase-five scope; comprehensive phase-seven acceptance pending) |
 | TM-095 | PASS (implemented PostgreSQL phase scope) |
 | TM-096 | PASS (implemented PostgreSQL phase scope) |
 | TM-097 | PASS (implemented PostgreSQL phase scope) |
@@ -115,16 +115,16 @@ Work in progress. This is not a phase-seven run. PASS records observed phase-one
 | TM-109 | PASS (SQLite phase-four scope; comprehensive phase-seven acceptance pending) |
 | TM-110 | PASS (SQLite phase-four scope; comprehensive phase-seven acceptance pending) |
 | TM-111 | PASS (SQLite phase-four scope; comprehensive phase-seven acceptance pending) |
-| TM-112 | NOT RUN |
-| TM-113 | NOT RUN |
-| TM-114 | NOT RUN |
-| TM-115 | NOT RUN |
-| TM-116 | NOT RUN |
-| TM-117 | NOT RUN |
-| TM-118 | NOT RUN |
-| TM-119 | NOT RUN |
-| TM-120 | NOT RUN |
-| TM-121 | NOT RUN |
+| TM-112 | PASS (SQLite phase-five scope; comprehensive phase-seven acceptance pending) |
+| TM-113 | PASS (SQLite phase-five scope; comprehensive phase-seven acceptance pending) |
+| TM-114 | PASS (SQLite phase-five scope; comprehensive phase-seven acceptance pending) |
+| TM-115 | PASS (SQLite phase-five scope; comprehensive phase-seven acceptance pending) |
+| TM-116 | PASS (SQLite phase-five scope; comprehensive phase-seven acceptance pending) |
+| TM-117 | PASS (SQLite phase-five scope; comprehensive phase-seven acceptance pending) |
+| TM-118 | PASS (SQLite phase-five scope; comprehensive phase-seven acceptance pending) |
+| TM-119 | PASS (SQLite phase-five scope; comprehensive phase-seven acceptance pending) |
+| TM-120 | PASS (SQLite phase-five scope; comprehensive phase-seven acceptance pending) |
+| TM-121 | PASS (SQLite phase-five scope; comprehensive phase-seven acceptance pending) |
 | TM-122 | PASS (SQLite phase-four scope; comprehensive phase-seven acceptance pending) |
 | TM-123 | PASS (SQLite phase-four scope; comprehensive phase-seven acceptance pending) |
 | TM-124 | PASS (SQLite phase-four scope; comprehensive phase-seven acceptance pending) |
@@ -136,16 +136,16 @@ Work in progress. This is not a phase-seven run. PASS records observed phase-one
 | TM-130 | NOT RUN |
 | TM-131 | NOT RUN |
 | TM-132 | NOT RUN |
-| TM-133 | NOT RUN |
-| TM-134 | NOT RUN |
-| TM-135 | NOT RUN |
-| TM-136 | NOT RUN |
-| TM-137 | NOT RUN |
-| TM-138 | NOT RUN |
-| TM-139 | NOT RUN |
-| TM-140 | NOT RUN |
-| TM-141 | NOT RUN |
-| TM-142 | NOT RUN |
+| TM-133 | PASS (SQLite phase-five scope; comprehensive phase-seven acceptance pending) |
+| TM-134 | PASS (SQLite phase-five scope; comprehensive phase-seven acceptance pending) |
+| TM-135 | PASS (SQLite phase-five scope; comprehensive phase-seven acceptance pending) |
+| TM-136 | PASS (SQLite phase-five scope; comprehensive phase-seven acceptance pending) |
+| TM-137 | PASS (SQLite phase-five scope; comprehensive phase-seven acceptance pending) |
+| TM-138 | PASS (SQLite phase-five scope; comprehensive phase-seven acceptance pending) |
+| TM-139 | PASS (SQLite phase-five scope; comprehensive phase-seven acceptance pending) |
+| TM-140 | PASS (SQLite phase-five scope; comprehensive phase-seven acceptance pending) |
+| TM-141 | PASS (SQLite phase-five scope; comprehensive phase-seven acceptance pending) |
+| TM-142 | PASS (SQLite phase-five scope; comprehensive phase-seven acceptance pending) |
 | TM-143 | NOT RUN |
 | TM-144 | NOT RUN |
 | TM-145 | NOT RUN |
@@ -217,11 +217,11 @@ Work in progress. This is not a phase-seven run. PASS records observed phase-one
 | TM-211 | NOT RUN |
 | TM-212 | PASS (implemented PostgreSQL phase scope) |
 | TM-213 | NOT RUN |
-| TM-214 | NOT RUN |
-| TM-215 | NOT RUN |
-| TM-216 | NOT RUN |
-| TM-217 | NOT RUN |
-| TM-218 | NOT RUN |
+| TM-214 | PASS (SQLite phase-five scope; comprehensive phase-seven acceptance pending) |
+| TM-215 | PASS (SQLite phase-five scope; comprehensive phase-seven acceptance pending) |
+| TM-216 | PASS (SQLite phase-five scope; comprehensive phase-seven acceptance pending) |
+| TM-217 | PASS (SQLite phase-five scope; comprehensive phase-seven acceptance pending) |
+| TM-218 | PASS (SQLite phase-five scope; comprehensive phase-seven acceptance pending) |
 | TM-219 | NOT RUN |
 | TM-220 | NOT RUN |
 | TM-221 | PASS (implemented PostgreSQL phase scope) |

@@ -1,0 +1,11 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<testsuites>
+  <testsuite name="Karnoweb\TaskManager\Tests\SchedulingCoreTest" file="D:\my-packages\task-manager\tests\SchedulingCoreTest.php" tests="6" assertions="28" errors="0" failures="0" skipped="0" time="1.502872">
+    <testcase name="test_half_open_schedule_due_only_and_all_day_preserve_local_dates_across_zones" file="D:\my-packages\task-manager\tests\SchedulingCoreTest.php" line="12" class="Karnoweb\TaskManager\Tests\SchedulingCoreTest" classname="Karnoweb.TaskManager.Tests.SchedulingCoreTest" assertions="7" time="0.618263"/>
+    <testcase name="test_dst_gap_rejects_and_fold_has_explicit_earliest_latest_choices" file="D:\my-packages\task-manager\tests\SchedulingCoreTest.php" line="21" class="Karnoweb\TaskManager\Tests\SchedulingCoreTest" classname="Karnoweb.TaskManager.Tests.SchedulingCoreTest" assertions="4" time="0.155051"/>
+    <testcase name="test_daily_generation_is_horizon_bounded_unique_and_retry_safe" file="D:\my-packages\task-manager\tests\SchedulingCoreTest.php" line="28" class="Karnoweb\TaskManager\Tests\SchedulingCoreTest" classname="Karnoweb.TaskManager.Tests.SchedulingCoreTest" assertions="6" time="0.180343"/>
+    <testcase name="test_weekly_local_time_survives_dst_and_configured_friday_holidays" file="D:\my-packages\task-manager\tests\SchedulingCoreTest.php" line="35" class="Karnoweb\TaskManager\Tests\SchedulingCoreTest" classname="Karnoweb.TaskManager.Tests.SchedulingCoreTest" assertions="2" time="0.151388"/>
+    <testcase name="test_persian_months_leap_esfand_and_missing_day_policies_are_real_calendar_operations" file="D:\my-packages\task-manager\tests\SchedulingCoreTest.php" line="41" class="Karnoweb\TaskManager\Tests\SchedulingCoreTest" classname="Karnoweb.TaskManager.Tests.SchedulingCoreTest" assertions="7" time="0.216492"/>
+    <testcase name="test_monthly_gregorian_skip_and_last_day_are_explicit" file="D:\my-packages\task-manager\tests\SchedulingCoreTest.php" line="52" class="Karnoweb\TaskManager\Tests\SchedulingCoreTest" classname="Karnoweb.TaskManager.Tests.SchedulingCoreTest" assertions="2" time="0.181335"/>
+  </testsuite>
+</testsuites>

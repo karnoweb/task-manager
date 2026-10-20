@@ -1,0 +1,14 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<testsuites>
+  <testsuite name="CLI Arguments" tests="5" assertions="22" errors="0" failures="0" skipped="0" time="1.241422">
+    <testsuite name="Karnoweb\TaskManager\Tests\AutomationCoreTest" file="D:\my-packages\task-manager\tests\AutomationCoreTest.php" tests="3" assertions="13" errors="0" failures="0" skipped="0" time="0.922887">
+      <testcase name="test_whitelisted_actions_use_real_guards_audit_and_retry_deduplication" file="D:\my-packages\task-manager\tests\AutomationCoreTest.php" line="13" class="Karnoweb\TaskManager\Tests\AutomationCoreTest" classname="Karnoweb.TaskManager.Tests.AutomationCoreTest" assertions="8" time="0.541762"/>
+      <testcase name="test_recursive_notification_events_stop_at_depth_and_budget_limits" file="D:\my-packages\task-manager\tests\AutomationCoreTest.php" line="20" class="Karnoweb\TaskManager\Tests\AutomationCoreTest" classname="Karnoweb.TaskManager.Tests.AutomationCoreTest" assertions="3" time="0.224369"/>
+      <testcase name="test_unknown_or_revoked_source_events_do_not_grant_automation_privileges" file="D:\my-packages\task-manager\tests\AutomationCoreTest.php" line="27" class="Karnoweb\TaskManager\Tests\AutomationCoreTest" classname="Karnoweb.TaskManager.Tests.AutomationCoreTest" assertions="2" time="0.156756"/>
+    </testsuite>
+    <testsuite name="Karnoweb\TaskManager\Tests\ExportCoreTest" file="D:\my-packages\task-manager\tests\ExportCoreTest.php" tests="2" assertions="9" errors="0" failures="0" skipped="0" time="0.318535">
+      <testcase name="test_csv_json_streaming_filters_permissions_and_escapes_formula_cells" file="D:\my-packages\task-manager\tests\ExportCoreTest.php" line="13" class="Karnoweb\TaskManager\Tests\ExportCoreTest" classname="Karnoweb.TaskManager.Tests.ExportCoreTest" assertions="4" time="0.155815"/>
+      <testcase name="test_async_private_file_download_revalidates_revocation_and_expiry" file="D:\my-packages\task-manager\tests\ExportCoreTest.php" line="18" class="Karnoweb\TaskManager\Tests\ExportCoreTest" classname="Karnoweb.TaskManager.Tests.ExportCoreTest" assertions="5" time="0.162720"/>
+    </testsuite>
+  </testsuite>
+</testsuites>
