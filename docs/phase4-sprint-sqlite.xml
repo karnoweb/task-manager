@@ -1,0 +1,11 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<testsuites>
+  <testsuite name="Karnoweb\TaskManager\Tests\SprintCoreTest" file="D:\my-packages\task-manager\tests\SprintCoreTest.php" tests="6" assertions="22" errors="0" failures="0" skipped="0" time="1.578805">
+    <testcase name="test_start_commits_points_and_daily_snapshot_does_not_rewrite_committed_estimates" file="D:\my-packages\task-manager\tests\SprintCoreTest.php" line="9" class="Karnoweb\TaskManager\Tests\SprintCoreTest" classname="Karnoweb.TaskManager.Tests.SprintCoreTest" assertions="3" time="0.549722"/>
+    <testcase name="test_active_scope_additions_and_removals_are_separate_from_original_commitment" file="D:\my-packages\task-manager\tests\SprintCoreTest.php" line="17" class="Karnoweb\TaskManager\Tests\SprintCoreTest" classname="Karnoweb.TaskManager.Tests.SprintCoreTest" assertions="3" time="0.174238"/>
+    <testcase name="test_completion_carries_only_unfinished_tasks_and_keeps_the_original_membership_history" file="D:\my-packages\task-manager\tests\SprintCoreTest.php" line="26" class="Karnoweb\TaskManager\Tests\SprintCoreTest" classname="Karnoweb.TaskManager.Tests.SprintCoreTest" assertions="5" time="0.167798"/>
+    <testcase name="test_velocity_counts_only_real_done_leaves_and_never_epic_plus_children" file="D:\my-packages\task-manager\tests\SprintCoreTest.php" line="36" class="Karnoweb\TaskManager\Tests\SprintCoreTest" classname="Karnoweb.TaskManager.Tests.SprintCoreTest" assertions="2" time="0.346760"/>
+    <testcase name="test_historical_burndown_and_same_day_snapshot_deduplication_survive_later_task_changes" file="D:\my-packages\task-manager\tests\SprintCoreTest.php" line="43" class="Karnoweb\TaskManager\Tests\SprintCoreTest" classname="Karnoweb.TaskManager.Tests.SprintCoreTest" assertions="5" time="0.187787"/>
+    <testcase name="test_a_task_cannot_reserve_two_active_sprints_and_current_project_permissions_apply" file="D:\my-packages\task-manager\tests\SprintCoreTest.php" line="50" class="Karnoweb\TaskManager\Tests\SprintCoreTest" classname="Karnoweb.TaskManager.Tests.SprintCoreTest" assertions="4" time="0.152499"/>
+  </testsuite>
+</testsuites>

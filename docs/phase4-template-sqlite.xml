@@ -1,0 +1,7 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<testsuites>
+  <testsuite name="Karnoweb\TaskManager\Tests\TemplateCoreTest" file="D:\my-packages\task-manager\tests\TemplateCoreTest.php" tests="2" assertions="13" errors="0" failures="0" skipped="0" time="0.825624">
+    <testcase name="test_template_pins_workflow_and_template_revisions_with_retry_safe_real_project_creation" file="D:\my-packages\task-manager\tests\TemplateCoreTest.php" line="10" class="Karnoweb\TaskManager\Tests\TemplateCoreTest" classname="Karnoweb.TaskManager.Tests.TemplateCoreTest" assertions="10" time="0.693103"/>
+    <testcase name="test_invalid_template_graph_and_foreign_workflow_never_create_partial_templates" file="D:\my-packages\task-manager\tests\TemplateCoreTest.php" line="27" class="Karnoweb\TaskManager\Tests\TemplateCoreTest" classname="Karnoweb.TaskManager.Tests.TemplateCoreTest" assertions="3" time="0.132521"/>
+  </testsuite>
+</testsuites>

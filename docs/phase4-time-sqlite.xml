@@ -1,0 +1,11 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<testsuites>
+  <testsuite name="Karnoweb\TaskManager\Tests\TimeTrackingCoreTest" file="D:\my-packages\task-manager\tests\TimeTrackingCoreTest.php" tests="6" assertions="25" errors="0" failures="0" skipped="0" time="1.380482">
+    <testcase name="test_manual_time_and_estimate_calculate_spent_and_remaining_from_truth" file="D:\my-packages\task-manager\tests\TimeTrackingCoreTest.php" line="12" class="Karnoweb\TaskManager\Tests\TimeTrackingCoreTest" classname="Karnoweb.TaskManager.Tests.TimeTrackingCoreTest" assertions="4" time="0.506829"/>
+    <testcase name="test_half_open_overlap_rejects_or_warns_without_disclosing_other_tasks" file="D:\my-packages\task-manager\tests\TimeTrackingCoreTest.php" line="19" class="Karnoweb\TaskManager\Tests\TimeTrackingCoreTest" classname="Karnoweb.TaskManager.Tests.TimeTrackingCoreTest" assertions="3" time="0.125805"/>
+    <testcase name="test_one_active_timer_per_scope_actor_and_retry_safe_start_stop" file="D:\my-packages\task-manager\tests\TimeTrackingCoreTest.php" line="27" class="Karnoweb\TaskManager\Tests\TimeTrackingCoreTest" classname="Karnoweb.TaskManager.Tests.TimeTrackingCoreTest" assertions="7" time="0.124567"/>
+    <testcase name="test_projection_revision_detects_in_place_entry_edits_and_rebuilds_without_double_count" file="D:\my-packages\task-manager\tests\TimeTrackingCoreTest.php" line="37" class="Karnoweb\TaskManager\Tests\TimeTrackingCoreTest" classname="Karnoweb.TaskManager.Tests.TimeTrackingCoreTest" assertions="5" time="0.123860"/>
+    <testcase name="test_revoked_or_foreign_actor_cannot_read_time_notes_or_stop_someone_elses_timer" file="D:\my-packages\task-manager\tests\TimeTrackingCoreTest.php" line="46" class="Karnoweb\TaskManager\Tests\TimeTrackingCoreTest" classname="Karnoweb.TaskManager.Tests.TimeTrackingCoreTest" assertions="3" time="0.179155"/>
+    <testcase name="test_clock_rollback_keeps_the_timer_reservation_and_does_not_create_negative_time" file="D:\my-packages\task-manager\tests\TimeTrackingCoreTest.php" line="54" class="Karnoweb\TaskManager\Tests\TimeTrackingCoreTest" classname="Karnoweb.TaskManager.Tests.TimeTrackingCoreTest" assertions="3" time="0.320265"/>
+  </testsuite>
+</testsuites>

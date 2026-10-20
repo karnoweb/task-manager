@@ -24,6 +24,7 @@ final class WorkflowService
             if ($head->revision !== $expectedRevision) { throw new DomainError('version_conflict'); }
             $number = $head->revision + 1;
             $id = $this->db->table('tm_workflow_definitions')->insertGetId(['scope_key' => $context->scope, 'key' => $key, 'revision' => $number, 'definition' => json_encode($definition, JSON_THROW_ON_ERROR)]);
+            StateIndex::publish($this->db, $id, $definition);
             $this->db->table('tm_workflow_heads')->where('scope_key', $context->scope)->where('key', $key)->update(['revision' => $number]);
             (new EventRecorder($this->db, $this->clock))->append($context, 'workflow', (string) $id, 'workflow_published', $operation, ['revision' => $number, 'key' => $key]);
             return $this->revision($context, $id);

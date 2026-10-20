@@ -83,6 +83,7 @@ final class InstanceService
         $initial = $revision['definition']['initial'];
         if (($revision['definition']['states'][$initial]['terminal'] ?? 'none') !== 'none') { throw new DomainError('initial_state_terminal'); }
         return $this->command($context, $operation, ['action' => 'start_instance', 'type' => $type, 'subject' => $subjectId, 'revision' => $revisionId, 'slot' => $slot, 'pipeline' => $pipelineKey, 'stage' => $stageKey, 'case' => $caseKey], function () use ($context, $type, $subjectId, $revisionId, $revision, $pipeline, $stageKey, $initial, $slot, $caseKey, $operation) {
+            if ($type === 'task') { \Karnoweb\TaskManager\TaskGraph\ScopeGraphLock::acquire($this->db, $context); }
             $subject = $this->subject($context, $type, $subjectId, 'edit', true);
             $this->subjects->handler($type)->guard($context, $subjectId, [], 'start', ['pipeline_key' => $pipeline['pipeline_key'] ?? null, 'revision_id' => $revisionId, 'slot' => $slot, 'state' => $initial, 'stage_key' => $stageKey]);
             $caseId = null;
@@ -99,6 +100,16 @@ final class InstanceService
                 'owner_ref' => $context->actor, 'primary_assignee' => $context->actor, 'pipeline_id' => $pipeline['id'] ?? null, 'active_stage_key' => $stage?->stage_key,
                 'case_id' => $caseId, 'started_at' => $this->now()]);
             $this->reserve($context, ['id' => $id, 'subject_type' => $type, 'subject_id' => $subjectId, 'slot_key' => $slot]);
+            if ($type === 'task' && $slot === 'main') {
+                $native = (array) $this->db->table('tm_workflow_instances')->where('id', $id)->first();
+                $category = $this->db->table('tm_workflow_states')->where('workflow_revision_id', $revisionId)->where('state_key', $initial)->value('category');
+                if ($category === 'in_progress') {
+                    $this->lifecycle?->beforeTransition($context, $native, ['key' => 'start_instance', 'from' => $initial, 'to' => $initial, 'starting_instance' => true], []);
+                    $this->db->table('tm_instance_transitions')->insert(['scope_key' => $context->scope, 'instance_id' => $id,
+                        'from_state' => '', 'to_state' => $initial, 'from_revision_id' => null, 'to_revision_id' => $revisionId,
+                        'from_category' => null, 'to_category' => $category, 'actor_ref' => $context->actor, 'operation_id' => $operation, 'occurred_at' => $this->now()]);
+                }
+            }
             if ($type === 'task') { $this->db->table('tm_tasks')->where('id', $subject->id)->increment('version'); }
             if ($caseId !== null) { $this->db->table('tm_case_subjects')->insertOrIgnore(['case_id' => $caseId, 'subject_type' => $type, 'subject_id' => $subjectId]); }
             if ($stage !== null) { $this->visit($context, $id, $stage, $operation); }
@@ -198,14 +209,14 @@ final class InstanceService
             if (!$terminal) { $this->capacity($context, $stage, $instance['id']); $this->reserve($context, $instance); }
             else { $this->db->table('tm_active_process_slots')->where('instance_id', $instance['id'])->delete(); }
             $this->subjects->handler($instance['subject_type'])->guard($context, $instance['subject_id'], $instance, 'move_pipeline', ['pipeline_key' => $pipeline['pipeline_key'], 'state' => $state]);
-            $this->lifecycle?->beforeTransition($context, $instance, ['key' => 'move_pipeline', 'from' => $instance['current_state_key'], 'to' => $state, 'force_exit' => true], []);
+            $this->lifecycle?->beforeTransition($context, $instance, ['key' => 'move_pipeline', 'from' => $instance['current_state_key'], 'to' => $state, 'target_revision_id' => $pipeline['workflow_revision_id'], 'force_exit' => true], []);
             $this->closeVisit($context, $instance['id']); $this->visit($context, $instance['id'], $stage, $operation);
             if ($terminal) { $this->closeVisit($context, $instance['id']); }
             $this->db->table('tm_workflow_instances')->where('id', $instance['id'])->update(['pipeline_id' => $pipeline['id'], 'workflow_revision_id' => $pipeline['workflow_revision_id'],
                 'workflow_key' => $this->db->table('tm_workflow_definitions')->where('id', $pipeline['workflow_revision_id'])->value('key'),
                 'current_state_key' => $state, 'active_stage_key' => $stage->stage_key, 'version' => $instance['version'] + 1, 'lifecycle' => $terminal ? 'closed' : 'active', 'completed_at' => $terminal ? $this->now() : null]);
             if ($instance['task_id'] !== null) { $this->db->table('tm_tasks')->where('id', $instance['task_id'])->increment('version'); }
-            $this->history($context, $instance, $state, $operation);
+            $this->history($context, $instance, $state, $operation, $pipeline['workflow_revision_id']);
             $this->event($context, $instance['instance_key'], 'instance_pipeline_moved', $operation, ['before' => ['pipeline' => $instance['pipeline_id'], 'state' => $instance['current_state_key']], 'after' => ['pipeline' => $pipeline['id'], 'state' => $state]], $instance['task_id']);
             return $this->get($context, $instance['instance_key']);
         });
@@ -228,6 +239,7 @@ final class InstanceService
     private function locked(ExecutionContext $context, string $key, int $version, string $subjectCapability = 'edit'): array
     {
         $before = $this->get($context, $key);
+        if ($before['subject_type'] === 'task') { \Karnoweb\TaskManager\TaskGraph\ScopeGraphLock::acquire($this->db, $context); }
         $subject = $this->subject($context, $before['subject_type'], $before['subject_id'], $subjectCapability, true);
         $instance = $this->db->table('tm_workflow_instances')->where('scope_key', $context->scope)->where('id', $before['id'])->lockForUpdate()->first();
         if ($instance->version !== $version) { throw new DomainError('version_conflict'); }
@@ -275,9 +287,11 @@ final class InstanceService
         $this->lifecycle?->leaving($context, $instanceId);
         $this->db->table('tm_stage_visits')->where('instance_id', $instanceId)->whereNull('exited_at')->update(['exited_at' => $this->now()]);
     }
-    private function history(ExecutionContext $context, array $instance, string $state, string $operation): void
+    private function history(ExecutionContext $context, array $instance, string $state, string $operation, ?int $targetRevision = null): void
     {
-        $this->db->table('tm_instance_transitions')->insert(['scope_key' => $context->scope, 'instance_id' => $instance['id'], 'from_state' => $instance['current_state_key'], 'to_state' => $state, 'actor_ref' => $context->actor, 'operation_id' => $operation, 'occurred_at' => $this->now()]);
+        $this->db->table('tm_instance_transitions')->insert(['scope_key' => $context->scope, 'instance_id' => $instance['id'],
+            ...StateIndex::transition($this->db, $instance['workflow_revision_id'], $instance['current_state_key'], $targetRevision ?? $instance['workflow_revision_id'], $state),
+            'from_state' => $instance['current_state_key'], 'to_state' => $state, 'actor_ref' => $context->actor, 'operation_id' => $operation, 'occurred_at' => $this->now()]);
     }
     private function command(ExecutionContext $context, string $operation, array $payload, callable $execute): array
     {

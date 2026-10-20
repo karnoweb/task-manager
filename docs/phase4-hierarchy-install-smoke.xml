@@ -1,0 +1,6 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<testsuites>
+  <testsuite name="Karnoweb\TaskManager\Tests\Scenarios\TM001Test" file="D:\my-packages\task-manager\tests\Scenarios\TM001Test.php" tests="1" assertions="4" errors="0" failures="0" skipped="0" time="0.781665">
+    <testcase name="test_scenario" file="D:\my-packages\task-manager\tests\Scenarios\TM001Test.php" line="12" class="Karnoweb\TaskManager\Tests\Scenarios\TM001Test" classname="Karnoweb.TaskManager.Tests.Scenarios.TM001Test" assertions="4" time="0.781665"/>
+  </testsuite>
+</testsuites>

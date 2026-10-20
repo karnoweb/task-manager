@@ -82,6 +82,7 @@ final class ProjectService
     {
         $context->require('project.edit');
         return (new CommandExecutor($this->db))->execute($context, $operation, ['action' => 'task_move_project', 'preview' => $preview, 'parent' => $parentKey], function () use ($context, $preview, $operation, $parentKey) {
+            \Karnoweb\TaskManager\TaskGraph\ScopeGraphLock::acquire($this->db, $context);
             $project = $this->get($context, $preview['project_key'], 'manage', true);
             $task = $this->tasks->authorizedQuery($context, 'edit')->where('public_key', $preview['task_key'])->lockForUpdate()->first();
             if (!$task) { throw new DomainError('not_found'); }
@@ -92,6 +93,7 @@ final class ProjectService
             $definition = $this->workflows->revision($context, $effectiveRevision)['definition'];
             if (!isset($definition['states'][$preview['state'] ?? ''])) { throw new DomainError('state_mapping_required'); }
             if ($this->db->table('tm_tasks')->where('parent_task_id', $task->id)->exists()) { throw new DomainError('subtree_preview_required'); }
+            if ($task->project_id !== $project['id'] && $this->db->table('tm_sprint_memberships')->where('task_id', $task->id)->exists()) { throw new DomainError('sprint_membership_blocks_move'); }
             $parentId = null;
             if ($parentKey !== null) {
                 $parent = $this->tasks->authorizedQuery($context, 'edit')->where('public_key', $parentKey)->first();
@@ -101,10 +103,63 @@ final class ProjectService
                 while ($ancestor !== null) {
                     if (isset($seen[$ancestor->id])) { throw new DomainError('task_hierarchy_cycle'); }
                     $seen[$ancestor->id] = true;
-                    if (++$depth > 3) { throw new DomainError('task_depth_exceeded'); }
+                    if (++$depth > $project['hierarchy_max_depth']) { throw new DomainError('task_depth_exceeded'); }
                     $ancestor = $ancestor->parent_task_id === null ? null : $this->db->table('tm_tasks')->where('scope_key', $context->scope)->where('project_id', $project['id'])->where('id', $ancestor->parent_task_id)->first();
                 }
             }
+            \Karnoweb\TaskManager\TaskGraph\HierarchyIndex::move($this->db, $context, $task->id, $parentId, $project['hierarchy_max_depth']);
+            return $this->applyTaskMove($context, $task, $project, $preview, $parentId, $definition, $effectiveRevision, $operation);
+        }, fn ($r) => $this->tasks->get($context, $r['public_key']));
+    }
+    public function previewSubtreeMove(ExecutionContext $context, string $rootKey, string $projectKey, array $stateMaps): array
+    {
+        $root = $this->tasks->get($context, $rootKey); $project = $this->get($context, $projectKey, 'manage');
+        if ($root['deleted_at'] !== null || $project['status'] !== 'active') { throw new DomainError('subtree_move_invalid'); }
+        $paths = $this->db->table('tm_task_closure')->where('scope_key', $context->scope)->where('ancestor_task_id', $root['id'])->orderByDesc('depth')->orderBy('descendant_task_id')->limit(1001)->get();
+        if ($paths->isEmpty() || $paths->count() > 1000) { throw new DomainError('subtree_batch_required'); }
+        if ($paths->max('depth') > $project['hierarchy_max_depth']) { throw new DomainError('task_depth_exceeded'); }
+        $ids = $paths->pluck('descendant_task_id')->all();
+        $rows = $this->tasks->authorizedQuery($context, 'edit')->whereIn('id', $ids)->whereNull('deleted_at')->whereNull('archived_at')->get()->keyBy('id');
+        if ($rows->count() !== count($ids)) { throw new DomainError('subtree_access_denied'); }
+        $items = [];
+        foreach ($paths as $path) {
+            $task = $rows[$path->descendant_task_id]; if ($task->project_id !== $root['project_id']) { throw new DomainError('parent_project_mismatch'); }
+            if ($task->project_id !== $project['id'] && $this->db->table('tm_sprint_memberships')->where('task_id', $task->id)->exists()) { throw new DomainError('sprint_membership_blocks_move'); }
+            $map = $stateMaps[$task->type_key] ?? null; if (!is_array($map)) { throw new DomainError('state_mapping_required'); }
+            $preview = $this->previewTaskMove($context, $task->public_key, $projectKey, $task->type_key, $map);
+            $instance = $this->db->table('tm_workflow_instances')->where('task_id', $task->id)->where('slot_key', 'main')->orderByDesc('id')->first();
+            if (!$instance || $instance->pipeline_id !== null) { throw new DomainError('pipeline_move_required'); }
+            $items[] = [...$preview, 'id' => $task->id, 'parent_id' => $task->parent_task_id, 'depth' => $path->depth, 'instance_version' => $instance->version];
+        }
+        return ['root_key' => $rootKey, 'root_id' => $root['id'], 'project_key' => $projectKey, 'state_maps' => $stateMaps, 'scope' => $context->scope, 'actor' => $context->actor, 'items' => $items];
+    }
+    public function moveSubtree(ExecutionContext $context, array $preview, string $operation): array
+    {
+        return (new CommandExecutor($this->db))->execute($context, $operation, ['action' => 'subtree_project_move', 'preview' => $preview], function () use ($context, $preview, $operation) {
+            \Karnoweb\TaskManager\TaskGraph\ScopeGraphLock::acquire($this->db, $context);
+            if (!is_string($preview['root_key'] ?? null) || !is_string($preview['project_key'] ?? null) || !is_array($preview['state_maps'] ?? null)) { throw new DomainError('preview_invalid'); }
+            $fresh = $this->previewSubtreeMove($context, $preview['root_key'], $preview['project_key'], $preview['state_maps']);
+            if (\Karnoweb\TaskManager\TaskGraph\PreviewValue::ordered($fresh) !== \Karnoweb\TaskManager\TaskGraph\PreviewValue::ordered($preview)) { throw new DomainError('preview_stale'); }
+            $project = $this->get($context, $preview['project_key'], 'manage', true);
+            // Check all lifecycle guards against the original hierarchy before any node changes.
+            foreach ($fresh['items'] as $item) {
+                $instance = $this->db->table('tm_workflow_instances')->where('task_id', $item['id'])->where('slot_key', 'main')->orderByDesc('id')->lockForUpdate()->first();
+                $this->lifecycle->beforeTransition($context, (array) $instance, ['key' => 'project_move', 'from' => $instance->current_state_key, 'to' => $item['state'], 'target_revision_id' => $item['revision_id'], 'force_exit' => true], []);
+            }
+            \Karnoweb\TaskManager\TaskGraph\HierarchyIndex::move($this->db, $context, $fresh['root_id'], null, $project['hierarchy_max_depth']);
+            $keys = [];
+            foreach ($fresh['items'] as $item) {
+                $task = $this->db->table('tm_tasks')->where('id', $item['id'])->lockForUpdate()->first();
+                $definition = $this->workflows->revision($context, $item['revision_id'])['definition'];
+                $result = $this->applyTaskMove($context, $task, $project, $item, $task->id === $fresh['root_id'] ? null : $task->parent_task_id, $definition, $item['revision_id'], 'subtree:'.hash('sha256', $operation.':'.$task->id), true); $keys[] = $result['public_key'];
+            }
+            (new EventRecorder($this->db, $this->clock))->append($context, 'project', $project['project_key'], 'subtree_project_moved', $operation, ['task_count' => count($keys)]);
+            return ['root_key' => $fresh['root_key'], 'project_key' => $project['project_key'], 'task_keys' => $keys];
+        }, function ($result) use ($context) { $this->get($context, $result['project_key'], 'manage'); foreach ($result['task_keys'] as $key) { $this->tasks->get($context, $key); } });
+    }
+
+    private function applyTaskMove(ExecutionContext $context, object $task, array $project, array $preview, ?int $parentId, array $definition, int $effectiveRevision, string $operation, bool $lifecycleChecked = false): array
+    {
             $this->db->table('tm_sequences')->insertOrIgnore(['scope_key' => $context->scope, 'sequence_key' => 'project:'.$project['id']]);
             $sequence = $this->db->table('tm_sequences')->where('scope_key', $context->scope)->where('sequence_key', 'project:'.$project['id'])->lockForUpdate()->first();
             $number = $sequence->current + 1;
@@ -116,17 +171,19 @@ final class ProjectService
             $this->db->table('tm_task_grants')->where('task_id', $task->id)->delete();
             $instance = $this->db->table('tm_workflow_instances')->where('task_id', $task->id)->where('slot_key', 'main')->orderByDesc('id')->lockForUpdate()->first();
             if ($instance->pipeline_id !== null) { throw new DomainError('pipeline_move_required'); }
-            $this->lifecycle->beforeTransition($context, (array) $instance, ['key' => 'project_move', 'from' => $instance->current_state_key, 'to' => $preview['state'], 'force_exit' => true], []);
+            if (!$lifecycleChecked) { $this->lifecycle->beforeTransition($context, (array) $instance, ['key' => 'project_move', 'from' => $instance->current_state_key, 'to' => $preview['state'], 'target_revision_id' => $effectiveRevision, 'force_exit' => true], []); }
             $terminal = ($definition['states'][$preview['state']]['terminal'] ?? 'none') !== 'none';
             $this->db->table('tm_workflow_instances')->where('id', $instance->id)->update(['workflow_revision_id' => $effectiveRevision, 'workflow_key' => $this->db->table('tm_workflow_definitions')->where('id', $effectiveRevision)->value('key'),
                 'current_state_key' => $preview['state'], 'version' => $instance->version + 1, 'lifecycle' => $terminal ? 'closed' : 'active', 'completed_at' => $terminal ? $this->now() : null]);
             if ($terminal) { $this->db->table('tm_active_process_slots')->where('instance_id', $instance->id)->delete(); }
             else { $this->reserveSlot($context, $instance, $task->public_key); }
-            $this->db->table('tm_instance_transitions')->insert(['scope_key' => $context->scope, 'instance_id' => $instance->id, 'from_state' => $instance->current_state_key, 'to_state' => $preview['state'], 'actor_ref' => $context->actor, 'operation_id' => $operation, 'occurred_at' => $this->now()]);
+            $this->db->table('tm_instance_transitions')->insert(['scope_key' => $context->scope, 'instance_id' => $instance->id,
+                ...StateIndex::transition($this->db, $instance->workflow_revision_id, $instance->current_state_key, $effectiveRevision, $preview['state']),
+                'from_state' => $instance->current_state_key, 'to_state' => $preview['state'], 'actor_ref' => $context->actor, 'operation_id' => $operation, 'occurred_at' => $this->now()]);
             (new EventRecorder($this->db, $this->clock))->append($context, 'task', $task->public_key, 'task_project_moved', $operation, ['before' => ['project' => $task->project_id, 'display' => $task->display_key], 'after' => ['project' => $project['id'], 'display' => $display]], $task->id);
             return $this->tasks->get($context, $task->public_key);
-        }, fn ($r) => $this->tasks->get($context, $r['public_key']));
     }
+
     private function reserveSlot(ExecutionContext $context, object $instance, string $taskKey): void
     {
         $this->db->table('tm_active_process_slots')->insertOrIgnore(['scope_key' => $context->scope, 'subject_type' => 'task', 'subject_id' => $taskKey, 'slot_key' => 'main', 'instance_id' => $instance->id]);
@@ -155,6 +212,7 @@ final class ProjectService
     public function migrateWorkflow(ExecutionContext $context, array $preview, string $operation): array
     {
         return (new CommandExecutor($this->db))->execute($context, $operation, ['action' => 'migrate_project_workflow', 'preview' => $preview], function () use ($context, $preview, $operation) {
+            \Karnoweb\TaskManager\TaskGraph\ScopeGraphLock::acquire($this->db, $context);
             $project = $this->get($context, $preview['project_key'], 'manage', true);
             if ($project['version'] !== $preview['project_version']) { throw new DomainError('preview_stale'); }
             $current = $this->previewWorkflowMigration($context, $preview['project_key'], $preview['revision_id'], $preview['state_map'], $preview['type']);
@@ -170,7 +228,7 @@ final class ProjectService
                 $task = $this->tasks->authorizedQuery($context, 'edit')->where('id', $instance->task_id)->first();
                 if (!$task || $task->project_id !== $project['id']) { throw new DomainError('not_found'); }
                 $state = $preview['state_map'][$instance->current_state_key];
-                $this->lifecycle->beforeTransition($context, (array) $instance, ['key' => 'workflow_migrate', 'from' => $instance->current_state_key, 'to' => $state, 'force_exit' => true], []);
+                $this->lifecycle->beforeTransition($context, (array) $instance, ['key' => 'workflow_migrate', 'from' => $instance->current_state_key, 'to' => $state, 'target_revision_id' => $revision['id'], 'force_exit' => true], []);
                 $terminal = ($revision['definition']['states'][$state]['terminal'] ?? 'none') !== 'none';
                 $this->db->table('tm_workflow_instances')->where('id', $instance->id)->update(['workflow_revision_id' => $revision['id'], 'workflow_key' => $revision['key'],
                     'current_state_key' => $state, 'version' => $instance->version + 1, 'lifecycle' => $terminal ? 'closed' : 'active', 'completed_at' => $terminal ? $this->now() : null]);
@@ -178,6 +236,7 @@ final class ProjectService
                 else { $this->reserveSlot($context, $instance, $task->public_key); }
                 $this->db->table('tm_tasks')->where('id', $task->id)->increment('version');
                 $this->db->table('tm_instance_transitions')->insert(['scope_key' => $context->scope, 'instance_id' => $instance->id, 'from_state' => $instance->current_state_key,
+                    ...StateIndex::transition($this->db, $instance->workflow_revision_id, $instance->current_state_key, $revision['id'], $state),
                     'to_state' => $state, 'actor_ref' => $context->actor, 'operation_id' => $operation, 'occurred_at' => $this->now()]);
                 (new EventRecorder($this->db, $this->clock))->append($context, 'instance', $instance->instance_key, 'workflow_migrated', $operation, ['before' => $instance->current_state_key, 'after' => $state, 'revision' => $revision['id']], $task->id);
             }

@@ -14,6 +14,10 @@ final class Definition
         foreach ($states as $key => $state) {
             self::key($key);
             if (!is_array($state) || !in_array($state['terminal'] ?? 'none', ['none', 'success', 'failure', 'cancelled'], true)) { throw new DomainError('state_invalid'); }
+            if (isset($state['category']) && (!in_array($state['category'], ['todo', 'in_progress', 'done', 'cancelled'], true)
+                || (($state['terminal'] ?? 'none') === 'success' && $state['category'] !== 'done')
+                || (in_array($state['terminal'] ?? 'none', ['failure', 'cancelled'], true) && $state['category'] !== 'cancelled')
+                || (($state['terminal'] ?? 'none') === 'none' && in_array($state['category'], ['done', 'cancelled'], true)))) { throw new DomainError('state_category_invalid'); }
         }
         foreach ($edges as $key => $edge) {
             self::key($key);

@@ -1,0 +1,13 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<testsuites>
+  <testsuite name="CLI Arguments" tests="4" assertions="26" errors="0" failures="0" skipped="0" time="1.180803">
+    <testsuite name="Karnoweb\TaskManager\Tests\SubtreeProjectMoveTest" file="D:\my-packages\task-manager\tests\SubtreeProjectMoveTest.php" tests="2" assertions="13" errors="0" failures="0" skipped="0" time="0.859999">
+      <testcase name="test_controlled_subtree_move_preserves_internal_paths_and_public_keys_and_rejects_stale_preview" file="D:\my-packages\task-manager\tests\SubtreeProjectMoveTest.php" line="9" class="Karnoweb\TaskManager\Tests\SubtreeProjectMoveTest" classname="Karnoweb.TaskManager.Tests.SubtreeProjectMoveTest" assertions="10" time="0.677926"/>
+      <testcase name="test_subtree_move_never_skips_source_permissions_or_active_sprint_memberships" file="D:\my-packages\task-manager\tests\SubtreeProjectMoveTest.php" line="24" class="Karnoweb\TaskManager\Tests\SubtreeProjectMoveTest" classname="Karnoweb.TaskManager.Tests.SubtreeProjectMoveTest" assertions="3" time="0.182073"/>
+    </testsuite>
+    <testsuite name="Karnoweb\TaskManager\Tests\TemplateCoreTest" file="D:\my-packages\task-manager\tests\TemplateCoreTest.php" tests="2" assertions="13" errors="0" failures="0" skipped="0" time="0.320804">
+      <testcase name="test_template_pins_workflow_and_template_revisions_with_retry_safe_real_project_creation" file="D:\my-packages\task-manager\tests\TemplateCoreTest.php" line="10" class="Karnoweb\TaskManager\Tests\TemplateCoreTest" classname="Karnoweb.TaskManager.Tests.TemplateCoreTest" assertions="10" time="0.181819"/>
+      <testcase name="test_invalid_template_graph_and_foreign_workflow_never_create_partial_templates" file="D:\my-packages\task-manager\tests\TemplateCoreTest.php" line="27" class="Karnoweb\TaskManager\Tests\TemplateCoreTest" classname="Karnoweb.TaskManager.Tests.TemplateCoreTest" assertions="3" time="0.138985"/>
+    </testsuite>
+  </testsuite>
+</testsuites>

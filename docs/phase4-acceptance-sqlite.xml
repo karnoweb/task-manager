@@ -1,0 +1,9 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<testsuites>
+  <testsuite name="Karnoweb\TaskManager\Tests\PhaseFourAcceptanceTest" file="D:\my-packages\task-manager\tests\PhaseFourAcceptanceTest.php" tests="4" assertions="25" errors="0" failures="0" skipped="0" time="2.842893">
+    <testcase name="test_conflicting_dependency_commands_recheck_versions_and_cannot_create_reverse_cycle" file="D:\my-packages\task-manager\tests\PhaseFourAcceptanceTest.php" line="12" class="Karnoweb\TaskManager\Tests\PhaseFourAcceptanceTest" classname="Karnoweb.TaskManager.Tests.PhaseFourAcceptanceTest" assertions="4" time="0.551831"/>
+    <testcase name="test_conflicting_reparent_commands_reject_stale_versions_and_reverse_cycle" file="D:\my-packages\task-manager\tests\PhaseFourAcceptanceTest.php" line="19" class="Karnoweb\TaskManager\Tests\PhaseFourAcceptanceTest" classname="Karnoweb.TaskManager.Tests.PhaseFourAcceptanceTest" assertions="5" time="0.140801"/>
+    <testcase name="test_reparenting_story_between_epics_updates_both_rollups_and_keeps_one_parent" file="D:\my-packages\task-manager\tests\PhaseFourAcceptanceTest.php" line="26" class="Karnoweb\TaskManager\Tests\PhaseFourAcceptanceTest" classname="Karnoweb.TaskManager.Tests.PhaseFourAcceptanceTest" assertions="5" time="0.178910"/>
+    <testcase name="test_hundred_task_project_depth_eight_bug_workflow_dependencies_sprint_and_truth_rollups" file="D:\my-packages\task-manager\tests\PhaseFourAcceptanceTest.php" line="33" class="Karnoweb\TaskManager\Tests\PhaseFourAcceptanceTest" classname="Karnoweb.TaskManager.Tests.PhaseFourAcceptanceTest" assertions="11" time="1.971351"/>
+  </testsuite>
+</testsuites>

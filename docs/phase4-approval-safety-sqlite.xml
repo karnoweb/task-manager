@@ -1,0 +1,6 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<testsuites>
+  <testsuite name="Karnoweb\TaskManager\Tests\HierarchyApprovalSafetyTest" file="D:\my-packages\task-manager\tests\HierarchyApprovalSafetyTest.php" tests="1" assertions="6" errors="0" failures="0" skipped="0" time="0.557204">
+    <testcase name="test_child_pending_approval_blocks_parent_completion_and_atomic_subtree_terminal_mapping" file="D:\my-packages\task-manager\tests\HierarchyApprovalSafetyTest.php" line="15" class="Karnoweb\TaskManager\Tests\HierarchyApprovalSafetyTest" classname="Karnoweb.TaskManager.Tests.HierarchyApprovalSafetyTest" assertions="6" time="0.557204"/>
+  </testsuite>
+</testsuites>

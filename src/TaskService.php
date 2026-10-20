@@ -215,7 +215,10 @@ final class TaskService
 
     private function command(ExecutionContext $context, string $operation, array $payload, callable $execute): array
     {
-        return (new CommandExecutor($this->db))->execute($context, $operation, $payload, $execute, function (array $result) use ($context) {
+        return (new CommandExecutor($this->db))->execute($context, $operation, $payload, function () use ($context, $execute) {
+            \Karnoweb\TaskManager\TaskGraph\ScopeGraphLock::acquire($this->db, $context);
+            return $execute();
+        }, function (array $result) use ($context) {
             if (isset($result['public_key'])) { $this->get($context, $result['public_key']); }
             elseif (isset($result['list_id'])) { $this->ownedList($context, $result['list_id']); }
         });
@@ -246,6 +249,7 @@ final class TaskService
 
     private function createRecord(ExecutionContext $context, string $title, string $operation, ?string $description = null, string $priority = 'normal'): array
     {
+            \Karnoweb\TaskManager\TaskGraph\ScopeGraphLock::acquire($this->db, $context);
             $this->db->table('tm_workflow_definitions')->insertOrIgnore(['scope_key' => $context->scope,
                 'key' => 'personal', 'revision' => 1, 'definition' => json_encode(['states' => ['pending', 'done'], 'transitions' => ['pending' => ['done'], 'done' => ['pending']]], JSON_THROW_ON_ERROR)]);
             $list = $this->db->table('tm_lists')->where('scope_key', $context->scope)->where('owner_ref', $context->actor)->where('name', 'Inbox')->first();
@@ -258,7 +262,10 @@ final class TaskService
             $displayKey = $this->nextDisplayKey($context);
             $internalId = $this->db->table('tm_tasks')->insertGetId(['public_key' => $id, 'display_key' => $displayKey, 'scope_key' => $context->scope,
                 'owner_ref' => $context->actor, 'list_id' => $listId, 'title' => $title, 'description' => $description, 'priority' => $priority, 'title_search_normalized' => $this->normalize($title), 'created_at' => $now, 'updated_at' => $now]);
+            \Karnoweb\TaskManager\TaskGraph\HierarchyIndex::root($this->db, $context, $internalId);
+            \Karnoweb\TaskManager\TaskGraph\ScopeGraphLock::changed($this->db, $context);
             $revisionId = $this->db->table('tm_workflow_definitions')->where('scope_key', $context->scope)->where('key', 'personal')->where('revision', 1)->value('id');
+            \Karnoweb\TaskManager\Workflow\StateIndex::publish($this->db, $revisionId, \Karnoweb\TaskManager\Workflow\Definition::decode($this->db->table('tm_workflow_definitions')->where('id', $revisionId)->value('definition')));
             $instanceId = $this->db->table('tm_workflow_instances')->insertGetId(['instance_key' => (string) Str::uuid(), 'scope_key' => $context->scope, 'task_id' => $internalId, 'workflow_revision_id' => $revisionId,
                 'subject_type' => 'task', 'subject_id' => $id, 'owner_ref' => $context->actor, 'primary_assignee' => $context->actor, 'started_at' => $now]);
             $this->db->table('tm_active_process_slots')->insert(['scope_key' => $context->scope, 'subject_type' => 'task', 'subject_id' => $id, 'slot_key' => 'main', 'instance_id' => $instanceId]);
@@ -276,6 +283,8 @@ final class TaskService
             if (!$task) { throw new DomainError('not_found'); }
             if ($task->version !== $version) { throw new DomainError('version_conflict'); }
             $changes = ['version' => $version + 1, 'updated_at' => $this->now()];
+            if ($action === 'delete' && $this->db->table('tm_tasks')->where('parent_task_id', $task->id)->whereNull('deleted_at')->exists()) { throw new DomainError('parent_has_children'); }
+            if ($action === 'undelete' && $task->parent_task_id !== null && $this->db->table('tm_tasks')->where('id', $task->parent_task_id)->whereNotNull('deleted_at')->exists()) { throw new DomainError('parent_deleted'); }
             if ($action === 'move_list') {
                 if ($task->owner_ref !== $context->actor) { throw new DomainError('access_denied'); }
                 $list = $this->ownedList($context, $values['list_id'] ?? '', true);
@@ -295,6 +304,8 @@ final class TaskService
             }
             $now = $this->now();
             if (in_array($action, ['archive', 'delete'], true)) {
+                if ($this->db->table('tm_active_sprint_tasks')->where('task_id', $task->id)->exists()) { throw new DomainError('active_sprint_blocks_archive'); }
+                if ($this->db->table('tm_task_timers')->where('scope_key', $context->scope)->where('task_id', $task->id)->where('state', 'active')->exists()) { throw new DomainError('active_timer_blocks_archive'); }
                 $processes = $this->db->table('tm_workflow_instances')->where('scope_key', $context->scope)->where('task_id', $task->id)->where('lifecycle', '!=', 'closed')->orderBy('id')->lockForUpdate()->get();
                 foreach ($processes as $guarded) {
                     $this->lifecycle?->beforeTransition($context, (array) $guarded, ['key' => $action, 'from' => $guarded->current_state_key, 'to' => $guarded->current_state_key, 'force_exit' => true], []);
@@ -312,6 +323,7 @@ final class TaskService
                 $this->lifecycle?->beforeTransition($context, (array) $instance, ['key' => $action, 'from' => $instance->current_state_key, 'to' => $state], []);
                 if ($state === 'done') { $this->lifecycle?->leaving($context, $instance->id); }
                 $this->db->table('tm_instance_transitions')->insert(['scope_key' => $context->scope, 'instance_id' => $instance->id,
+                    ...\Karnoweb\TaskManager\Workflow\StateIndex::transition($this->db, $instance->workflow_revision_id, $instance->current_state_key, $instance->workflow_revision_id, $state),
                     'from_state' => $instance->current_state_key, 'to_state' => $state, 'actor_ref' => $context->actor, 'operation_id' => $operation, 'occurred_at' => $now]);
                 $this->db->table('tm_workflow_instances')->where('id', $instance->id)->update(['current_state_key' => $state, 'lifecycle' => $state === 'done' ? 'closed' : 'active',
                     'completed_at' => $state === 'done' ? $now : null, 'version' => $instance->version + 1]);
