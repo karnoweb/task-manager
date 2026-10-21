@@ -1,0 +1,45 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<testsuites>
+  <testsuite name="Karnoweb\TaskManager\Tests\CrmCandidateReproductionTest" file="D:\my-packages\task-manager\qa\phase7\CrmCandidateReproductionTest.php" tests="4" assertions="19" errors="2" failures="0" skipped="0" time="11.117831">
+    <testcase name="test_real_legacy_task_shadow_import_reconciliation_cutover_and_rollback" file="D:\my-packages\task-manager\qa\phase7\CrmCandidateReproductionTest.php" line="20" class="Karnoweb\TaskManager\Tests\CrmCandidateReproductionTest" classname="Karnoweb.TaskManager.Tests.CrmCandidateReproductionTest" assertions="14" time="2.761029"/>
+    <testcase name="test_source_drift_blocks_cutover_and_engine_changes_block_lossy_rollback" file="D:\my-packages\task-manager\qa\phase7\CrmCandidateReproductionTest.php" line="50" class="Karnoweb\TaskManager\Tests\CrmCandidateReproductionTest" classname="Karnoweb.TaskManager.Tests.CrmCandidateReproductionTest" assertions="5" time="3.149502"/>
+    <testcase name="test_followup_task_cannot_mutate_real_crm_deal_status" file="D:\my-packages\task-manager\qa\phase7\CrmCandidateReproductionTest.php" line="68" class="Karnoweb\TaskManager\Tests\CrmCandidateReproductionTest" classname="Karnoweb.TaskManager.Tests.CrmCandidateReproductionTest" assertions="0" time="2.773356">
+      <error type="Illuminate\Database\QueryException">Karnoweb\TaskManager\Tests\CrmCandidateReproductionTest::test_followup_task_cannot_mutate_real_crm_deal_status&#13;
+Illuminate\Database\QueryException: SQLSTATE[42883]: Undefined function: 7 ERROR:  operator does not exist: character varying = bigint
+LINE 1: ...gacy_type" = $4 and "tm_host_imports"."legacy_id" = "crm_dea...
+                                                             ^
+HINT:  No operator matches the given name and argument types. You might need to add explicit type casts. (Connection: testing, Host: 127.0.0.1, Port: 55439, Database: tm_phase7_repro_20261021, SQL: select exists(select * from "crm_deals" where "crm_deals"."deleted_at" is null and exists (select 1 from "crm_leads" where "crm_leads"."id" = "crm_deals"."lead_id" and "crm_leads"."merged_into_lead_id" is null and "crm_leads"."archived_at" is null) and "crm_deals"."branch_id" = 1 and "crm_deals"."assigned_to" = 1 and not exists (select 1 from "tm_host_imports" inner join "tm_host_cutovers" on "tm_host_cutovers"."id" = "tm_host_imports"."cutover_id" where "tm_host_cutovers"."scope_key" = 1 and "tm_host_imports"."legacy_type" = crm.deals and "tm_host_imports"."legacy_id" = "crm_deals"."id" and "tm_host_cutovers"."mode" != active) and "crm_deals"."branch_id" = 1 and "crm_deals"."id" = 1) as "exists")
+&#13;
+D:\my-packages\task-manager\vendor\laravel\framework\src\Illuminate\Database\Connection.php:864
+D:\my-packages\task-manager\vendor\laravel\framework\src\Illuminate\Database\Connection.php:820
+D:\my-packages\task-manager\vendor\laravel\framework\src\Illuminate\Database\Connection.php:433
+D:\my-packages\task-manager\vendor\laravel\framework\src\Illuminate\Database\Query\Builder.php:4014
+D:\my-packages\task-manager\src\UI\Crm\FollowupService.php:29
+D:\my-packages\task-manager\src\UI\Crm\FollowupService.php:36
+D:\my-packages\task-manager\qa\phase7\CrmCandidateReproductionTest.php:72</error>
+    </testcase>
+    <testcase name="test_real_deal_pipeline_history_alias_import_and_writer_switch" file="D:\my-packages\task-manager\qa\phase7\CrmCandidateReproductionTest.php" line="80" class="Karnoweb\TaskManager\Tests\CrmCandidateReproductionTest" classname="Karnoweb.TaskManager.Tests.CrmCandidateReproductionTest" assertions="0" time="2.433944">
+      <error type="Illuminate\Database\QueryException">Karnoweb\TaskManager\Tests\CrmCandidateReproductionTest::test_real_deal_pipeline_history_alias_import_and_writer_switch&#13;
+Illuminate\Database\QueryException: SQLSTATE[42883]: Undefined function: 7 ERROR:  operator does not exist: character varying = bigint
+LINE 1: ...gacy_type" = $4 and "tm_host_imports"."legacy_id" = "crm_dea...
+                                                             ^
+HINT:  No operator matches the given name and argument types. You might need to add explicit type casts. (Connection: testing, Host: 127.0.0.1, Port: 55439, Database: tm_phase7_repro_20261021, SQL: select * from "crm_deals" where "crm_deals"."deleted_at" is null and exists (select 1 from "crm_leads" where "crm_leads"."id" = "crm_deals"."lead_id" and "crm_leads"."merged_into_lead_id" is null and "crm_leads"."archived_at" is null) and "crm_deals"."branch_id" = 1 and "crm_deals"."assigned_to" = 1 and not exists (select 1 from "tm_host_imports" inner join "tm_host_cutovers" on "tm_host_cutovers"."id" = "tm_host_imports"."cutover_id" where "tm_host_cutovers"."scope_key" = 1 and "tm_host_imports"."legacy_type" = crm.deals and "tm_host_imports"."legacy_id" = "crm_deals"."id" and "tm_host_cutovers"."mode" != active) and "crm_deals"."branch_id" = 1 and "crm_deals"."id" = 1 limit 1)
+&#13;
+D:\my-packages\task-manager\vendor\laravel\framework\src\Illuminate\Database\Connection.php:864
+D:\my-packages\task-manager\vendor\laravel\framework\src\Illuminate\Database\Connection.php:820
+D:\my-packages\task-manager\vendor\laravel\framework\src\Illuminate\Database\Connection.php:433
+D:\my-packages\task-manager\vendor\laravel\framework\src\Illuminate\Database\Query\Builder.php:3640
+D:\my-packages\task-manager\vendor\laravel\framework\src\Illuminate\Database\Query\Builder.php:3624
+D:\my-packages\task-manager\vendor\laravel\framework\src\Illuminate\Database\Concerns\BuildsQueries.php:423
+D:\my-packages\task-manager\src\Workflow\InstanceService.php:44
+D:\my-packages\task-manager\src\Workflow\InstanceService.php:128
+D:\my-packages\task-manager\src\UI\Crm\CutoverService.php:288
+D:\my-packages\task-manager\src\UI\Crm\CutoverService.php:184
+D:\my-packages\task-manager\src\CommandExecutor.php:49
+D:\my-packages\task-manager\vendor\laravel\framework\src\Illuminate\Database\Concerns\ManagesTransactions.php:35
+D:\my-packages\task-manager\src\CommandExecutor.php:36
+D:\my-packages\task-manager\src\UI\Crm\CutoverService.php:163
+D:\my-packages\task-manager\qa\phase7\CrmCandidateReproductionTest.php:92</error>
+    </testcase>
+  </testsuite>
+</testsuites>

@@ -1,0 +1,61 @@
+{
+    "php": "8.4.22",
+    "extensions": [
+        "Core",
+        "bcmath",
+        "calendar",
+        "ctype",
+        "date",
+        "hash",
+        "iconv",
+        "json",
+        "pcre",
+        "random",
+        "readline",
+        "Reflection",
+        "SPL",
+        "session",
+        "tokenizer",
+        "zlib",
+        "libxml",
+        "dom",
+        "filter",
+        "standard",
+        "PDO",
+        "openssl",
+        "mysqlnd",
+        "SimpleXML",
+        "xml",
+        "xmlreader",
+        "xmlwriter",
+        "mysqli",
+        "curl",
+        "ftp",
+        "fileinfo",
+        "gd",
+        "intl",
+        "mbstring",
+        "Phar",
+        "pdo_mysql",
+        "pdo_pgsql",
+        "pdo_sqlite",
+        "pgsql",
+        "soap",
+        "sockets",
+        "sqlite3",
+        "zip",
+        "exif",
+        "redis",
+        "Zend OPcache"
+    ],
+    "profiles": {
+        "mariadb": {
+            "connected": true,
+            "version": "11.8.2-MariaDB"
+        },
+        "pgsql": {
+            "connected": true,
+            "version": "PostgreSQL 18.4 on x86_64-windows, compiled by msvc-19.44.35226, 64-bit"
+        }
+    }
+}

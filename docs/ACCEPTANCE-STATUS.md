@@ -1,5 +1,7 @@
 # Acceptance implementation status
 
+Phase-seven cycle 1 stopped with **NO-GO** on candidate `05f0829`: a PostgreSQL CRM identifier-type defect was reproduced in isolation. The historical phase results below are not release acceptance. See `PHASE-7-TEST-REPORT.md` and the complete 362-row `PHASE-7-REQUIREMENTS.md` matrix.
+
 Work in progress. This is not a phase-seven run. PASS records observed phase-one/two and all 58 owned phase-three TM scenarios on PostgreSQL. Phase-four owned cases passed the user-authorized SQLite scope; database matrix and physical races are deferred to phase seven. Phase-five owned cases passed the user-authorized SQLite scope; physical generators and real transport remain later evidence. Phase-six installed optional hosts, actual UI contracts and real-CRM/sample-host functional E2E cases passed SQLite scope. Comprehensive phase-seven acceptance remains pending.
 
 | ID | Current evidence |

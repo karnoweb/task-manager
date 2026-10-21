@@ -1,0 +1,6 @@
+PHPUnit 12.5.40 by Sebastian Bergmann and contributors.
+
+Runtime:       PHP 8.4.22
+Configuration: D:\my-packages\task-manager\phpunit.xml
+
+[36;1mS[0m...........[36;1mS[0m......................................

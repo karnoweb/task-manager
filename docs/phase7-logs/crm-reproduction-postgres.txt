@@ -1,0 +1,87 @@
+PHPUnit 12.5.40 by Sebastian Bergmann and contributors.
+
+Runtime:       PHP 8.4.22
+Configuration: D:\my-packages\task-manager\phpunit.xml
+
+..[31;1mE[0m[31;1mE[0m                                                                4 / 4 (100%)
+
+Time: 00:11.138, Memory: 58.00 MB
+
+There were 2 errors:
+
+1) Karnoweb\TaskManager\Tests\CrmCandidateReproductionTest::test_followup_task_cannot_mutate_real_crm_deal_status
+Illuminate\Database\QueryException: SQLSTATE[42883]: Undefined function: 7 ERROR:  operator does not exist: character varying = bigint
+LINE 1: ...gacy_type" = $4 and "tm_host_imports"."legacy_id" = "crm_dea...
+                                                             ^
+HINT:  No operator matches the given name and argument types. You might need to add explicit type casts. (Connection: testing, Host: 127.0.0.1, Port: 55439, Database: tm_phase7_repro_20261021, SQL: select exists(select * from "crm_deals" where "crm_deals"."deleted_at" is null and exists (select 1 from "crm_leads" where "crm_leads"."id" = "crm_deals"."lead_id" and "crm_leads"."merged_into_lead_id" is null and "crm_leads"."archived_at" is null) and "crm_deals"."branch_id" = 1 and "crm_deals"."assigned_to" = 1 and not exists (select 1 from "tm_host_imports" inner join "tm_host_cutovers" on "tm_host_cutovers"."id" = "tm_host_imports"."cutover_id" where "tm_host_cutovers"."scope_key" = 1 and "tm_host_imports"."legacy_type" = crm.deals and "tm_host_imports"."legacy_id" = "crm_deals"."id" and "tm_host_cutovers"."mode" != active) and "crm_deals"."branch_id" = 1 and "crm_deals"."id" = 1) as "exists")
+
+D:\my-packages\task-manager\vendor\laravel\framework\src\Illuminate\Database\Connection.php:864
+D:\my-packages\task-manager\vendor\laravel\framework\src\Illuminate\Database\Connection.php:820
+D:\my-packages\task-manager\vendor\laravel\framework\src\Illuminate\Database\Connection.php:433
+D:\my-packages\task-manager\vendor\laravel\framework\src\Illuminate\Database\Query\Builder.php:4014
+D:\my-packages\task-manager\src\UI\Crm\FollowupService.php:29
+D:\my-packages\task-manager\src\UI\Crm\FollowupService.php:36
+D:\my-packages\task-manager\qa\phase7\CrmCandidateReproductionTest.php:72
+
+Caused by
+PDOException: SQLSTATE[42883]: Undefined function: 7 ERROR:  operator does not exist: character varying = bigint
+LINE 1: ...gacy_type" = $4 and "tm_host_imports"."legacy_id" = "crm_dea...
+                                                             ^
+HINT:  No operator matches the given name and argument types. You might need to add explicit type casts.
+
+D:\my-packages\task-manager\vendor\laravel\framework\src\Illuminate\Database\Connection.php:447
+D:\my-packages\task-manager\vendor\laravel\framework\src\Illuminate\Database\Connection.php:853
+D:\my-packages\task-manager\vendor\laravel\framework\src\Illuminate\Database\Connection.php:820
+D:\my-packages\task-manager\vendor\laravel\framework\src\Illuminate\Database\Connection.php:433
+D:\my-packages\task-manager\vendor\laravel\framework\src\Illuminate\Database\Query\Builder.php:4014
+D:\my-packages\task-manager\src\UI\Crm\FollowupService.php:29
+D:\my-packages\task-manager\src\UI\Crm\FollowupService.php:36
+D:\my-packages\task-manager\qa\phase7\CrmCandidateReproductionTest.php:72
+
+2) Karnoweb\TaskManager\Tests\CrmCandidateReproductionTest::test_real_deal_pipeline_history_alias_import_and_writer_switch
+Illuminate\Database\QueryException: SQLSTATE[42883]: Undefined function: 7 ERROR:  operator does not exist: character varying = bigint
+LINE 1: ...gacy_type" = $4 and "tm_host_imports"."legacy_id" = "crm_dea...
+                                                             ^
+HINT:  No operator matches the given name and argument types. You might need to add explicit type casts. (Connection: testing, Host: 127.0.0.1, Port: 55439, Database: tm_phase7_repro_20261021, SQL: select * from "crm_deals" where "crm_deals"."deleted_at" is null and exists (select 1 from "crm_leads" where "crm_leads"."id" = "crm_deals"."lead_id" and "crm_leads"."merged_into_lead_id" is null and "crm_leads"."archived_at" is null) and "crm_deals"."branch_id" = 1 and "crm_deals"."assigned_to" = 1 and not exists (select 1 from "tm_host_imports" inner join "tm_host_cutovers" on "tm_host_cutovers"."id" = "tm_host_imports"."cutover_id" where "tm_host_cutovers"."scope_key" = 1 and "tm_host_imports"."legacy_type" = crm.deals and "tm_host_imports"."legacy_id" = "crm_deals"."id" and "tm_host_cutovers"."mode" != active) and "crm_deals"."branch_id" = 1 and "crm_deals"."id" = 1 limit 1)
+
+D:\my-packages\task-manager\vendor\laravel\framework\src\Illuminate\Database\Connection.php:864
+D:\my-packages\task-manager\vendor\laravel\framework\src\Illuminate\Database\Connection.php:820
+D:\my-packages\task-manager\vendor\laravel\framework\src\Illuminate\Database\Connection.php:433
+D:\my-packages\task-manager\vendor\laravel\framework\src\Illuminate\Database\Query\Builder.php:3640
+D:\my-packages\task-manager\vendor\laravel\framework\src\Illuminate\Database\Query\Builder.php:3624
+D:\my-packages\task-manager\vendor\laravel\framework\src\Illuminate\Database\Concerns\BuildsQueries.php:423
+D:\my-packages\task-manager\src\Workflow\InstanceService.php:44
+D:\my-packages\task-manager\src\Workflow\InstanceService.php:128
+D:\my-packages\task-manager\src\UI\Crm\CutoverService.php:288
+D:\my-packages\task-manager\src\UI\Crm\CutoverService.php:184
+D:\my-packages\task-manager\src\CommandExecutor.php:49
+D:\my-packages\task-manager\vendor\laravel\framework\src\Illuminate\Database\Concerns\ManagesTransactions.php:35
+D:\my-packages\task-manager\src\CommandExecutor.php:36
+D:\my-packages\task-manager\src\UI\Crm\CutoverService.php:163
+D:\my-packages\task-manager\qa\phase7\CrmCandidateReproductionTest.php:92
+
+Caused by
+PDOException: SQLSTATE[42883]: Undefined function: 7 ERROR:  operator does not exist: character varying = bigint
+LINE 1: ...gacy_type" = $4 and "tm_host_imports"."legacy_id" = "crm_dea...
+                                                             ^
+HINT:  No operator matches the given name and argument types. You might need to add explicit type casts.
+
+D:\my-packages\task-manager\vendor\laravel\framework\src\Illuminate\Database\Connection.php:447
+D:\my-packages\task-manager\vendor\laravel\framework\src\Illuminate\Database\Connection.php:853
+D:\my-packages\task-manager\vendor\laravel\framework\src\Illuminate\Database\Connection.php:820
+D:\my-packages\task-manager\vendor\laravel\framework\src\Illuminate\Database\Connection.php:433
+D:\my-packages\task-manager\vendor\laravel\framework\src\Illuminate\Database\Query\Builder.php:3640
+D:\my-packages\task-manager\vendor\laravel\framework\src\Illuminate\Database\Query\Builder.php:3624
+D:\my-packages\task-manager\vendor\laravel\framework\src\Illuminate\Database\Concerns\BuildsQueries.php:423
+D:\my-packages\task-manager\src\Workflow\InstanceService.php:44
+D:\my-packages\task-manager\src\Workflow\InstanceService.php:128
+D:\my-packages\task-manager\src\UI\Crm\CutoverService.php:288
+D:\my-packages\task-manager\src\UI\Crm\CutoverService.php:184
+D:\my-packages\task-manager\src\CommandExecutor.php:49
+D:\my-packages\task-manager\vendor\laravel\framework\src\Illuminate\Database\Concerns\ManagesTransactions.php:35
+D:\my-packages\task-manager\src\CommandExecutor.php:36
+D:\my-packages\task-manager\src\UI\Crm\CutoverService.php:163
+D:\my-packages\task-manager\qa\phase7\CrmCandidateReproductionTest.php:92
+
+[37;41mERRORS![0m
+[37;41mTests: 4[0m[37;41m, Assertions: 19[0m[37;41m, Errors: 2[0m[37;41m.[0m
