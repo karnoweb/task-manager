@@ -1,0 +1,6 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<testsuites>
+  <testsuite name="Karnoweb\TaskManager\Tests\UiProcessSafetyTest" file="D:\my-packages\task-manager\tests\UiProcessSafetyTest.php" tests="1" assertions="8" errors="0" failures="0" skipped="0" time="0.952998">
+    <testcase name="test_contract_stage_drag_calls_the_trusted_handoff_handler_once_without_direct_status_write" file="D:\my-packages\task-manager\tests\UiProcessSafetyTest.php" line="20" class="Karnoweb\TaskManager\Tests\UiProcessSafetyTest" classname="Karnoweb.TaskManager.Tests.UiProcessSafetyTest" assertions="8" time="0.952998"/>
+  </testsuite>
+</testsuites>

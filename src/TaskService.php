@@ -63,6 +63,7 @@ final class TaskService
                 });
             });
         $this->authorization->constrain($query, $context, 'task', $capability);
+        if ($capability === 'edit') { \Karnoweb\TaskManager\UI\Crm\WriteOwnership::constrainTasks($this->db, $query); }
         return $query;
     }
 

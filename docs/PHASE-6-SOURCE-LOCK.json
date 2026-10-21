@@ -1,0 +1,74 @@
+{
+  "review_date": "2026-10-21",
+  "sources": {
+    "kanban-livewire": {
+      "commit": "c63c7859978f97f677e8417729bcec0dd1375868",
+      "source_tag": "v13.3.0",
+      "declared_version": "13.3.0",
+      "composer_json_sha256": "514cddd824ad9395531eae1c61374dda5ae2add60fa911c9eb4502af3bb705d6",
+      "tracked_source_changes": false
+    },
+    "laravel-calendar": {
+      "commit": "b4dfb75cccc4bdb681ecaa64f99bc6c662eac5e0",
+      "source_tag": "2.0.0",
+      "declared_version": null,
+      "composer_json_sha256": "8327fa5074c1106586ba724e3e261147ca37e97bde63178a45a42378bd1b67f3",
+      "tracked_source_changes": false
+    },
+    "crm": {
+      "commit": "24b21d197068b5e9286cda2cd761fd7454f9418f",
+      "source_tag": "v13.1.0",
+      "declared_version": "13.1.0",
+      "composer_json_sha256": "b3dba207cc1259a6b70a4486e7c7726c8985c2f2b5539f785ac2c9d82fb137ce",
+      "tracked_source_changes": false
+    }
+  },
+  "host_profiles": {
+    "task-only": {
+      "tests": 1,
+      "assertions": 9,
+      "errors": 0,
+      "failures": 0,
+      "skipped": 0,
+      "lock_sha256": "0996ac97af10ac1e2c36b5da6fe8e5066e1ce1c7494ce2d0030f9832356cd623",
+      "lock_file": "phase6-host-locks/task-only.lock"
+    },
+    "kanban-only": {
+      "tests": 1,
+      "assertions": 6,
+      "errors": 0,
+      "failures": 0,
+      "skipped": 0,
+      "lock_sha256": "721da9a13fd8f63f9f5f429f0e2bfbd9960b8d836ad11dc1c82d6b31d49c6fe5",
+      "lock_file": "phase6-host-locks/kanban-only.lock"
+    },
+    "calendar-only": {
+      "tests": 1,
+      "assertions": 6,
+      "errors": 0,
+      "failures": 0,
+      "skipped": 0,
+      "lock_sha256": "7b9e6f9e77ed745e5ce45e542d0d4292900997f23d1917a6dfb03de2c894cd02",
+      "lock_file": "phase6-host-locks/calendar-only.lock"
+    },
+    "all": {
+      "tests": 1,
+      "assertions": 13,
+      "errors": 0,
+      "failures": 0,
+      "skipped": 0,
+      "lock_sha256": "c2e2e70dc54f2cf5a46d76a3e9317d7720ef80cacf4d5a19800262cf24c80555",
+      "lock_file": "phase6-host-locks/all.lock"
+    }
+  },
+  "core_composer_lock_sha256": "e9bdc7ca3f74a05e8580ef8ee24a22cc6a175878bef2022247f6b0f0bc7634f1",
+  "local_manifest_aliases": [
+    {
+      "installed_name": "morilog/jalali",
+      "manifest_name": "moree-dev/jalali",
+      "version": "v3.5.0"
+    }
+  ],
+  "historical_kanban_design_audit_sha256": "81e6c755cf269359e9d177b4ae3804d86b53cbab2244902575d8150439fe90a0",
+  "network_installation": "Local installed path repositories; no clean internet-download claim"
+}

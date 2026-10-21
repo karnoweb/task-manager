@@ -1,0 +1,15 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<testsuites>
+  <testsuite name="Karnoweb\TaskManager\Tests\RealHostE2ETest" file="D:\my-packages\task-manager\tests\RealHostE2ETest.php" tests="8" assertions="54" errors="0" failures="0" skipped="0" time="9.375472">
+    <testcase name="test_e2e_01_personal_todo_becomes_project_task_visible_in_board_and_calendar" file="D:\my-packages\task-manager\tests\RealHostE2ETest.php" line="10" class="Karnoweb\TaskManager\Tests\RealHostE2ETest" classname="Karnoweb.TaskManager.Tests.RealHostE2ETest" assertions="6" time="0.871803"/>
+    <testcase name="test_e2e_02_real_crm_campaign_closes_hundred_members_with_exact_75_15_10_outcomes" file="D:\my-packages\task-manager\tests\RealHostE2ETest.php" line="17" class="Karnoweb\TaskManager\Tests\RealHostE2ETest" classname="Karnoweb.TaskManager.Tests.RealHostE2ETest" assertions="7" time="2.851135"/>
+    <testsuite name="Karnoweb\TaskManager\Tests\RealHostE2ETest::test_e2e_03_real_crm_opportunity_contract_quorum_and_explicit_return" tests="3" assertions="20" errors="0" failures="0" skipped="0" time="2.828518">
+      <testcase name="test_e2e_03_real_crm_opportunity_contract_quorum_and_explicit_return with data set #0" file="D:\my-packages\task-manager\tests\RealHostE2ETest.php" line="38" class="Karnoweb\TaskManager\Tests\RealHostE2ETest" classname="Karnoweb.TaskManager.Tests.RealHostE2ETest" assertions="8" time="0.918905"/>
+      <testcase name="test_e2e_03_real_crm_opportunity_contract_quorum_and_explicit_return with data set #1" file="D:\my-packages\task-manager\tests\RealHostE2ETest.php" line="38" class="Karnoweb\TaskManager\Tests\RealHostE2ETest" classname="Karnoweb.TaskManager.Tests.RealHostE2ETest" assertions="6" time="0.991883"/>
+      <testcase name="test_e2e_03_real_crm_opportunity_contract_quorum_and_explicit_return with data set #2" file="D:\my-packages\task-manager\tests\RealHostE2ETest.php" line="38" class="Karnoweb\TaskManager\Tests\RealHostE2ETest" classname="Karnoweb.TaskManager.Tests.RealHostE2ETest" assertions="6" time="0.917730"/>
+    </testsuite>
+    <testcase name="test_e2e_04_ticket_spawn_uses_real_crm_service_rollback_and_safe_retry" file="D:\my-packages\task-manager\tests\RealHostE2ETest.php" line="48" class="Karnoweb\TaskManager\Tests\RealHostE2ETest" classname="Karnoweb.TaskManager.Tests.RealHostE2ETest" assertions="8" time="0.721717"/>
+    <testcase name="test_e2e_05_same_real_ticket_moves_pipeline_and_department_with_new_permissions" file="D:\my-packages\task-manager\tests\RealHostE2ETest.php" line="53" class="Karnoweb\TaskManager\Tests\RealHostE2ETest" classname="Karnoweb.TaskManager.Tests.RealHostE2ETest" assertions="7" time="1.022309"/>
+    <testcase name="test_e2e_06_real_opportunity_parallel_slots_preserve_independent_truth_and_join_all" file="D:\my-packages\task-manager\tests\RealHostE2ETest.php" line="57" class="Karnoweb\TaskManager\Tests\RealHostE2ETest" classname="Karnoweb.TaskManager.Tests.RealHostE2ETest" assertions="6" time="1.079989"/>
+  </testsuite>
+</testsuites>

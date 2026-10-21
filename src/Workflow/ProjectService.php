@@ -15,6 +15,15 @@ use Karnoweb\TaskManager\TaskService;
 
 final class ProjectService
 {
+    public function authorizedQuery(ExecutionContext $context): Builder
+    {
+        $context->require('project.view'); $this->authorization->authorize($context, 'project.view');
+        $query = $this->db->table('tm_projects')->where('scope_key', $context->scope)->whereExists(function (Builder $q) use ($context) {
+            $q->selectRaw('1')->from('tm_project_members')->whereColumn('project_id', 'tm_projects.id')->where('actor_ref', $context->actor)->whereIn('role', ['manager','member','viewer']);
+        });
+        $this->authorization->constrain($query, $context, 'project', 'view');
+        return $query;
+    }
     public function __construct(private readonly Connection $db, private readonly Clock $clock, private readonly AuthorizationProvider $authorization, private readonly WorkflowService $workflows, private readonly TaskService $tasks, private readonly \Karnoweb\TaskManager\Contracts\StageLifecycle $lifecycle) {}
     public function get(ExecutionContext $context, string $key, string $capability = 'view', bool $lock = false): array
     {

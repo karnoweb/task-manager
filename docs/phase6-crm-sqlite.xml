@@ -1,0 +1,9 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<testsuites>
+  <testsuite name="Karnoweb\TaskManager\Tests\CrmCutoverTest" file="D:\my-packages\task-manager\tests\CrmCutoverTest.php" tests="4" assertions="28" errors="0" failures="0" skipped="0" time="1.843053">
+    <testcase name="test_real_legacy_task_shadow_import_reconciliation_cutover_and_rollback" file="D:\my-packages\task-manager\tests\CrmCutoverTest.php" line="9" class="Karnoweb\TaskManager\Tests\CrmCutoverTest" classname="Karnoweb.TaskManager.Tests.CrmCutoverTest" assertions="14" time="0.883316"/>
+    <testcase name="test_source_drift_blocks_cutover_and_engine_changes_block_lossy_rollback" file="D:\my-packages\task-manager\tests\CrmCutoverTest.php" line="24" class="Karnoweb\TaskManager\Tests\CrmCutoverTest" classname="Karnoweb.TaskManager.Tests.CrmCutoverTest" assertions="5" time="0.328689"/>
+    <testcase name="test_followup_task_cannot_mutate_real_crm_deal_status" file="D:\my-packages\task-manager\tests\CrmCutoverTest.php" line="33" class="Karnoweb\TaskManager\Tests\CrmCutoverTest" classname="Karnoweb.TaskManager.Tests.CrmCutoverTest" assertions="2" time="0.309030"/>
+    <testcase name="test_real_deal_pipeline_history_alias_import_and_writer_switch" file="D:\my-packages\task-manager\tests\CrmCutoverTest.php" line="38" class="Karnoweb\TaskManager\Tests\CrmCutoverTest" classname="Karnoweb.TaskManager.Tests.CrmCutoverTest" assertions="7" time="0.322018"/>
+  </testsuite>
+</testsuites>

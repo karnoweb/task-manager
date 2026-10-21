@@ -36,7 +36,9 @@ final class TaskManager
         private readonly \Karnoweb\TaskManager\Integration\EventPump $events,
         private readonly \Karnoweb\TaskManager\Integration\WebhookService $webhooks,
         private readonly \Karnoweb\TaskManager\Enterprise\ExportService $exports,
-        private readonly \Karnoweb\TaskManager\Enterprise\ReportService $enterpriseReports) {}
+        private readonly \Karnoweb\TaskManager\Enterprise\ReportService $enterpriseReports,
+        private readonly \Karnoweb\TaskManager\UI\IntegrationFactory $integrations) {}
+    public function integrations(): \Karnoweb\TaskManager\UI\IntegrationFactory { return $this->integrations; }
     public function tasks(): TaskService { return $this->tasks; }
     public function workflows(): WorkflowService { return $this->workflows; }
     public function pipelines(): PipelineService { return $this->pipelines; }
