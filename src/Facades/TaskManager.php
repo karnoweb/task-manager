@@ -3,7 +3,6 @@
 namespace Karnoweb\TaskManager\Facades;
 
 use Illuminate\Support\Facades\Facade;
-use Karnoweb\TaskManager\TaskService;
 
 final class TaskManager extends Facade
 {

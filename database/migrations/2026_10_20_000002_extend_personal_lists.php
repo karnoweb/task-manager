@@ -5,7 +5,8 @@ use Illuminate\Database\Schema\Blueprint;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Schema;
 
-return new class extends Migration {
+return new class extends Migration
+{
     public function up(): void
     {
         Schema::table('tm_lists', function (Blueprint $t) {
@@ -16,6 +17,7 @@ return new class extends Migration {
         });
         DB::table('tm_lists')->where('name', 'Inbox')->update(['is_inbox' => true]);
     }
+
     public function down(): void
     {
         Schema::table('tm_lists', fn (Blueprint $t) => $t->dropColumn(['is_inbox', 'version', 'rank', 'archived_at']));

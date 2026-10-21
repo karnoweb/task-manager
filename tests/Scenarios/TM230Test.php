@@ -3,7 +3,6 @@
 namespace Karnoweb\TaskManager\Tests\Scenarios;
 
 use Illuminate\Support\Facades\DB;
-use Karnoweb\TaskManager\Exceptions\DomainError;
 use Karnoweb\TaskManager\Tests\GroupTestCase;
 use Karnoweb\TaskManager\Tests\Support\ProcessBarrier;
 
@@ -11,8 +10,11 @@ final class TM230Test extends GroupTestCase
 {
     public function test_tm230(): void
     {
-        if (DB::connection()->getDriverName() !== 'pgsql') { $this->markTestSkipped('Requires real PostgreSQL group worker row locks.'); }
-        [$group] = $this->campaignFixture(100); $this->closeCampaign();
+        if (DB::connection()->getDriverName() !== 'pgsql') {
+            $this->markTestSkipped('Requires real PostgreSQL group worker row locks.');
+        }
+        [$group] = $this->campaignFixture(100);
+        $this->closeCampaign();
         $run = $this->groupService()->executeClosure($this->manager(), $this->groupService()->previewClosure($this->manager(), $group['group_key']), 'close');
         $results = ProcessBarrier::run([[$run['run_key'], 50], [$run['run_key'], 50]], 'concurrent-group.php');
         self::assertSame([50, 50], array_column($results, 'processed'));

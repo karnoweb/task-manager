@@ -10,7 +10,10 @@ use Orchestra\Testbench\TestCase;
 
 abstract class PackageTestCase extends TestCase
 {
-    protected function getPackageProviders($app): array { return [TaskManagerServiceProvider::class]; }
+    protected function getPackageProviders($app): array
+    {
+        return [TaskManagerServiceProvider::class];
+    }
 
     protected function defineEnvironment($app): void
     {
@@ -30,12 +33,23 @@ abstract class PackageTestCase extends TestCase
         $this->artisan('migrate:fresh')->run();
     }
 
-    protected function context(string $actor = 'a', string $scope = 'one'): ExecutionContext { return new ExecutionContext($scope, $actor, 'test'); }
-    protected function service(): TaskService { return $this->app->make(TaskService::class); }
+    protected function context(string $actor = 'a', string $scope = 'one'): ExecutionContext
+    {
+        return new ExecutionContext($scope, $actor, 'test');
+    }
+
+    protected function service(): TaskService
+    {
+        return $this->app->make(TaskService::class);
+    }
 
     protected function error(string $expected, callable $operation): void
     {
-        try { $operation(); self::fail('Expected '.$expected); }
-        catch (DomainError $error) { self::assertSame($expected, $error->getMessage()); }
+        try {
+            $operation();
+            self::fail('Expected '.$expected);
+        } catch (DomainError $error) {
+            self::assertSame($expected, $error->getMessage());
+        }
     }
 }

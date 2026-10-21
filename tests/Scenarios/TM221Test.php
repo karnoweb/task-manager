@@ -3,18 +3,19 @@
 namespace Karnoweb\TaskManager\Tests\Scenarios;
 
 use Illuminate\Support\Facades\DB;
-use Karnoweb\TaskManager\Exceptions\DomainError;
 use Karnoweb\TaskManager\Tests\GroupTestCase;
-use Karnoweb\TaskManager\Tests\Support\ProcessBarrier;
 
 final class TM221Test extends GroupTestCase
 {
     public function test_tm221(): void
     {
-        [$group, $instances, $handoffs] = $this->campaignHundred(true); $this->clock->advance('+60 seconds');
-        self::assertSame(12, $this->sla()->run($this->manager(), 100)['events']); $this->closeCampaign();
+        [$group, $instances, $handoffs] = $this->campaignHundred(true);
+        $this->clock->advance('+60 seconds');
+        self::assertSame(12, $this->sla()->run($this->manager(), 100)['events']);
+        $this->closeCampaign();
         $preview = $this->groupService()->previewClosure($this->manager(), $group['group_key']);
-        self::assertSame(100, $preview['total']); self::assertSame(['failed' => 75, 'continued' => 15, 'already_terminal' => 10, 'manual_review' => 0, 'denied' => 0], $preview['counts']);
+        self::assertSame(100, $preview['total']);
+        self::assertSame(['failed' => 75, 'continued' => 15, 'already_terminal' => 10, 'manual_review' => 0, 'denied' => 0], $preview['counts']);
         $run = $this->groupService()->executeClosure($this->manager(), $preview, 'campaign-close');
         $report = $this->processAll($run['run_key'], 20);
         self::assertSame(['already_terminal' => 10, 'continued' => 15, 'failed' => 75], $report['counts']);

@@ -3,15 +3,14 @@
 namespace Karnoweb\TaskManager\Tests\Scenarios;
 
 use Illuminate\Support\Facades\DB;
-use Karnoweb\TaskManager\Exceptions\DomainError;
 use Karnoweb\TaskManager\Tests\GroupTestCase;
-use Karnoweb\TaskManager\Tests\Support\ProcessBarrier;
 
 final class TM234Test extends GroupTestCase
 {
     public function test_tm234(): void
     {
-        [$group, $instances] = $this->campaignFixture(3); $this->closeCampaign();
+        [$group, $instances] = $this->campaignFixture(3);
+        $this->closeCampaign();
         $run = $this->groupService()->executeClosure($this->manager(), $this->groupService()->previewClosure($this->manager(), $group['group_key']), 'close');
         DB::table('host_subjects')->where('id', $instances[0]['subject_id'])->update(['veto' => true]);
         self::assertSame(['failed' => 2, 'manual_review' => 1], $this->processAll($run['run_key'])['counts']);

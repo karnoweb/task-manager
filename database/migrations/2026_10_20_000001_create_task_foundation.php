@@ -3,13 +3,14 @@
 use Illuminate\Database\Migrations\Migration;
 use Illuminate\Database\Schema\Blueprint;
 use Illuminate\Support\Facades\Schema;
+use Karnoweb\TaskManager\Schema\IdentifierCollation;
 
 return new class extends Migration
 {
     public function up(): void
     {
         Schema::create('tm_lists', function (Blueprint $t) {
-            $t->collation = \Karnoweb\TaskManager\Schema\IdentifierCollation::forConnection(Schema::getConnection());
+            $t->collation = IdentifierCollation::forConnection(Schema::getConnection());
             $t->bigIncrements('id');
             $t->string('scope_key', 120);
             $t->string('owner_ref', 120);
@@ -17,7 +18,7 @@ return new class extends Migration
             $t->unique(['scope_key', 'owner_ref', 'name']);
         });
         Schema::create('tm_tasks', function (Blueprint $t) {
-            $t->collation = \Karnoweb\TaskManager\Schema\IdentifierCollation::forConnection(Schema::getConnection());
+            $t->collation = IdentifierCollation::forConnection(Schema::getConnection());
             $t->bigIncrements('id');
             $t->uuid('public_key')->unique();
             $t->string('display_key');
@@ -40,7 +41,7 @@ return new class extends Migration
             $t->foreign('list_id')->references('id')->on('tm_lists')->restrictOnDelete();
         });
         Schema::create('tm_workflow_instances', function (Blueprint $t) {
-            $t->collation = \Karnoweb\TaskManager\Schema\IdentifierCollation::forConnection(Schema::getConnection());
+            $t->collation = IdentifierCollation::forConnection(Schema::getConnection());
             $t->bigIncrements('id');
             $t->uuid('instance_key')->unique();
             $t->string('scope_key', 120);
@@ -53,7 +54,7 @@ return new class extends Migration
             $t->unsignedInteger('version')->default(1);
         });
         Schema::create('tm_workflow_definitions', function (Blueprint $t) {
-            $t->collation = \Karnoweb\TaskManager\Schema\IdentifierCollation::forConnection(Schema::getConnection());
+            $t->collation = IdentifierCollation::forConnection(Schema::getConnection());
             $t->bigIncrements('id');
             $t->string('scope_key', 120);
             $t->string('key', 120);
@@ -65,7 +66,7 @@ return new class extends Migration
             $t->foreign('workflow_revision_id')->references('id')->on('tm_workflow_definitions')->restrictOnDelete();
         });
         Schema::create('tm_task_grants', function (Blueprint $t) {
-            $t->collation = \Karnoweb\TaskManager\Schema\IdentifierCollation::forConnection(Schema::getConnection());
+            $t->collation = IdentifierCollation::forConnection(Schema::getConnection());
             $t->unsignedBigInteger('task_id');
             $t->foreign('task_id')->references('id')->on('tm_tasks')->restrictOnDelete();
             $t->string('actor_ref', 120);
@@ -73,7 +74,7 @@ return new class extends Migration
             $t->primary(['task_id', 'actor_ref', 'capability']);
         });
         Schema::create('tm_instance_transitions', function (Blueprint $t) {
-            $t->collation = \Karnoweb\TaskManager\Schema\IdentifierCollation::forConnection(Schema::getConnection());
+            $t->collation = IdentifierCollation::forConnection(Schema::getConnection());
             $t->bigIncrements('id');
             $t->string('scope_key', 120);
             $t->unsignedBigInteger('instance_id');
@@ -86,7 +87,7 @@ return new class extends Migration
             $t->index(['scope_key', 'instance_id']);
         });
         Schema::create('tm_command_journal', function (Blueprint $t) {
-            $t->collation = \Karnoweb\TaskManager\Schema\IdentifierCollation::forConnection(Schema::getConnection());
+            $t->collation = IdentifierCollation::forConnection(Schema::getConnection());
             $t->string('scope_key', 120);
             $t->string('operation_id', 120);
             $t->string('actor_ref', 120);
@@ -96,14 +97,14 @@ return new class extends Migration
             $t->primary(['scope_key', 'operation_id']);
         });
         Schema::create('tm_sequences', function (Blueprint $t) {
-            $t->collation = \Karnoweb\TaskManager\Schema\IdentifierCollation::forConnection(Schema::getConnection());
+            $t->collation = IdentifierCollation::forConnection(Schema::getConnection());
             $t->string('scope_key', 120);
             $t->string('sequence_key', 120);
             $t->unsignedBigInteger('current')->default(0);
             $t->primary(['scope_key', 'sequence_key']);
         });
         Schema::create('tm_task_key_aliases', function (Blueprint $t) {
-            $t->collation = \Karnoweb\TaskManager\Schema\IdentifierCollation::forConnection(Schema::getConnection());
+            $t->collation = IdentifierCollation::forConnection(Schema::getConnection());
             $t->bigIncrements('id');
             $t->string('scope_key', 120);
             $t->unsignedBigInteger('task_id');
@@ -114,7 +115,7 @@ return new class extends Migration
         });
         foreach (['tm_audit_events', 'tm_outbox'] as $name) {
             Schema::create($name, function (Blueprint $t) use ($name) {
-            $t->collation = \Karnoweb\TaskManager\Schema\IdentifierCollation::forConnection(Schema::getConnection());
+                $t->collation = IdentifierCollation::forConnection(Schema::getConnection());
                 $t->bigIncrements('id');
                 $t->uuid('event_id')->unique();
                 $t->string('scope_key', 120);

@@ -9,5 +9,6 @@ use Karnoweb\TaskManager\Context\ExecutionContext;
 interface HostAccess
 {
     public function constrain(Builder $query, ExecutionContext $context, string $type, string $capability): void;
+
     public function scopeFor(object $model): string;
 }

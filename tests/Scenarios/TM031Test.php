@@ -3,7 +3,6 @@
 namespace Karnoweb\TaskManager\Tests\Scenarios;
 
 use Illuminate\Support\Facades\DB;
-
 use Karnoweb\TaskManager\Tests\HierarchyTestCase;
 
 final class TM031Test extends HierarchyTestCase
@@ -16,7 +15,7 @@ final class TM031Test extends HierarchyTestCase
         $child = $this->attach($this->inProject($project, 'bug-child', 'bug'), $root, 'bug-parent');
         self::assertSame($root['id'], $child['parent_task_id']);
         self::assertNotSame(DB::table('tm_workflow_instances')->where('task_id', $root['id'])->value('workflow_revision_id'), DB::table('tm_workflow_instances')->where('task_id', $child['id'])->value('workflow_revision_id'));
-        $other = $this->todo('personal'); $this->error('parent_project_mismatch', fn () => $this->attach($other, $root, 'wrong-project'));
+        $other = $this->todo('personal');
+        $this->error('parent_project_mismatch', fn () => $this->attach($other, $root, 'wrong-project'));
     }
-
 }

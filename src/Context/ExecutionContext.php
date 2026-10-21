@@ -2,6 +2,7 @@
 
 namespace Karnoweb\TaskManager\Context;
 
+use Illuminate\Support\Str;
 use Karnoweb\TaskManager\Exceptions\DomainError;
 
 final readonly class ExecutionContext
@@ -15,13 +16,19 @@ final readonly class ExecutionContext
                 throw new DomainError('context_invalid');
             }
         }
-        if ($serviceActor && $capabilities === null) { throw new DomainError('service_capabilities_required'); }
-        if ($automationDepth < 0 || $automationDepth > 20 || ($originEventId !== null && !\Illuminate\Support\Str::isUuid($originEventId))) { throw new DomainError('context_lineage_invalid'); }
+        if ($serviceActor && $capabilities === null) {
+            throw new DomainError('service_capabilities_required');
+        }
+        if ($automationDepth < 0 || $automationDepth > 20 || ($originEventId !== null && ! Str::isUuid($originEventId))) {
+            throw new DomainError('context_lineage_invalid');
+        }
         $this->capabilities = $capabilities ?? ['task.create', 'task.view', 'task.edit', 'task.share', 'list.create', 'list.view', 'activity.view'];
     }
 
     public function require(string $capability): void
     {
-        if (!in_array($capability, $this->capabilities, true)) { throw new DomainError('capability_denied'); }
+        if (! in_array($capability, $this->capabilities, true)) {
+            throw new DomainError('capability_denied');
+        }
     }
 }

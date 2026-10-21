@@ -10,7 +10,16 @@ final readonly class GroupSourceRegistry
 {
     public function __construct(private array $providers = [])
     {
-        foreach ($providers as $key => $provider) { Definition::key($key); if (!$provider instanceof GroupSourceProvider) { throw new DomainError('group_source_invalid'); } }
+        foreach ($providers as $key => $provider) {
+            Definition::key($key);
+            if (! $provider instanceof GroupSourceProvider) {
+                throw new DomainError('group_source_invalid');
+            }
+        }
     }
-    public function provider(string $key): GroupSourceProvider { return $this->providers[$key] ?? throw new DomainError('group_source_unregistered'); }
+
+    public function provider(string $key): GroupSourceProvider
+    {
+        return $this->providers[$key] ?? throw new DomainError('group_source_unregistered');
+    }
 }

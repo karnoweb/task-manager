@@ -3,9 +3,7 @@
 namespace Karnoweb\TaskManager\Tests\Scenarios;
 
 use Illuminate\Support\Facades\DB;
-use Karnoweb\TaskManager\Exceptions\DomainError;
 use Karnoweb\TaskManager\Tests\HandoffTestCase;
-use Karnoweb\TaskManager\Tests\Support\ProcessBarrier;
 
 final class TM184Test extends HandoffTestCase
 {
@@ -25,7 +23,7 @@ final class TM184Test extends HandoffTestCase
         self::assertCount(3, array_unique(array_column($timeline, 'aggregate_key')));
         self::assertStringNotContainsString('PRIVATE-HOST-TEXT', json_encode($timeline));
         self::assertSame([], $this->cases()->timeline($this->manager('b'), $caseKey));
-        self::assertSame(1, DB::table('tm_process_cases')->count()); self::assertSame(1, DB::table('tm_case_subjects')->count());
+        self::assertSame(1, DB::table('tm_process_cases')->count());
+        self::assertSame(1, DB::table('tm_case_subjects')->count());
     }
 }
-

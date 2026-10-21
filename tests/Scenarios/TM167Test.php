@@ -3,9 +3,7 @@
 namespace Karnoweb\TaskManager\Tests\Scenarios;
 
 use Illuminate\Support\Facades\DB;
-use Karnoweb\TaskManager\Exceptions\DomainError;
 use Karnoweb\TaskManager\Tests\HandoffTestCase;
-use Karnoweb\TaskManager\Tests\Support\ProcessBarrier;
 
 final class TM167Test extends HandoffTestCase
 {
@@ -15,7 +13,8 @@ final class TM167Test extends HandoffTestCase
         $this->clock->advance('+60 seconds');
         $this->instances()->transition($this->manager(), $destination['instance_key'], 1, 'contract-accepted', 'accept');
         $result = $this->handoffs()->settle($this->manager(), $h['handoff_key'], 1, 'return');
-        self::assertSame('approved', $result['outcome']); self::assertSame('resolved', $result['status']);
+        self::assertSame('approved', $result['outcome']);
+        self::assertSame('resolved', $result['status']);
         self::assertSame('review', $this->instances()->get($this->manager(), $origin['instance_key'])['current_state_key']);
         self::assertSame(60, $this->sla()->get($this->manager(), $h['paused_visit_id'])['paused_seconds']);
         $count = DB::table('tm_audit_events')->count();
@@ -24,4 +23,3 @@ final class TM167Test extends HandoffTestCase
         self::assertSame($count, DB::table('tm_audit_events')->count());
     }
 }
-

@@ -2,10 +2,7 @@
 
 namespace Karnoweb\TaskManager\Tests\Scenarios;
 
-use Illuminate\Support\Facades\DB;
-use Karnoweb\TaskManager\Exceptions\DomainError;
 use Karnoweb\TaskManager\Tests\HandoffTestCase;
-use Karnoweb\TaskManager\Tests\Support\ProcessBarrier;
 
 final class TM166Test extends HandoffTestCase
 {
@@ -13,8 +10,10 @@ final class TM166Test extends HandoffTestCase
     {
         [$h, $origin, $destination] = $this->delegateFixture();
         $waiting = $this->instances()->get($this->manager(), $origin['instance_key']);
-        self::assertSame('waiting', $waiting['lifecycle']); self::assertSame('new', $waiting['current_state_key']);
-        self::assertSame('active', $destination['lifecycle']); self::assertSame('contracts', $destination['slot_key']);
+        self::assertSame('waiting', $waiting['lifecycle']);
+        self::assertSame('new', $waiting['current_state_key']);
+        self::assertSame('active', $destination['lifecycle']);
+        self::assertSame('contracts', $destination['slot_key']);
         self::assertNotNull($this->sla()->get($this->manager(), $h['paused_visit_id'])['paused_at']);
         self::assertCount(1, $this->instances()->visits($this->manager(), $origin['instance_key']));
         self::assertSame($waiting['case_id'], $destination['case_id']);
@@ -22,4 +21,3 @@ final class TM166Test extends HandoffTestCase
         $this->instances()->transition($this->manager(), $origin['instance_key'], 2, 'bypass', 'review');
     }
 }
-

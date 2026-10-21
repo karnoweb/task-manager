@@ -8,47 +8,80 @@ final class Definition
 {
     public static function validate(array $definition): void
     {
-        $states = $definition['states'] ?? null; $edges = $definition['transitions'] ?? null;
+        $states = $definition['states'] ?? null;
+        $edges = $definition['transitions'] ?? null;
         $initial = $definition['initial'] ?? null;
-        if (!is_array($states) || !$states || array_is_list($states) || !is_array($edges) || !is_string($initial) || !isset($states[$initial])) { throw new DomainError('workflow_invalid'); }
+        if (! is_array($states) || ! $states || array_is_list($states) || ! is_array($edges) || ! is_string($initial) || ! isset($states[$initial])) {
+            throw new DomainError('workflow_invalid');
+        }
         foreach ($states as $key => $state) {
             self::key($key);
-            if (!is_array($state) || !in_array($state['terminal'] ?? 'none', ['none', 'success', 'failure', 'cancelled'], true)) { throw new DomainError('state_invalid'); }
-            if (isset($state['category']) && (!in_array($state['category'], ['todo', 'in_progress', 'done', 'cancelled'], true)
+            if (! is_array($state) || ! in_array($state['terminal'] ?? 'none', ['none', 'success', 'failure', 'cancelled'], true)) {
+                throw new DomainError('state_invalid');
+            }
+            if (isset($state['category']) && (! in_array($state['category'], ['todo', 'in_progress', 'done', 'cancelled'], true)
                 || (($state['terminal'] ?? 'none') === 'success' && $state['category'] !== 'done')
                 || (in_array($state['terminal'] ?? 'none', ['failure', 'cancelled'], true) && $state['category'] !== 'cancelled')
-                || (($state['terminal'] ?? 'none') === 'none' && in_array($state['category'], ['done', 'cancelled'], true)))) { throw new DomainError('state_category_invalid'); }
+                || (($state['terminal'] ?? 'none') === 'none' && in_array($state['category'], ['done', 'cancelled'], true)))) {
+                throw new DomainError('state_category_invalid');
+            }
         }
         foreach ($edges as $key => $edge) {
             self::key($key);
-            if (!is_array($edge) || !is_string($edge['from'] ?? null) || !is_string($edge['to'] ?? null)
-                || !isset($states[$edge['from']], $states[$edge['to']])) { throw new DomainError('transition_invalid'); }
-            if (isset($edge['reason_required']) && !is_bool($edge['reason_required'])) { throw new DomainError('transition_invalid'); }
-            if (isset($edge['allow_while_waiting']) && !is_bool($edge['allow_while_waiting'])) { throw new DomainError('transition_invalid'); }
-            if (isset($edge['milestones'])) {
-                if (!is_array($edge['milestones']) || !array_is_list($edge['milestones']) || count($edge['milestones']) > 20 || count(array_unique($edge['milestones'])) !== count($edge['milestones'])) { throw new DomainError('milestone_invalid'); }
-                foreach ($edge['milestones'] as $milestone) { self::key($milestone); }
+            if (! is_array($edge) || ! is_string($edge['from'] ?? null) || ! is_string($edge['to'] ?? null)
+                || ! isset($states[$edge['from']], $states[$edge['to']])) {
+                throw new DomainError('transition_invalid');
             }
-            if (isset($edge['conditions']) && (!is_array($edge['conditions']) || !array_is_list($edge['conditions']))) { throw new DomainError('condition_invalid'); }
+            if (isset($edge['reason_required']) && ! is_bool($edge['reason_required'])) {
+                throw new DomainError('transition_invalid');
+            }
+            if (isset($edge['allow_while_waiting']) && ! is_bool($edge['allow_while_waiting'])) {
+                throw new DomainError('transition_invalid');
+            }
+            if (isset($edge['milestones'])) {
+                if (! is_array($edge['milestones']) || ! array_is_list($edge['milestones']) || count($edge['milestones']) > 20 || count(array_unique($edge['milestones'])) !== count($edge['milestones'])) {
+                    throw new DomainError('milestone_invalid');
+                }
+                foreach ($edge['milestones'] as $milestone) {
+                    self::key($milestone);
+                }
+            }
+            if (isset($edge['conditions']) && (! is_array($edge['conditions']) || ! array_is_list($edge['conditions']))) {
+                throw new DomainError('condition_invalid');
+            }
             foreach (['required_fields', 'roles', 'guards', 'reason_codes'] as $field) {
-                if (isset($edge[$field]) && (!is_array($edge[$field]) || !array_is_list($edge[$field]))) { throw new DomainError('transition_invalid'); }
+                if (isset($edge[$field]) && (! is_array($edge[$field]) || ! array_is_list($edge[$field]))) {
+                    throw new DomainError('transition_invalid');
+                }
                 foreach ($edge[$field] ?? [] as $value) {
-                    if (!is_string($value)) { throw new DomainError('transition_invalid'); }
-                    if ($field === 'reason_codes') { self::key($value); }
+                    if (! is_string($value)) {
+                        throw new DomainError('transition_invalid');
+                    }
+                    if ($field === 'reason_codes') {
+                        self::key($value);
+                    }
                 }
             }
             $needsReason = ($edge['reason_required'] ?? false) || in_array($states[$edge['to']]['terminal'] ?? 'none', ['failure', 'cancelled'], true);
-            if ($needsReason && empty($edge['reason_codes'])) { throw new DomainError('reason_catalog_required'); }
+            if ($needsReason && empty($edge['reason_codes'])) {
+                throw new DomainError('reason_catalog_required');
+            }
             foreach ($edge['conditions'] ?? [] as $condition) {
-                if (!is_array($condition) || !is_string($condition['field'] ?? null) || !array_key_exists('value', $condition)
-                    || !in_array($condition['operator'] ?? '', ['eq', 'neq', 'gte', 'in'], true)) { throw new DomainError('condition_invalid'); }
+                if (! is_array($condition) || ! is_string($condition['field'] ?? null) || ! array_key_exists('value', $condition)
+                    || ! in_array($condition['operator'] ?? '', ['eq', 'neq', 'gte', 'in'], true)) {
+                    throw new DomainError('condition_invalid');
+                }
             }
         }
     }
+
     public static function key(mixed $value): void
     {
-        if (!is_string($value) || !preg_match('/^[a-z][a-z0-9_.-]{0,99}$/D', $value)) { throw new DomainError('key_invalid'); }
+        if (! is_string($value) || ! preg_match('/^[a-z][a-z0-9_.-]{0,99}$/D', $value)) {
+            throw new DomainError('key_invalid');
+        }
     }
+
     public static function decode(string $json): array
     {
         $definition = json_decode($json, true, flags: JSON_THROW_ON_ERROR);
@@ -57,6 +90,7 @@ final class Definition
             return ['initial' => 'pending', 'states' => ['pending' => ['terminal' => 'none'], 'done' => ['terminal' => 'success']],
                 'transitions' => ['complete' => ['from' => 'pending', 'to' => 'done'], 'reopen' => ['from' => 'done', 'to' => 'pending']]];
         }
+
         return $definition;
     }
 }

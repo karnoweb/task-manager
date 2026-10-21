@@ -10,13 +10,30 @@ use Karnoweb\TaskManager\TaskService;
 
 final class TaskSubjectHandler implements SubjectHandler
 {
-    public function __construct(private readonly TaskService $tasks) {}
-    public function query(ExecutionContext $context, string $capability): Builder { return $this->tasks->authorizedQuery($context, $capability); }
-    public function idColumn(): string { return 'public_key'; }
-    public function scopeColumn(): string { return 'scope_key'; }
+    public function __construct(private readonly TaskService $tasks)
+    {
+    }
+
+    public function query(ExecutionContext $context, string $capability): Builder
+    {
+        return $this->tasks->authorizedQuery($context, $capability);
+    }
+
+    public function idColumn(): string
+    {
+        return 'public_key';
+    }
+
+    public function scopeColumn(): string
+    {
+        return 'scope_key';
+    }
+
     public function guard(ExecutionContext $context, string $subjectId, array $instance, string $action, array $payload): void
     {
         $task = $this->tasks->get($context, $subjectId);
-        if ($task['deleted_at'] !== null || $task['archived_at'] !== null) { throw new DomainError('task_inactive'); }
+        if ($task['deleted_at'] !== null || $task['archived_at'] !== null) {
+            throw new DomainError('task_inactive');
+        }
     }
 }

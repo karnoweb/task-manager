@@ -11,7 +11,27 @@ use Karnoweb\TaskManager\Tests\Support\WebhookFixture;
 abstract class EnterpriseProcessTestCase extends GroupTestCase
 {
     protected WebhookFixture $network;
-    protected function setUp():void{parent::setUp();$this->network=new WebhookFixture();foreach([DnsResolver::class,SecretVault::class,WebhookTransport::class] as $contract){$this->app->instance($contract,$this->network);}}
-    protected function manager(string $actor='a',string $scope='one'):ExecutionContext{$base=parent::manager($actor,$scope);return new ExecutionContext($scope,$actor,'enterprise-process',capabilities:[...$base->capabilities,'automation.manage','subscription.manage','webhook.manage','export.create','report.view']);}
-    protected function worker():ExecutionContext{$base=$this->manager();return new ExecutionContext('one','a','enterprise-process-worker',true,$base->capabilities);}
+
+    protected function setUp(): void
+    {
+        parent::setUp();
+        $this->network = new WebhookFixture;
+        foreach ([DnsResolver::class, SecretVault::class, WebhookTransport::class] as $contract) {
+            $this->app->instance($contract, $this->network);
+        }
+    }
+
+    protected function manager(string $actor = 'a', string $scope = 'one'): ExecutionContext
+    {
+        $base = parent::manager($actor, $scope);
+
+        return new ExecutionContext($scope, $actor, 'enterprise-process', capabilities: [...$base->capabilities, 'automation.manage', 'subscription.manage', 'webhook.manage', 'export.create', 'report.view']);
+    }
+
+    protected function worker(): ExecutionContext
+    {
+        $base = $this->manager();
+
+        return new ExecutionContext('one', 'a', 'enterprise-process-worker', true, $base->capabilities);
+    }
 }

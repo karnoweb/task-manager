@@ -3,54 +3,71 @@
 namespace Karnoweb\TaskManager\Tests;
 
 use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Str;
 use Karnoweb\TaskManager\Context\ExecutionContext;
-use Karnoweb\TaskManager\Exceptions\DomainError;
 use Karnoweb\TaskManager\Workflow\Definition;
 
 final class WorkflowSecurityTest extends WorkflowTestCase
 {
     public function test_definition_rejects_malformed_arrays_and_unsafe_condition_operators(): void
     {
-        $bad = $this->definition(); $bad['initial'] = [];
+        $bad = $this->definition();
+        $bad['initial'] = [];
         $this->error('workflow_invalid', fn () => Definition::validate($bad));
-        $bad = $this->definition(); $bad['transitions']['review']['from'] = [];
+        $bad = $this->definition();
+        $bad['transitions']['review']['from'] = [];
         $this->error('transition_invalid', fn () => Definition::validate($bad));
-        $bad = $this->definition(); $bad['transitions']['review']['conditions'] = 'eval';
+        $bad = $this->definition();
+        $bad['transitions']['review']['conditions'] = 'eval';
         $this->error('condition_invalid', fn () => Definition::validate($bad));
-        $bad = $this->definition(); $bad['transitions']['review']['conditions'] = [['field' => 'amount', 'operator' => 'eval', 'value' => 'php']];
+        $bad = $this->definition();
+        $bad['transitions']['review']['conditions'] = [['field' => 'amount', 'operator' => 'eval', 'value' => 'php']];
         $this->error('condition_invalid', fn () => Definition::validate($bad));
-        $bad = $this->definition(); unset($bad['transitions']['approve']['reason_codes']);
+        $bad = $this->definition();
+        unset($bad['transitions']['approve']['reason_codes']);
         $this->error('reason_catalog_required', fn () => Definition::validate($bad));
     }
+
     public function test_subject_conditions_cannot_be_overwritten_by_caller_payload(): void
     {
-        $d = $this->definition(); $d['transitions']['review']['conditions'] = [['field' => 'amount', 'operator' => 'gte', 'value' => 200]];
-        $r = $this->workflows()->publish($this->manager(), 'sales', 0, 'workflow', $d); $this->host();
+        $d = $this->definition();
+        $d['transitions']['review']['conditions'] = [['field' => 'amount', 'operator' => 'gte', 'value' => 200]];
+        $r = $this->workflows()->publish($this->manager(), 'sales', 0, 'workflow', $d);
+        $this->host();
         $i = $this->instances()->start($this->manager(), 'crm.lead', 'lead-1', $r['id'], 'start');
         $this->error('condition_failed', fn () => $this->instances()->transition($this->manager(), $i['instance_key'], 1, 'forged', 'review', ['amount' => 999]));
         self::assertSame('new', $this->instances()->get($this->manager(), $i['instance_key'])['current_state_key']);
         DB::table('host_subjects')->update(['amount' => 200]);
         self::assertSame('review', $this->instances()->transition($this->manager(), $i['instance_key'], 1, 'valid', 'review')['current_state_key']);
     }
+
     public function test_unknown_reason_code_cannot_close_instance(): void
     {
-        $r = $this->sales(); $this->host(); $i = $this->instances()->start($this->manager(), 'crm.lead', 'lead-1', $r['id'], 'start');
+        $r = $this->sales();
+        $this->host();
+        $i = $this->instances()->start($this->manager(), 'crm.lead', 'lead-1', $r['id'], 'start');
         $this->instances()->transition($this->manager(), $i['instance_key'], 1, 'review', 'review');
         $this->error('reason_invalid', fn () => $this->instances()->transition($this->manager(), $i['instance_key'], 2, 'bad', 'approve', ['reason_code' => 'arbitrary']));
         self::assertSame('active', $this->instances()->get($this->manager(), $i['instance_key'])['lifecycle']);
         self::assertSame(1, DB::table('tm_active_process_slots')->count());
     }
+
     public function test_external_only_service_actor_does_not_need_native_task_capabilities(): void
     {
-        $r = $this->sales(); $this->host(); $i = $this->instances()->start($this->manager(), 'crm.lead', 'lead-1', $r['id'], 'start');
+        $r = $this->sales();
+        $this->host();
+        $i = $this->instances()->start($this->manager(), 'crm.lead', 'lead-1', $r['id'], 'start');
         $service = new ExecutionContext('one', 'a', 'worker', true, ['workflow.view', 'workflow.transition']);
         self::assertSame(1, $this->instances()->count($service));
         self::assertSame($i, $this->instances()->get($service, $i['instance_key']));
         self::assertSame('review', $this->instances()->transition($service, $i['instance_key'], 1, 'service', 'review')['current_state_key']);
     }
+
     public function test_workflow_migration_rejects_preview_after_instance_changes_without_partial_writes(): void
     {
-        [$r, $p, $t] = $this->projectTask(); $d = $this->definition(); $d['states']['open'] = ['terminal' => 'none'];
+        [$r, $p, $t] = $this->projectTask();
+        $d = $this->definition();
+        $d['states']['open'] = ['terminal' => 'none'];
         $new = $this->workflows()->publish($this->manager(), 'sales', 1, 'new', $d);
         $preview = $this->projects()->previewWorkflowMigration($this->manager(), $p['project_key'], $new['id'], ['new' => 'open']);
         $i = DB::table('tm_workflow_instances')->where('task_id', $t['id'])->first();
@@ -61,12 +78,19 @@ final class WorkflowSecurityTest extends WorkflowTestCase
         self::assertSame($events, DB::table('tm_outbox')->count());
         self::assertSame(0, DB::table('tm_command_journal')->where('operation_id', 'stale')->count());
     }
+
     public function test_downgrade_refuses_to_discard_external_identity(): void
     {
-        $r = $this->sales(); $this->host(); $i = $this->instances()->start($this->manager(), 'crm.lead', 'lead-1', $r['id'], 'start');
+        $r = $this->sales();
+        $this->host();
+        $i = $this->instances()->start($this->manager(), 'crm.lead', 'lead-1', $r['id'], 'start');
         $migration = require __DIR__.'/../database/migrations/2026_10_20_000003_create_workflow_process_core.php';
-        try { $migration->down(); self::fail('Unsafe downgrade'); }
-        catch (\RuntimeException $e) { self::assertStringContainsString('process_rollback_requires_export', $e->getMessage()); }
+        try {
+            $migration->down();
+            self::fail('Unsafe downgrade');
+        } catch (\RuntimeException $e) {
+            self::assertStringContainsString('process_rollback_requires_export', $e->getMessage());
+        }
         self::assertSame($i, $this->instances()->get($this->manager(), $i['instance_key']));
         self::assertSame(1, DB::table('tm_active_process_slots')->count());
     }
@@ -96,6 +120,6 @@ final class WorkflowSecurityTest extends WorkflowTestCase
     {
         $case = $this->cases()->create($this->manager(), 'Private case', 'case');
         self::assertSame([], $this->cases()->timeline($this->manager('guest'), $case['case_key']));
-        self::assertSame([], $this->cases()->timeline($this->manager('guest'), (string) \Illuminate\Support\Str::uuid()));
+        self::assertSame([], $this->cases()->timeline($this->manager('guest'), (string) Str::uuid()));
     }
 }
