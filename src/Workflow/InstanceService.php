@@ -141,6 +141,9 @@ final class InstanceService
                 ScopeGraphLock::acquire($this->db, $context);
             }
             $subject = $this->subject($context, $type, $subjectId, 'edit', true);
+            if ($pipeline !== null) {
+                $this->activePipeline($pipeline['id']);
+            }
             $this->subjects->handler($type)->guard($context, $subjectId, [], 'start', ['pipeline_key' => $pipeline['pipeline_key'] ?? null, 'revision_id' => $revisionId, 'slot' => $slot, 'state' => $initial, 'stage_key' => $stageKey]);
             $caseId = null;
             if ($caseKey !== null) {
@@ -188,17 +191,89 @@ final class InstanceService
 
     public function transition(ExecutionContext $context, string $key, int $version, string $operation, string $transition, array $payload = [], ?string $stageKey = null, bool $confirmed = true): array
     {
+        return $this->performTransition($context, $key, $version, $operation, $transition, $payload, $stageKey, $confirmed);
+    }
+
+    public function executeBusinessCommand(ExecutionContext $context, string $key, int $version, string $operation, string $command, array $payload = [], ?string $stageKey = null): array
+    {
+        Definition::key($command);
+
+        return $this->performTransition($context, $key, $version, $operation, $command, $payload, $stageKey, true, $command);
+    }
+
+    /** Policy candidates; current guards and host validation run again on execution. */
+    public function availableTransitions(ExecutionContext $context, string $key): array
+    {
+        $instance = $this->get($context, $key);
+        $definition = $this->workflows->revision($context, $instance['workflow_revision_id'])['definition'];
+        $result = [];
+        foreach ($definition['transitions'] as $name => $edge) {
+            if ($edge['from'] === $instance['current_state_key'] && ! isset($edge['command']) && $this->policyAllows($instance, $edge['to'])) {
+                $result[] = ['transition' => $name, 'state' => $edge['to'], 'requires_validation' => true];
+            }
+        }
+
+        return $result;
+    }
+
+    private function policyAllows(array $instance, string $state): bool
+    {
+        if ($instance['pipeline_id'] === null) {
+            return true;
+        }
+        $pipeline = $this->db->table('tm_pipelines')->where('id', $instance['pipeline_id'])->first();
+        if (! $pipeline || $pipeline->retired_at !== null) {
+            return false;
+        }
+        if ($pipeline->transition_mode !== 'sequential' || $state === $instance['current_state_key']) {
+            return true;
+        }
+        $states = $this->db->table('tm_pipeline_stages')->where('pipeline_id', $pipeline->id)->orderBy('id')->pluck('state_key')->all();
+        $from = array_search($instance['current_state_key'], $states, true);
+        $to = array_search($state, $states, true);
+
+        return $from !== false && $to !== false && abs($from - $to) === 1;
+    }
+
+    private function activePipeline(int $id): void
+    {
+        $pipeline = $this->db->table('tm_pipelines')->where('id', $id)->lockForUpdate()->first();
+        if (! $pipeline || $pipeline->retired_at !== null) {
+            throw new DomainError('pipeline_retired');
+        }
+    }
+
+    private function performTransition(ExecutionContext $context, string $key, int $version, string $operation, string $transition, array $payload = [], ?string $stageKey = null, bool $confirmed = true, ?string $command = null): array
+    {
         $this->authorize($context, 'workflow.transition');
         if (! $confirmed) {
             return $this->get($context, $key);
         }
 
-        return $this->command($context, $operation, ['action' => 'transition', 'key' => $key, 'version' => $version, 'transition' => $transition, 'payload' => $payload, 'stage' => $stageKey], function () use ($context, $key, $version, $operation, $transition, $payload, $stageKey) {
+        return $this->command($context, $operation, ['action' => 'transition', 'key' => $key, 'version' => $version, 'transition' => $transition, 'payload' => $payload, 'stage' => $stageKey, ...($command === null ? [] : ['command' => $command])], function () use ($context, $key, $version, $operation, $transition, $payload, $stageKey, $command) {
             [$instance, $subject] = $this->locked($context, $key, $version);
             $definition = $this->workflows->revision($context, $instance['workflow_revision_id'])['definition'];
+            if ($command !== null) {
+                $edges = array_filter($definition['transitions'], fn ($edge) => ($edge['command'] ?? null) === $command && $edge['from'] === $instance['current_state_key']);
+                if (count($edges) !== 1) {
+                    throw new DomainError('business_command_invalid');
+                }
+                $transition = array_key_first($edges);
+            }
             $edge = $definition['transitions'][$transition] ?? null;
             if (! $edge || $edge['from'] !== $instance['current_state_key']) {
                 throw new DomainError('transition_invalid');
+            }
+            if ($instance['pipeline_id'] !== null) {
+                $this->activePipeline($instance['pipeline_id']);
+            }
+            if (($edge['command'] ?? null) !== $command) {
+                throw new DomainError('business_command_required');
+            }
+            if ($command !== null) {
+                $this->authorize($context, $edge['capability']);
+            } elseif (! $this->policyAllows($instance, $edge['to'])) {
+                throw new DomainError('transition_policy_denied', ['allowed_destinations' => array_values(array_unique(array_column($this->availableTransitions($context, $key), 'state')))]);
             }
             if ($instance['lifecycle'] === 'waiting' && ! ($edge['allow_while_waiting'] ?? false)) {
                 throw new DomainError('instance_on_hold');
@@ -319,6 +394,7 @@ final class InstanceService
         return $this->command($context, $operation, ['action' => 'move_pipeline', 'preview' => $preview], function () use ($context, $preview, $operation) {
             [$instance] = $this->locked($context, $preview['instance_key'], $preview['instance_version']);
             $pipeline = $this->pipelines->get($context, $preview['pipeline_key']);
+            $this->activePipeline($pipeline['id']);
             if ($pipeline['version'] !== $preview['pipeline_version'] || $instance['workflow_revision_id'] !== $preview['source_revision']) {
                 throw new DomainError('preview_stale');
             }
@@ -361,6 +437,25 @@ final class InstanceService
     {
         // Board membership/filter persistence belongs to the host UI; this is a read-only domain lookup.
         return $this->get($context, $key);
+    }
+
+    public function leavePipeline(ExecutionContext $context, string $key, int $version, string $operation): array
+    {
+        $this->authorize($context, 'pipeline.manage');
+        $this->authorize($context, 'workflow.transition');
+
+        return $this->command($context, $operation, ['action' => 'leave_pipeline', 'key' => $key, 'version' => $version], function () use ($context, $key, $version, $operation) {
+            [$instance] = $this->locked($context, $key, $version);
+            $this->subjects->handler($instance['subject_type'])->guard($context, $instance['subject_id'], $instance, 'leave_pipeline', []);
+            $this->closeVisit($context, $instance['id']);
+            $this->db->table('tm_workflow_instances')->where('id', $instance['id'])->update(['pipeline_id' => null, 'active_stage_key' => null, 'version' => $version + 1]);
+            if ($instance['task_id'] !== null) {
+                $this->db->table('tm_tasks')->where('id', $instance['task_id'])->increment('version');
+            }
+            $this->event($context, $key, 'instance_pipeline_left', $operation, ['pipeline' => $instance['pipeline_id']], $instance['task_id']);
+
+            return $this->get($context, $key);
+        });
     }
 
     public function reconcile(ExecutionContext $context, string $key): array

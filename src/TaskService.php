@@ -16,6 +16,7 @@ use Karnoweb\TaskManager\DTO\TaskResult;
 use Karnoweb\TaskManager\Enterprise\TextNormalizer;
 use Karnoweb\TaskManager\Enterprise\VisibilityEpoch;
 use Karnoweb\TaskManager\Exceptions\DomainError;
+use Karnoweb\TaskManager\Scheduling\LocalTime;
 use Karnoweb\TaskManager\Scheduling\ReminderInvalidator;
 use Karnoweb\TaskManager\TaskGraph\HierarchyIndex;
 use Karnoweb\TaskManager\TaskGraph\ScopeGraphLock;
@@ -111,7 +112,14 @@ final class TaskService
         }
         $instance = $this->db->table('tm_workflow_instances')->where('task_id', $task->id)->where('scope_key', $context->scope)->where('slot_key', 'main')->orderByDesc('id')->first();
 
-        return [...(array) $task, 'state' => $instance->current_state_key, 'completed_at' => $instance->completed_at];
+        $values = (array) $task;
+        foreach (['due_at', 'starts_at', 'planned_start_at', 'planned_finish_at', 'actual_start_at', 'actual_finish_at'] as $field) {
+            if (isset($values[$field])) {
+                $values[$field] = LocalTime::stamp(new \DateTimeImmutable($values[$field], new \DateTimeZone('UTC')));
+            }
+        }
+
+        return [...$values, 'state' => $instance->current_state_key, 'completed_at' => $instance->completed_at];
     }
 
     public function resolveKey(ExecutionContext $context, string $key): array

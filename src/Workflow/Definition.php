@@ -6,6 +6,30 @@ use Karnoweb\TaskManager\Exceptions\DomainError;
 
 final class Definition
 {
+    /** Build explicit ordinary edges; the active pipeline can restrict adjacency. */
+    public static function stateMachine(array $states, string $initial, array $commands = []): array
+    {
+        $edges = [];
+        foreach ($states as $from => $_) {
+            foreach ($states as $to => $_target) {
+                if ($from !== $to) {
+                    $edge = ['from' => $from, 'to' => $to];
+                    if (in_array($states[$to]['terminal'] ?? 'none', ['failure', 'cancelled'], true)) {
+                        $edge += ['reason_required' => true, 'reason_codes' => ['cancelled']];
+                    }
+                    $edges['move.'.$from.'.'.$to] = $edge;
+                }
+            }
+            foreach ($commands as $name => $command) {
+                $edges['command.'.$name.'.'.$from] = [...$command, 'from' => $from, 'command' => $name];
+            }
+        }
+        $definition = ['initial' => $initial, 'states' => $states, 'transitions' => $edges];
+        self::validate($definition);
+
+        return $definition;
+    }
+
     public static function validate(array $definition): void
     {
         $states = $definition['states'] ?? null;
@@ -34,6 +58,14 @@ final class Definition
             }
             if (isset($edge['reason_required']) && ! is_bool($edge['reason_required'])) {
                 throw new DomainError('transition_invalid');
+            }
+            if (isset($edge['command'])) {
+                self::key($edge['command']);
+                if (! is_string($edge['capability'] ?? null) || $edge['capability'] === 'workflow.transition' || ! preg_match('/^[a-z][a-z0-9_.-]{0,99}$/D', $edge['capability']) || ! ($edge['reason_required'] ?? false) || empty($edge['reason_codes'])) {
+                    throw new DomainError('business_transition_invalid');
+                }
+            } elseif (isset($edge['capability'])) {
+                throw new DomainError('business_transition_invalid');
             }
             if (isset($edge['allow_while_waiting']) && ! is_bool($edge['allow_while_waiting'])) {
                 throw new DomainError('transition_invalid');

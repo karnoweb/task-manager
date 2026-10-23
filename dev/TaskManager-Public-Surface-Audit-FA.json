@@ -1,0 +1,3844 @@
+[
+  {
+    "path": "src/Approval/ApprovalEngine.php",
+    "methods": [
+      {
+        "name": "__construct",
+        "signature": "public function __construct(private readonly Connection $db, private readonly Clock $clock, private readonly ResponsibilityResolver $resolver)",
+        "line": 16
+      },
+      {
+        "name": "validate",
+        "signature": "public function validate(array $policy, array $workflow, string $state): array",
+        "line": 20
+      },
+      {
+        "name": "create",
+        "signature": "public function create(ExecutionContext $context, array $instance, int $policyId, string $operation, ?int $visitId = null): array",
+        "line": 66
+      },
+      {
+        "name": "policy",
+        "signature": "public function policy(object $step): array",
+        "line": 88
+      },
+      {
+        "name": "assertVoter",
+        "signature": "public function assertVoter(ExecutionContext $context, object $step, array $policy): void",
+        "line": 98
+      },
+      {
+        "name": "beforeTransition",
+        "signature": "public function beforeTransition(ExecutionContext $context, array $instance, array $edge, array $payload): void",
+        "line": 106
+      },
+      {
+        "name": "entered",
+        "signature": "public function entered(ExecutionContext $context, int $instanceId, int $visitId, object $stage, string $operationId): void",
+        "line": 135
+      },
+      {
+        "name": "leaving",
+        "signature": "public function leaving(ExecutionContext $context, int $instanceId): void",
+        "line": 144
+      },
+      {
+        "name": "activated",
+        "signature": "public function activated(ExecutionContext $context, int $instanceId, string $operationId): void",
+        "line": 157
+      },
+      {
+        "name": "activity",
+        "signature": "public function activity(ExecutionContext $context, int $instanceId): void",
+        "line": 161
+      }
+    ],
+    "sha256": "95a9c461f518cd44c53bfcdcf2d679a0117e4a0c002f87a4ae22ff1fc7fef0d9"
+  },
+  {
+    "path": "src/Approval/ApprovalService.php",
+    "methods": [
+      {
+        "name": "__construct",
+        "signature": "public function __construct(private readonly Connection $db, private readonly Clock $clock, private readonly AuthorizationProvider $authorization, private readonly ApprovalEngine $engine, private readonly InstanceService $instances, private readonly PipelineService $pipelines)",
+        "line": 19
+      },
+      {
+        "name": "get",
+        "signature": "public function get(ExecutionContext $context, string $key): array",
+        "line": 40
+      },
+      {
+        "name": "active",
+        "signature": "public function active(ExecutionContext $context, string $instanceKey): ?array",
+        "line": 56
+      },
+      {
+        "name": "begin",
+        "signature": "public function begin(ExecutionContext $context, string $key, int $version, string $operation, array $policy): array",
+        "line": 67
+      },
+      {
+        "name": "configureStage",
+        "signature": "public function configureStage(ExecutionContext $context, string $pipelineKey, string $stageKey, int $version, string $operation, array $policy): array",
+        "line": 88
+      },
+      {
+        "name": "vote",
+        "signature": "public function vote(ExecutionContext $context, string $stepKey, int $stepVersion, int $instanceVersion, string $operation, string $vote, ?string $reason = null): array",
+        "line": 117
+      },
+      {
+        "name": "execute",
+        "signature": "public function execute(ExecutionContext $context, string $stepKey, int $stepVersion, int $instanceVersion, string $operation): array",
+        "line": 174
+      },
+      {
+        "name": "cancel",
+        "signature": "public function cancel(ExecutionContext $context, string $stepKey, int $stepVersion, int $instanceVersion, string $operation, string $reason): array",
+        "line": 232
+      }
+    ],
+    "sha256": "995754dfd98e2c147b8839f358ab2ec4ece4631374cfe139d65e9ec88ca6bfeb"
+  },
+  {
+    "path": "src/AuditRedactor.php",
+    "methods": [
+      {
+        "name": "redact",
+        "signature": "public static function redact(array $values): array",
+        "line": 7
+      }
+    ],
+    "sha256": "dc74165b2e39f75ce78cd8a68466c6db31869ff7a83e584c1ce717c5aff8a0ee"
+  },
+  {
+    "path": "src/Collaboration/AttachmentService.php",
+    "methods": [
+      {
+        "name": "__construct",
+        "signature": "public function __construct(private readonly Connection $db, private readonly Clock $clock, private readonly AuthorizationProvider $authorization, private readonly TaskService $tasks, private readonly TaskResourceService $resources, private readonly AttachmentStorage $storage)",
+        "line": 18
+      },
+      {
+        "name": "attach",
+        "signature": "public function attach(ExecutionContext $context, string $taskKey, string $reference, string $operation): array",
+        "line": 28
+      },
+      {
+        "name": "issueTicket",
+        "signature": "public function issueTicket(ExecutionContext $context, string $taskKey, string $attachmentKey, int $lifetimeSeconds = 120): array",
+        "line": 48
+      },
+      {
+        "name": "download",
+        "signature": "public function download(ExecutionContext $context, string $taskKey, string $attachmentKey, string $token): mixed",
+        "line": 73
+      }
+    ],
+    "sha256": "45edd2d55b3a3b5c2405399cf831426593a06bd1735d8348fd49c0db202dde38"
+  },
+  {
+    "path": "src/Collaboration/ChecklistService.php",
+    "methods": [
+      {
+        "name": "__construct",
+        "signature": "public function __construct(private readonly Connection $db, private readonly Clock $clock, private readonly AuthorizationProvider $authorization, private readonly TaskService $tasks, private readonly ResponsibilityResolver $resolver, private readonly HierarchyService $hierarchy, private readonly ProjectService $projects, private readonly WorkflowService $workflows)",
+        "line": 22
+      },
+      {
+        "name": "create",
+        "signature": "public function create(ExecutionContext $context, string $taskKey, string $title, string $operation): array",
+        "line": 40
+      },
+      {
+        "name": "get",
+        "signature": "public function get(ExecutionContext $context, string $key): array",
+        "line": 61
+      },
+      {
+        "name": "change",
+        "signature": "public function change(ExecutionContext $context, string $key, int $version, string $title, bool $deleted, string $operation): array",
+        "line": 75
+      },
+      {
+        "name": "addItem",
+        "signature": "public function addItem(ExecutionContext $context, string $listKey, int $version, string $title, ?string $assignee, ?\\DateTimeImmutable $due, string $operation): array",
+        "line": 103
+      },
+      {
+        "name": "item",
+        "signature": "public function item(ExecutionContext $context, string $key): array",
+        "line": 128
+      },
+      {
+        "name": "changeItem",
+        "signature": "public function changeItem(ExecutionContext $context, string $key, int $version, array $changes, string $operation): array",
+        "line": 142
+      },
+      {
+        "name": "convert",
+        "signature": "public function convert(ExecutionContext $context, string $key, int $version, string $operation): array",
+        "line": 194
+      },
+      {
+        "name": "items",
+        "signature": "public function items(ExecutionContext $context, string $listKey, ?string $assignee = null, ?\\DateTimeImmutable $dueBefore = null, int $afterId = 0, int $limit = 100): array",
+        "line": 230
+      },
+      {
+        "name": "progress",
+        "signature": "public function progress(ExecutionContext $context, string $taskKey): array",
+        "line": 253
+      }
+    ],
+    "sha256": "e46052937faf8e4d59e2d400bb4423246253f97ef82510c6c35659b04f9f502a"
+  },
+  {
+    "path": "src/Collaboration/CollaborationService.php",
+    "methods": [
+      {
+        "name": "__construct",
+        "signature": "public function __construct(private readonly Connection $db, private readonly Clock $clock, private readonly AuthorizationProvider $authorization, private readonly TaskService $tasks, private readonly TaskResourceService $resources)",
+        "line": 17
+      },
+      {
+        "name": "comment",
+        "signature": "public function comment(ExecutionContext $context, string $taskKey, string $body, array $mentions, ?string $parentKey, string $operation): array",
+        "line": 27
+      },
+      {
+        "name": "editComment",
+        "signature": "public function editComment(ExecutionContext $context, string $key, int $version, ?string $body, string $operation): array",
+        "line": 66
+      },
+      {
+        "name": "history",
+        "signature": "public function history(ExecutionContext $context, string $key, int $afterVersion = 0, int $limit = 100): array",
+        "line": 73
+      },
+      {
+        "name": "watch",
+        "signature": "public function watch(ExecutionContext $context, string $taskKey, int $version, string $actor, bool $enabled, string $operation): array",
+        "line": 88
+      },
+      {
+        "name": "notificationRecipients",
+        "signature": "public function notificationRecipients(ExecutionContext $context, string $taskKey, ?string $commentKey = null): array",
+        "line": 117
+      },
+      {
+        "name": "restore",
+        "signature": "public function restore(ExecutionContext $context, string $kind, string $key, int $version, string $operation): array",
+        "line": 140
+      }
+    ],
+    "sha256": "6a2edde7f195887bee081602ab6dc94facc005fb9a9ecf09994afc2b6ee77198"
+  },
+  {
+    "path": "src/Collaboration/RecipientAccess.php",
+    "methods": [
+      {
+        "name": "permitted",
+        "signature": "public static function permitted(TaskService $tasks, ExecutionContext $context, int $taskId, string $actor): bool",
+        "line": 11
+      }
+    ],
+    "sha256": "242eba4ee8273678de49af5f49378dd4213a0fa0109e94441279196fc8a05676"
+  },
+  {
+    "path": "src/Collaboration/UnavailableAttachmentStorage.php",
+    "methods": [
+      {
+        "name": "inspect",
+        "signature": "public function inspect(ExecutionContext $context, string $reference): array",
+        "line": 11
+      },
+      {
+        "name": "read",
+        "signature": "public function read(ExecutionContext $context, string $reference): mixed",
+        "line": 16
+      }
+    ],
+    "sha256": "6490b95b0ca3879e046c3f30b7ac5ef739f10e53b0614e016dd4dee4b3441af5"
+  },
+  {
+    "path": "src/CommandExecutor.php",
+    "methods": [
+      {
+        "name": "__construct",
+        "signature": "public function __construct(private readonly Connection $db)",
+        "line": 11
+      },
+      {
+        "name": "execute",
+        "signature": "public function execute(ExecutionContext $context, string $operation, array $payload, callable $execute, callable $authorizeReplay): array",
+        "line": 29
+      }
+    ],
+    "sha256": "1d5b6583cc725067804c5ee40dbd0c6880193d9054bebdcd25b49801f50aeb9b"
+  },
+  {
+    "path": "src/Context/ExecutionContext.php",
+    "methods": [
+      {
+        "name": "__construct",
+        "signature": "public function __construct(public string $scope, public string $actor, public string $correlationId, public bool $serviceActor = false, ?array $capabilities = null, public ?string $originEventId = null, public int $automationDepth = 0)",
+        "line": 12
+      },
+      {
+        "name": "require",
+        "signature": "public function require(string $capability): void",
+        "line": 28
+      }
+    ],
+    "sha256": "602e7b06ac8d7073ca330d9fe7fcd27935143e05d446f71d7c2a9aa43a698986"
+  },
+  {
+    "path": "src/ContextAuthorization.php",
+    "methods": [
+      {
+        "name": "authorize",
+        "signature": "public function authorize(ExecutionContext $context, string $capability): void",
+        "line": 11
+      },
+      {
+        "name": "constrain",
+        "signature": "public function constrain(Builder $query, ExecutionContext $context, string $resource, string $capability): void",
+        "line": 16
+      }
+    ],
+    "sha256": "0561c42ed2d3e3de33cf68811b6ef7aea03ea2e5b1d53a45884d8d06a3307e14"
+  },
+  {
+    "path": "src/Contracts/AttachmentStorage.php",
+    "methods": [
+      {
+        "name": "inspect",
+        "signature": "public function inspect(ExecutionContext $context, string $reference): array",
+        "line": 10
+      },
+      {
+        "name": "read",
+        "signature": "public function read(ExecutionContext $context, string $reference): mixed",
+        "line": 13
+      }
+    ],
+    "sha256": "d170c3f979c214819d410ae563eab7d541d4e4c462177d84b13d9108f884b9ea"
+  },
+  {
+    "path": "src/Contracts/AuthorizationProvider.php",
+    "methods": [
+      {
+        "name": "authorize",
+        "signature": "public function authorize(ExecutionContext $context, string $capability): void",
+        "line": 11
+      },
+      {
+        "name": "constrain",
+        "signature": "public function constrain(Builder $query, ExecutionContext $context, string $resource, string $capability): void",
+        "line": 14
+      }
+    ],
+    "sha256": "d6ec5a3c7448cf23b17cb28bebaead7e31378b504914c7c26543b8d587c0e650"
+  },
+  {
+    "path": "src/Contracts/AuthorizationRevision.php",
+    "methods": [
+      {
+        "name": "revision",
+        "signature": "public function revision(ExecutionContext $context): string",
+        "line": 9
+      }
+    ],
+    "sha256": "66f3de5b73b03af15f0f9139f6a81d5af55ff98cf3058114c6c3c33f1c24b8b7"
+  },
+  {
+    "path": "src/Contracts/Clock.php",
+    "methods": [
+      {
+        "name": "now",
+        "signature": "public function now(): \\DateTimeImmutable",
+        "line": 7
+      }
+    ],
+    "sha256": "d31c972abb78eb380ed90caa2f27c032af1f48a448f790eafdd69ea357519b09"
+  },
+  {
+    "path": "src/Contracts/CommitEvidenceProvider.php",
+    "methods": [
+      {
+        "name": "committedAt",
+        "signature": "public function committedAt(ExecutionContext $context, array $intent): ?\\DateTimeImmutable",
+        "line": 11
+      }
+    ],
+    "sha256": "1d36938d2a7b84026c4f00fcda9c35a64300780dfffe22ea831da0eb332816ac"
+  },
+  {
+    "path": "src/Contracts/DnsResolver.php",
+    "methods": [
+      {
+        "name": "addresses",
+        "signature": "public function addresses(string $host): array",
+        "line": 8
+      }
+    ],
+    "sha256": "06128d05d3cf311145af3b964b231494b7c3544d00122783f4e7b2f775fa20c4"
+  },
+  {
+    "path": "src/Contracts/EntryRoutingProvider.php",
+    "methods": [
+      {
+        "name": "authorize",
+        "signature": "public function authorize(ExecutionContext $context, string $routingKey): void",
+        "line": 10
+      },
+      {
+        "name": "parent",
+        "signature": "public function parent(ExecutionContext $context, string $routingKey): ?string",
+        "line": 12
+      }
+    ],
+    "sha256": "691c2c70d4526ddd9d57abf95213787ec7757c6b7bf5cad1e8c1fb84b0178081"
+  },
+  {
+    "path": "src/Contracts/ExportStorage.php",
+    "methods": [
+      {
+        "name": "store",
+        "signature": "public function store(ExecutionContext $context, iterable $chunks): string",
+        "line": 10
+      },
+      {
+        "name": "read",
+        "signature": "public function read(ExecutionContext $context, string $reference): mixed",
+        "line": 12
+      },
+      {
+        "name": "delete",
+        "signature": "public function delete(ExecutionContext $context, string $reference): void",
+        "line": 14
+      }
+    ],
+    "sha256": "f2149da16669bf031636c22d91e96e5c226343193a33e24d6cdc41f57d4ac296"
+  },
+  {
+    "path": "src/Contracts/GroupSourceProvider.php",
+    "methods": [
+      {
+        "name": "authorize",
+        "signature": "public function authorize(ExecutionContext $context, string $sourceId, string $action): void",
+        "line": 10
+      },
+      {
+        "name": "closure",
+        "signature": "public function closure(ExecutionContext $context, string $sourceId): array",
+        "line": 13
+      }
+    ],
+    "sha256": "3a50aa5bd3b7e406562d4421667092c4b01e853df6cefc68574067823d2f3307"
+  },
+  {
+    "path": "src/Contracts/LocalSubjectRouter.php",
+    "methods": [
+      {
+        "name": "connection",
+        "signature": "public function connection(): Connection",
+        "line": 11
+      },
+      {
+        "name": "move",
+        "signature": "public function move(ExecutionContext $context, array $origin, string $targetPipeline, string $operation): void",
+        "line": 13
+      },
+      {
+        "name": "spawn",
+        "signature": "public function spawn(ExecutionContext $context, array $origin, string $operation): array",
+        "line": 16
+      }
+    ],
+    "sha256": "a75685d8cc9fb3b29d77ce278955a79499925dbad624df451a2c0044128b7d85"
+  },
+  {
+    "path": "src/Contracts/NotificationPreferences.php",
+    "methods": [
+      {
+        "name": "nextAllowed",
+        "signature": "public function nextAllowed(ExecutionContext $context, string $channel, \\DateTimeImmutable $at): ?\\DateTimeImmutable",
+        "line": 10
+      }
+    ],
+    "sha256": "3e680a8c9d0710257ece2b3e6eeb899cf6c382295737bb85a5c099c3f26ecc78"
+  },
+  {
+    "path": "src/Contracts/NotificationTransport.php",
+    "methods": [
+      {
+        "name": "deliver",
+        "signature": "public function deliver(ExecutionContext $context, string $eventId, string $recipient, string $channel, array $safeEnvelope): void",
+        "line": 10
+      }
+    ],
+    "sha256": "93d7e8602530000f0a49daad56b4e2b47fb9ccb9a503dc4111681b6795c9132e"
+  },
+  {
+    "path": "src/Contracts/ReminderRecipients.php",
+    "methods": [
+      {
+        "name": "suggest",
+        "signature": "public function suggest(ExecutionContext $context, ?string $type, ?string $id): string",
+        "line": 10
+      },
+      {
+        "name": "authorize",
+        "signature": "public function authorize(ExecutionContext $context, string $recipient, ?string $type, ?string $id): void",
+        "line": 12
+      }
+    ],
+    "sha256": "06b8ca7b15aa0940f7e70410d375db065d5ac11dfb637a4d4d714192e115d15d"
+  },
+  {
+    "path": "src/Contracts/RemoteSubjectRouter.php",
+    "methods": [
+      {
+        "name": "prepare",
+        "signature": "public function prepare(ExecutionContext $context, array $origin): array",
+        "line": 11
+      },
+      {
+        "name": "create",
+        "signature": "public function create(ExecutionContext $context, array $payload, string $operation): array",
+        "line": 14
+      },
+      {
+        "name": "lookup",
+        "signature": "public function lookup(ExecutionContext $context, string $operation): ?array",
+        "line": 17
+      },
+      {
+        "name": "compensate",
+        "signature": "public function compensate(ExecutionContext $context, array $receipt, string $operation): bool",
+        "line": 19
+      }
+    ],
+    "sha256": "8f14ca8e94019079a0341aae2be8d689a201ee58cb078d02994d7fe5026cbe9d"
+  },
+  {
+    "path": "src/Contracts/ResponsibilityResolver.php",
+    "methods": [
+      {
+        "name": "candidates",
+        "signature": "public function candidates(ExecutionContext $context, string $reference, string $purpose): array",
+        "line": 10
+      },
+      {
+        "name": "eligible",
+        "signature": "public function eligible(ExecutionContext $context, string $actor, string $purpose): bool",
+        "line": 12
+      }
+    ],
+    "sha256": "cf5f766d4b33a165fb288ffe8aa405276fbfabe8c43997b8b6c9f2f9f741551e"
+  },
+  {
+    "path": "src/Contracts/SecretVault.php",
+    "methods": [
+      {
+        "name": "resolve",
+        "signature": "public function resolve(ExecutionContext $context, string $reference): string",
+        "line": 9
+      }
+    ],
+    "sha256": "3a8edc1756789c107cd1919baaf379c18ab72af29ca26f3bd00a9533f9f62059"
+  },
+  {
+    "path": "src/Contracts/StageLifecycle.php",
+    "methods": [
+      {
+        "name": "activated",
+        "signature": "public function activated(ExecutionContext $context, int $instanceId, string $operationId): void",
+        "line": 9
+      },
+      {
+        "name": "entered",
+        "signature": "public function entered(ExecutionContext $context, int $instanceId, int $visitId, object $stage, string $operationId): void",
+        "line": 11
+      },
+      {
+        "name": "leaving",
+        "signature": "public function leaving(ExecutionContext $context, int $instanceId): void",
+        "line": 13
+      },
+      {
+        "name": "activity",
+        "signature": "public function activity(ExecutionContext $context, int $instanceId): void",
+        "line": 15
+      },
+      {
+        "name": "beforeTransition",
+        "signature": "public function beforeTransition(ExecutionContext $context, array $instance, array $edge, array $payload): void",
+        "line": 17
+      }
+    ],
+    "sha256": "4a58ae2baeced4611ba178e578f20275d14cc49298d02e4b349d92c118a71a99"
+  },
+  {
+    "path": "src/Contracts/SubjectHandler.php",
+    "methods": [
+      {
+        "name": "query",
+        "signature": "public function query(ExecutionContext $context, string $capability): Builder",
+        "line": 11
+      },
+      {
+        "name": "idColumn",
+        "signature": "public function idColumn(): string",
+        "line": 13
+      },
+      {
+        "name": "scopeColumn",
+        "signature": "public function scopeColumn(): string",
+        "line": 15
+      },
+      {
+        "name": "guard",
+        "signature": "public function guard(ExecutionContext $context, string $subjectId, array $instance, string $action, array $payload): void",
+        "line": 18
+      }
+    ],
+    "sha256": "af4e0e3a5237c6f6f56e989947b69f97f206e97135cabf40332fd1136a11d8ff"
+  },
+  {
+    "path": "src/Contracts/WebhookTransport.php",
+    "methods": [
+      {
+        "name": "post",
+        "signature": "public function post(WebhookTarget $target, string $body, array $headers): array",
+        "line": 10
+      }
+    ],
+    "sha256": "1b92141574703f8b7d32f9b021ea4f8bb31f78d73652cb0404a8172b4214422f"
+  },
+  {
+    "path": "src/Contracts/WorkingCalendar.php",
+    "methods": [
+      {
+        "name": "addSeconds",
+        "signature": "public function addSeconds(\\DateTimeImmutable $start, int $seconds): \\DateTimeImmutable",
+        "line": 7
+      },
+      {
+        "name": "secondsBetween",
+        "signature": "public function secondsBetween(\\DateTimeImmutable $start, \\DateTimeImmutable $end): int",
+        "line": 9
+      }
+    ],
+    "sha256": "04ba5f15e1f41b7b4d677f6299e7bf201609b82d2a445be27a20cab5a6c44bba"
+  },
+  {
+    "path": "src/DTO/CreateTodo.php",
+    "methods": [
+      {
+        "name": "__construct",
+        "signature": "public function __construct(public ExecutionContext $context, public string $title, public string $operationId)",
+        "line": 9
+      }
+    ],
+    "sha256": "b4f07277f0d5cf15147ced0cae77f4e85c2a44eda38d8810489b2dd7aac81399"
+  },
+  {
+    "path": "src/DTO/MutateTask.php",
+    "methods": [
+      {
+        "name": "__construct",
+        "signature": "public function __construct(public ExecutionContext $context, public string $publicKey, public int $expectedVersion, public string $operationId, public string $action, public array $values = [])",
+        "line": 9
+      }
+    ],
+    "sha256": "074f6946712cf50fe61b1769b25526949717be9f94e67671ba0c8699ba6864e1"
+  },
+  {
+    "path": "src/DTO/TaskQuery.php",
+    "methods": [
+      {
+        "name": "__construct",
+        "signature": "public function __construct(public ExecutionContext $context, public int $page = 1, public int $limit = 30)",
+        "line": 9
+      }
+    ],
+    "sha256": "a615a9ad79c9900e513fab941e883469b7c97bf4bdb72a7c582e9bac5e6f8efc"
+  },
+  {
+    "path": "src/DTO/TaskResult.php",
+    "methods": [
+      {
+        "name": "__construct",
+        "signature": "public function __construct(public string $publicKey, public string $displayKey, public string $title, public string $scope, public string $owner, public string $state, public int $version, public ?string $completedAt)",
+        "line": 7
+      },
+      {
+        "name": "fromArray",
+        "signature": "public static function fromArray(array $task): self",
+        "line": 12
+      }
+    ],
+    "sha256": "c64ffec38ac0f7fbbbfc9112c24bc448c99d9544ed730ce2996f4fa99fb12666"
+  },
+  {
+    "path": "src/Enterprise/CustomFieldService.php",
+    "methods": [
+      {
+        "name": "__construct",
+        "signature": "public function __construct(private readonly Connection $db, private readonly Clock $clock, private readonly AuthorizationProvider $authorization, private readonly TaskService $tasks, private readonly ResponsibilityResolver $resolver)",
+        "line": 24
+      },
+      {
+        "name": "create",
+        "signature": "public function create(ExecutionContext $context, string $name, string $type, array $options, ?string $readCapability, string $operation): array",
+        "line": 34
+      },
+      {
+        "name": "get",
+        "signature": "public function get(ExecutionContext $context, string $key): array",
+        "line": 53
+      },
+      {
+        "name": "archive",
+        "signature": "public function archive(ExecutionContext $context, string $key, int $version, bool $archived, string $operation): array",
+        "line": 70
+      },
+      {
+        "name": "forms",
+        "signature": "public function forms(ExecutionContext $context, int $afterId = 0, int $limit = 100): array",
+        "line": 87
+      },
+      {
+        "name": "set",
+        "signature": "public function set(ExecutionContext $context, string $taskKey, int $taskVersion, string $fieldKey, int $fieldVersion, mixed $value, string $operation): array",
+        "line": 107
+      },
+      {
+        "name": "value",
+        "signature": "public function value(ExecutionContext $context, string $taskKey, string $fieldKey): array",
+        "line": 193
+      },
+      {
+        "name": "filter",
+        "signature": "public function filter(Builder $query, ExecutionContext $context, string $fieldKey, string $operator, mixed $value): Builder",
+        "line": 207
+      },
+      {
+        "name": "sortQuery",
+        "signature": "public function sortQuery(ExecutionContext $context, string $fieldKey): array",
+        "line": 228
+      }
+    ],
+    "sha256": "07434fcc1bc98058904b5e035e5f12e6114aa12d8d27d2ab9dd14e42e337aed6"
+  },
+  {
+    "path": "src/Enterprise/ExportService.php",
+    "methods": [
+      {
+        "name": "__construct",
+        "signature": "public function __construct(private readonly Connection $db, private readonly Clock $clock, private readonly AuthorizationProvider $authorization, private readonly AuthorizationRevision $revision, private readonly QueryService $queries, private readonly TaskService $tasks, private readonly InstanceService $instances, private readonly GroupService $groups, private readonly ExportStorage $storage)",
+        "line": 23
+      },
+      {
+        "name": "enqueue",
+        "signature": "public function enqueue(ExecutionContext $context, array $input, string $operation, int $lifetimeSeconds = 3600): array",
+        "line": 59
+      },
+      {
+        "name": "get",
+        "signature": "public function get(ExecutionContext $context, string $key): array",
+        "line": 82
+      },
+      {
+        "name": "stream",
+        "signature": "public function stream(ExecutionContext $context, array $input): \\Generator",
+        "line": 110
+      },
+      {
+        "name": "build",
+        "signature": "public function build(ExecutionContext $context, string $key, int $version): array",
+        "line": 166
+      },
+      {
+        "name": "download",
+        "signature": "public function download(ExecutionContext $context,string $key): mixed",
+        "line": 243
+      }
+    ],
+    "sha256": "711912dce65d6182f91eb3fefa9b291b07a0809ba974722c06cbb6a9b55bfc04"
+  },
+  {
+    "path": "src/Enterprise/FieldValue.php",
+    "methods": [
+      {
+        "name": "number",
+        "signature": "public static function number(mixed $value): int",
+        "line": 9
+      },
+      {
+        "name": "format",
+        "signature": "public static function format(int $scaled): string",
+        "line": 21
+      }
+    ],
+    "sha256": "2ef25ebf695654495659cad1bc8d431a6b9dfcec55c4b81101e1ce00a898764b"
+  },
+  {
+    "path": "src/Enterprise/LocalExportStorage.php",
+    "methods": [
+      {
+        "name": "__construct",
+        "signature": "public function __construct(private string $directory, private int $maxBytes = 104857600)",
+        "line": 11
+      },
+      {
+        "name": "store",
+        "signature": "public function store(ExecutionContext $context, iterable $chunks): string",
+        "line": 39
+      },
+      {
+        "name": "read",
+        "signature": "public function read(ExecutionContext $context, string $reference): mixed",
+        "line": 71
+      },
+      {
+        "name": "delete",
+        "signature": "public function delete(ExecutionContext $context, string $reference): void",
+        "line": 84
+      }
+    ],
+    "sha256": "b4a7cc9a606c1ef09f5ddb82c6d1ac75e111f5b2ce6a8b7687ff6133edb13ae9"
+  },
+  {
+    "path": "src/Enterprise/PackageAuthorizationRevision.php",
+    "methods": [
+      {
+        "name": "revision",
+        "signature": "public function revision(ExecutionContext $context): string",
+        "line": 11
+      }
+    ],
+    "sha256": "a0348fdc09b92ba2ff0c3d3a14b4db321fe4feee0bd709691bec2cc788f96e70"
+  },
+  {
+    "path": "src/Enterprise/PresetService.php",
+    "methods": [
+      {
+        "name": "__construct",
+        "signature": "public function __construct(private readonly Connection $db, private readonly Clock $clock, private readonly AuthorizationProvider $authorization, private readonly TaskService $tasks, private readonly ChecklistService $checklists)",
+        "line": 18
+      },
+      {
+        "name": "create",
+        "signature": "public function create(ExecutionContext $context, string $name, array $definition, string $operation): array",
+        "line": 28
+      },
+      {
+        "name": "get",
+        "signature": "public function get(ExecutionContext $context, string $key): array",
+        "line": 60
+      },
+      {
+        "name": "instantiate",
+        "signature": "public function instantiate(ExecutionContext $context, string $key, string $operation): array",
+        "line": 73
+      }
+    ],
+    "sha256": "0f3e4b2e61f76a7105495e86e43a3125742c1121f2d617a9bd4c99659062d291"
+  },
+  {
+    "path": "src/Enterprise/QueryService.php",
+    "methods": [
+      {
+        "name": "__construct",
+        "signature": "public function __construct(private readonly Connection $db, private readonly Clock $clock, private readonly AuthorizationProvider $authorization, private readonly AuthorizationRevision $revision, private readonly TaskService $tasks, private readonly CustomFieldService $fields)",
+        "line": 18
+      },
+      {
+        "name": "base",
+        "signature": "public function base(ExecutionContext $context, array $filters): Builder",
+        "line": 22
+      },
+      {
+        "name": "tasks",
+        "signature": "public function tasks(ExecutionContext $context, array $filters = [], string $sort = 'id', string $direction = 'asc', int $limit = 30, ?string $cursor = null): array",
+        "line": 89
+      },
+      {
+        "name": "reindex",
+        "signature": "public function reindex(ExecutionContext $context, int $afterId = 0, int $limit = 1000): array",
+        "line": 148
+      }
+    ],
+    "sha256": "d9573497b1205d5523f7d323fb85fd232ea630857d06ad96f691ca08de8633f8"
+  },
+  {
+    "path": "src/Enterprise/ReportService.php",
+    "methods": [
+      {
+        "name": "__construct",
+        "signature": "public function __construct(private readonly Connection $db, private readonly Clock $clock, private readonly AuthorizationProvider $authorization, private readonly AuthorizationRevision $revision, private readonly InstanceService $instances, private readonly ProjectService $projects, private readonly GroupService $groups)",
+        "line": 22
+      },
+      {
+        "name": "read",
+        "signature": "public function read(ExecutionContext $context, array $input = [], bool $truthFallback = true): array",
+        "line": 149
+      },
+      {
+        "name": "rebuild",
+        "signature": "public function rebuild(ExecutionContext $context, array $input, string $operation): array",
+        "line": 163
+      }
+    ],
+    "sha256": "f783e8148f0829b5cb24b2582d21f1fbf02c1f23f9940aa20c7b4596837e240d"
+  },
+  {
+    "path": "src/Enterprise/TextNormalizer.php",
+    "methods": [
+      {
+        "name": "normalize",
+        "signature": "public static function normalize(string $value): string",
+        "line": 9
+      }
+    ],
+    "sha256": "5bb0ccbbd4237f3fcac5e070c7ac7225fb4bfdf901343c8aee2e2a5951cba4e1"
+  },
+  {
+    "path": "src/Enterprise/VisibilityEpoch.php",
+    "methods": [
+      {
+        "name": "bump",
+        "signature": "public static function bump(Connection $db, string $scope): void",
+        "line": 10
+      },
+      {
+        "name": "fingerprint",
+        "signature": "public static function fingerprint(Connection $db, ExecutionContext $context, string $hostRevision): string",
+        "line": 16
+      }
+    ],
+    "sha256": "4a2e09076376e8b94f09522e3f03ca0776379bb8ad23798b371692032edcd753"
+  },
+  {
+    "path": "src/EventRecorder.php",
+    "methods": [
+      {
+        "name": "__construct",
+        "signature": "public function __construct(private readonly Connection $db, private readonly Clock $clock = new SystemClock)",
+        "line": 13
+      },
+      {
+        "name": "append",
+        "signature": "public function append(ExecutionContext $context, string $type, string $key, string $action, string $operation, array $safePayload, ?int $taskId = null): void",
+        "line": 17
+      }
+    ],
+    "sha256": "a1076d618110fb0fbbba35d97a120b7f311a6933f68d67ba3d8119c4593d24ae"
+  },
+  {
+    "path": "src/Exceptions/DomainError.php",
+    "methods": [
+      {
+        "name": "__construct",
+        "signature": "public function __construct(string $message, public readonly array $details = [], ?\\Throwable $previous = null)",
+        "line": 7
+      }
+    ],
+    "sha256": "da4b037a3fc76aa5b55b1d2bd508e590393a752de71a39cf8fd78bf40bba18d4"
+  },
+  {
+    "path": "src/Facades/TaskManager.php",
+    "methods": [],
+    "sha256": "9ec350ea5f75b60f7bb5c3324674db460e14c2e39cc16844c265f6de5618f07f"
+  },
+  {
+    "path": "src/Group/GroupService.php",
+    "methods": [
+      {
+        "name": "__construct",
+        "signature": "public function __construct(private readonly Connection $db, private readonly Clock $clock, private readonly AuthorizationProvider $authorization, private readonly InstanceService $instances, private readonly GroupSourceRegistry $sources)",
+        "line": 19
+      },
+      {
+        "name": "get",
+        "signature": "public function get(ExecutionContext $context, string $key): array",
+        "line": 30
+      },
+      {
+        "name": "register",
+        "signature": "public function register(ExecutionContext $context, string $sourceType, string $sourceId, array $policy, string $operation): array",
+        "line": 69
+      },
+      {
+        "name": "publishPolicy",
+        "signature": "public function publishPolicy(ExecutionContext $context, string $key, int $version, array $policy, string $operation): array",
+        "line": 91
+      },
+      {
+        "name": "enroll",
+        "signature": "public function enroll(ExecutionContext $context, string $key, int $version, array $instances, string $operation): array",
+        "line": 110
+      },
+      {
+        "name": "previewClosure",
+        "signature": "public function previewClosure(ExecutionContext $context, string $key): array",
+        "line": 199
+      },
+      {
+        "name": "previewDelta",
+        "signature": "public function previewDelta(ExecutionContext $context, array $previous): array",
+        "line": 237
+      },
+      {
+        "name": "executeClosure",
+        "signature": "public function executeClosure(ExecutionContext $context, array $preview, string $runKey): array",
+        "line": 251
+      },
+      {
+        "name": "runInfo",
+        "signature": "public function runInfo(ExecutionContext $context, string $key): array",
+        "line": 287
+      },
+      {
+        "name": "process",
+        "signature": "public function process(ExecutionContext $context, string $runKey, int $limit = 25): array",
+        "line": 304
+      },
+      {
+        "name": "report",
+        "signature": "public function report(ExecutionContext $context, string $key, int $limit = 100, int $afterId = 0): array",
+        "line": 425
+      }
+    ],
+    "sha256": "a88d0ac25b8a2a72aba5af137bf1ed6f5899c51d6f11718c85574814360e33db"
+  },
+  {
+    "path": "src/Group/GroupSourceRegistry.php",
+    "methods": [
+      {
+        "name": "__construct",
+        "signature": "public function __construct(private array $providers = [])",
+        "line": 11
+      },
+      {
+        "name": "provider",
+        "signature": "public function provider(string $key): GroupSourceProvider",
+        "line": 21
+      }
+    ],
+    "sha256": "5cf530232cd443590a86b87fb4dc5b3657a6bfa5355a21c5bb1bed04707af5c7"
+  },
+  {
+    "path": "src/Group/MilestoneService.php",
+    "methods": [
+      {
+        "name": "__construct",
+        "signature": "public function __construct(private readonly Connection $db, private readonly Clock $clock, private readonly AuthorizationProvider $authorization, private readonly InstanceService $instances, private readonly CommitEvidenceProvider $evidence)",
+        "line": 18
+      },
+      {
+        "name": "get",
+        "signature": "public function get(ExecutionContext $context, string $intentKey): array",
+        "line": 29
+      },
+      {
+        "name": "verify",
+        "signature": "public function verify(ExecutionContext $context, string $intentKey, int $instanceVersion, string $operation): array",
+        "line": 49
+      },
+      {
+        "name": "run",
+        "signature": "public function run(ExecutionContext $context, int $limit = 100): array",
+        "line": 79
+      }
+    ],
+    "sha256": "af103c127ac33050eaba96deade0c59dd4c272e0bf5143f1f199cbc684f9b4ec"
+  },
+  {
+    "path": "src/Group/PostgresCommitEvidence.php",
+    "methods": [
+      {
+        "name": "__construct",
+        "signature": "public function __construct(private readonly Connection $db)",
+        "line": 13
+      },
+      {
+        "name": "committedAt",
+        "signature": "public function committedAt(ExecutionContext $context, array $intent): ?\\DateTimeImmutable",
+        "line": 17
+      }
+    ],
+    "sha256": "0e1f94c9da2dc8fdbc59d2dc5877e648d7a454a81f29bf13d638826fc0ed8468"
+  },
+  {
+    "path": "src/Group/UnverifiedCommitEvidence.php",
+    "methods": [
+      {
+        "name": "committedAt",
+        "signature": "public function committedAt(ExecutionContext $context, array $intent): ?\\DateTimeImmutable",
+        "line": 11
+      }
+    ],
+    "sha256": "6b98884a9ebeea3866b7e8e6cec9f93c655b2442c8a0bf7cd03206d93128c9af"
+  },
+  {
+    "path": "src/Handoff/ExternalSagaService.php",
+    "methods": [
+      {
+        "name": "__construct",
+        "signature": "public function __construct(private readonly Connection $db, private readonly Clock $clock, private readonly AuthorizationProvider $authorization, private readonly InstanceService $instances, private readonly CaseService $cases, private readonly SubjectRouteRegistry $routes)",
+        "line": 20
+      },
+      {
+        "name": "get",
+        "signature": "public function get(ExecutionContext $context, string $key): array",
+        "line": 38
+      },
+      {
+        "name": "begin",
+        "signature": "public function begin(ExecutionContext $context, string $originKey, int $version, string $route, string $transition, string $reason, string $operation): array",
+        "line": 62
+      },
+      {
+        "name": "execute",
+        "signature": "public function execute(ExecutionContext $context, string $key): array",
+        "line": 97
+      },
+      {
+        "name": "repair",
+        "signature": "public function repair(ExecutionContext $context, string $key, int $version): array",
+        "line": 210
+      },
+      {
+        "name": "run",
+        "signature": "public function run(ExecutionContext $context, int $limit = 50): array",
+        "line": 248
+      }
+    ],
+    "sha256": "dae4179dfbead0d5b6bfb5325b6a7f612f73b575c73bec2846018953908c4c2f"
+  },
+  {
+    "path": "src/Handoff/HandoffLifecycle.php",
+    "methods": [
+      {
+        "name": "activated",
+        "signature": "public function activated(ExecutionContext $context, int $instanceId, string $operationId): void",
+        "line": 11
+      },
+      {
+        "name": "entered",
+        "signature": "public function entered(ExecutionContext $context, int $instanceId, int $visitId, object $stage, string $operationId): void",
+        "line": 15
+      },
+      {
+        "name": "leaving",
+        "signature": "public function leaving(ExecutionContext $context, int $instanceId): void",
+        "line": 19
+      },
+      {
+        "name": "activity",
+        "signature": "public function activity(ExecutionContext $context, int $instanceId): void",
+        "line": 23
+      },
+      {
+        "name": "beforeTransition",
+        "signature": "public function beforeTransition(ExecutionContext $context, array $instance, array $edge, array $payload): void",
+        "line": 27
+      }
+    ],
+    "sha256": "5810f0536d60e7fa948b3ff8b133b91b4e9711c3d3ea30b0a652e65b8480b049"
+  },
+  {
+    "path": "src/Handoff/HandoffService.php",
+    "methods": [
+      {
+        "name": "__construct",
+        "signature": "public function __construct(private readonly Connection $db, private readonly Clock $clock, private readonly AuthorizationProvider $authorization, private readonly InstanceService $instances, private readonly WorkflowService $workflows, private readonly CaseService $cases, private readonly SlaService $sla, private readonly AssignmentEngine $assignments)",
+        "line": 23
+      },
+      {
+        "name": "get",
+        "signature": "public function get(ExecutionContext $context, string $key): array",
+        "line": 36
+      },
+      {
+        "name": "delegate",
+        "signature": "public function delegate(ExecutionContext $context, string $originKey, int $version, string $pipelineKey, int $revisionId, string $slot, array $policy, string $operation): array",
+        "line": 90
+      },
+      {
+        "name": "parallel",
+        "signature": "public function parallel(ExecutionContext $context, string $originKey, int $version, array $destinations, array $policy, array $join, string $operation): array",
+        "line": 95
+      },
+      {
+        "name": "settle",
+        "signature": "public function settle(ExecutionContext $context, string $key, int $version, string $operation): array",
+        "line": 207
+      },
+      {
+        "name": "recall",
+        "signature": "public function recall(ExecutionContext $context, string $key, int $version, string $operation, bool $timeout = false): array",
+        "line": 230
+      },
+      {
+        "name": "getGroup",
+        "signature": "public function getGroup(ExecutionContext $context, string $key): array",
+        "line": 259
+      },
+      {
+        "name": "manualJoin",
+        "signature": "public function manualJoin(ExecutionContext $context, string $groupKey, int $version, string $operation): array",
+        "line": 278
+      },
+      {
+        "name": "retryReturn",
+        "signature": "public function retryReturn(ExecutionContext $context, string $key, int $version, int $originVersion, string $reason, string $operation): array",
+        "line": 315
+      },
+      {
+        "name": "closeConflict",
+        "signature": "public function closeConflict(ExecutionContext $context, string $key, int $version, string $operation): array",
+        "line": 349
+      },
+      {
+        "name": "run",
+        "signature": "public function run(ExecutionContext $context, int $limit = 100): array",
+        "line": 394
+      }
+    ],
+    "sha256": "08e3cf6ea78e7282a58f9276da011f19bb9b9be221c1a4fcfd48c4f2be184795"
+  },
+  {
+    "path": "src/Handoff/LocalRouteService.php",
+    "methods": [
+      {
+        "name": "__construct",
+        "signature": "public function __construct(private readonly Connection $db, private readonly Clock $clock, private readonly AuthorizationProvider $authorization, private readonly InstanceService $instances, private readonly CaseService $cases, private readonly SubjectRouteRegistry $routes)",
+        "line": 19
+      },
+      {
+        "name": "move",
+        "signature": "public function move(ExecutionContext $context, string $route, array $preview, string $reason, string $operation): array",
+        "line": 30
+      },
+      {
+        "name": "spawn",
+        "signature": "public function spawn(ExecutionContext $context, string $route, string $originKey, int $version, string $pipelineKey, int $revisionId, string $slot, string $sourceTransition, string $reason, string $operation): array",
+        "line": 53
+      }
+    ],
+    "sha256": "cb1c8320c0654622e1c32cd6c4fd136af6417426dfab60c38af4e2d4018960cc"
+  },
+  {
+    "path": "src/Handoff/SubjectRouteRegistry.php",
+    "methods": [
+      {
+        "name": "__construct",
+        "signature": "public function __construct(private array $local = [], private array $remote = [])",
+        "line": 12
+      },
+      {
+        "name": "local",
+        "signature": "public function local(string $key): LocalSubjectRouter",
+        "line": 28
+      },
+      {
+        "name": "remote",
+        "signature": "public function remote(string $key): RemoteSubjectRouter",
+        "line": 33
+      }
+    ],
+    "sha256": "57bb066556e07e85c3024bd469c5b19b078e4645f7a16d57b8269349873c4485"
+  },
+  {
+    "path": "src/Integration/AutomationActions.php",
+    "methods": [
+      {
+        "name": "__construct",
+        "signature": "public function __construct(private readonly Connection $db, private readonly Clock $clock, private readonly AuthorizationProvider $authorization, private readonly TaskService $tasks, private readonly InstanceService $instances, private readonly AssignmentService $assignments, private readonly ApprovalService $approvals, private readonly HandoffService $handoffs, private readonly HierarchyService $hierarchy, private readonly ProjectService $projects, private readonly WorkflowService $workflows, private readonly ExportService $exports, private readonly SlaService $sla)",
+        "line": 28
+      },
+      {
+        "name": "validate",
+        "signature": "public function validate(array $action): void",
+        "line": 32
+      },
+      {
+        "name": "execute",
+        "signature": "public function execute(ExecutionContext $context, array $event, array $source, array $action, string $operation): array",
+        "line": 85
+      }
+    ],
+    "sha256": "e7bed3346dba9e39aa5fa68f3bd7f9ab9bd1fb2b5ec7318602b98341d41c72b3"
+  },
+  {
+    "path": "src/Integration/AutomationService.php",
+    "methods": [
+      {
+        "name": "__construct",
+        "signature": "public function __construct(private readonly Connection $db, private readonly Clock $clock, private readonly AuthorizationProvider $authorization, private readonly TaskService $tasks, private readonly EventAccess $access, private readonly AutomationActions $actions)",
+        "line": 20
+      },
+      {
+        "name": "get",
+        "signature": "public function get(ExecutionContext $context, string $key): array",
+        "line": 30
+      },
+      {
+        "name": "publish",
+        "signature": "public function publish(ExecutionContext $context, ?string $key, int $version, string $trigger, array $definition, string $operation): array",
+        "line": 43
+      },
+      {
+        "name": "toggle",
+        "signature": "public function toggle(ExecutionContext $context, string $key, int $version, bool $active, string $operation): array",
+        "line": 87
+      },
+      {
+        "name": "run",
+        "signature": "public function run(ExecutionContext $context, string $eventId, int $limit = 100): array",
+        "line": 104
+      }
+    ],
+    "sha256": "2be9cd258c113e8be8724caecc2233a761ac46674a730731b6573afaa4c3b9e3"
+  },
+  {
+    "path": "src/Integration/ConsumerRegistry.php",
+    "methods": [
+      {
+        "name": "register",
+        "signature": "public function register(string $key, callable $consumer): void",
+        "line": 13
+      },
+      {
+        "name": "require",
+        "signature": "public function require(string $key): void",
+        "line": 21
+      },
+      {
+        "name": "deliver",
+        "signature": "public function deliver(string $key, ExecutionContext $context, array $event): void",
+        "line": 28
+      }
+    ],
+    "sha256": "5636dd86de13620cc4f304eca16d9f3753d1a4626b3f69ae2a8da04d4663dc3b"
+  },
+  {
+    "path": "src/Integration/CurlWebhookTransport.php",
+    "methods": [
+      {
+        "name": "post",
+        "signature": "public function post(WebhookTarget $target, string $body, array $headers): array",
+        "line": 10
+      }
+    ],
+    "sha256": "97b9de840170ab9864b04696dce906dd9f2a3c639c67ef596b3a246ef9864e0a"
+  },
+  {
+    "path": "src/Integration/DeferredDelivery.php",
+    "methods": [
+      {
+        "name": "__construct",
+        "signature": "public function __construct(public readonly \\DateTimeImmutable $until)",
+        "line": 7
+      }
+    ],
+    "sha256": "d75f648a75a932df5d035432c18cb5c12b198d7455a508154142729c71354571"
+  },
+  {
+    "path": "src/Integration/EventAccess.php",
+    "methods": [
+      {
+        "name": "__construct",
+        "signature": "public function __construct(private readonly Connection $db, private readonly TaskService $tasks, private readonly InstanceService $instances, private readonly GroupService $groups, private readonly HandoffService $handoffs, private readonly ?ReminderService $reminders = null)",
+        "line": 16
+      },
+      {
+        "name": "source",
+        "signature": "public function source(ExecutionContext $context, array $event): array",
+        "line": 20
+      },
+      {
+        "name": "envelope",
+        "signature": "public function envelope(array $event): array",
+        "line": 66
+      }
+    ],
+    "sha256": "d3b7ec0589b987d9fafd408db117ae1c7890d07067370d8604a12f40b7cdac9e"
+  },
+  {
+    "path": "src/Integration/EventPump.php",
+    "methods": [
+      {
+        "name": "__construct",
+        "signature": "public function __construct(private readonly Connection $db, private readonly Clock $clock, private readonly AuthorizationProvider $authorization, private readonly EventAccess $access, private readonly ConsumerRegistry $consumers)",
+        "line": 17
+      },
+      {
+        "name": "subscribe",
+        "signature": "public function subscribe(ExecutionContext $context, string $eventType, string $consumer, string $operation): array",
+        "line": 27
+      },
+      {
+        "name": "toggle",
+        "signature": "public function toggle(ExecutionContext $context, string $key, int $version, bool $active, string $operation): array",
+        "line": 56
+      },
+      {
+        "name": "enqueue",
+        "signature": "public function enqueue(ExecutionContext $context, int $limit = 100, ?int $replayAfter = null): array",
+        "line": 71
+      },
+      {
+        "name": "deliveries",
+        "signature": "public function deliveries(ExecutionContext $context, int $afterId = 0, int $limit = 100): array",
+        "line": 119
+      },
+      {
+        "name": "run",
+        "signature": "public function run(ExecutionContext $context, int $limit = 100): array",
+        "line": 129
+      }
+    ],
+    "sha256": "2f121f1a556a1e221c45c01064a3046ec15ec1e52ea753a577d584f82666d83a"
+  },
+  {
+    "path": "src/Integration/NativeDnsResolver.php",
+    "methods": [
+      {
+        "name": "addresses",
+        "signature": "public function addresses(string $host): array",
+        "line": 10
+      }
+    ],
+    "sha256": "9253116e001bba7e1f3692dc87a211c79100dd06e14cc268241f9d714d401d41"
+  },
+  {
+    "path": "src/Integration/NotificationConsumer.php",
+    "methods": [
+      {
+        "name": "__construct",
+        "signature": "public function __construct(private readonly Connection $db, private readonly NotificationPreferences $preferences, private readonly NotificationTransport $transport, private readonly Clock $clock)",
+        "line": 13
+      },
+      {
+        "name": "deliver",
+        "signature": "public function deliver(ExecutionContext $context, array $event): void",
+        "line": 17
+      }
+    ],
+    "sha256": "6e330b861ffd4e4c5b789a428e5ba7c4c37a85322163722d33a4605d545cf62e"
+  },
+  {
+    "path": "src/Integration/UnavailableNotificationTransport.php",
+    "methods": [
+      {
+        "name": "deliver",
+        "signature": "public function deliver(ExecutionContext $context, string $eventId, string $recipient, string $channel, array $safeEnvelope): void",
+        "line": 11
+      }
+    ],
+    "sha256": "fb6805fa806403dcb2899906b6e0cc20ca6cc9e3553dbf730c4e82ca40f05337"
+  },
+  {
+    "path": "src/Integration/UnavailableSecretVault.php",
+    "methods": [
+      {
+        "name": "resolve",
+        "signature": "public function resolve(ExecutionContext $context, string $reference): string",
+        "line": 11
+      }
+    ],
+    "sha256": "ee4cbd1cff5395ff9151722d33f49919b68f045d17a4c32e593e3b30436d0823"
+  },
+  {
+    "path": "src/Integration/WebhookService.php",
+    "methods": [
+      {
+        "name": "__construct",
+        "signature": "public function __construct(private readonly Connection $db, private readonly Clock $clock, private readonly AuthorizationProvider $authorization, private readonly EventAccess $access, private readonly WebhookUrlPolicy $urls, private readonly SecretVault $vault, private readonly WebhookTransport $transport)",
+        "line": 19
+      },
+      {
+        "name": "get",
+        "signature": "public function get(ExecutionContext $context, string $key): array",
+        "line": 54
+      },
+      {
+        "name": "create",
+        "signature": "public function create(ExecutionContext $context, string $url, string $secretRef, array $types, string $operation): array",
+        "line": 67
+      },
+      {
+        "name": "change",
+        "signature": "public function change(ExecutionContext $context, string $key, int $version, string $url, string $secretRef, array $types, bool $active, string $operation): array",
+        "line": 83
+      },
+      {
+        "name": "queue",
+        "signature": "public function queue(ExecutionContext $context, string $eventId): int",
+        "line": 99
+      },
+      {
+        "name": "deliveries",
+        "signature": "public function deliveries(ExecutionContext $context, int $afterId = 0, int $limit = 100): array",
+        "line": 121
+      },
+      {
+        "name": "run",
+        "signature": "public function run(ExecutionContext $context, int $limit = 100): array",
+        "line": 136
+      },
+      {
+        "name": "retry",
+        "signature": "public function retry(ExecutionContext $context, int $deliveryId, int $version, string $operation): array",
+        "line": 202
+      },
+      {
+        "name": "verifyIncoming",
+        "signature": "public function verifyIncoming(ExecutionContext $context, string $key, string $timestamp, string $eventId, string $body, string $signature): bool",
+        "line": 228
+      }
+    ],
+    "sha256": "e552e5a2d22292eda4a7ec183ec4d533fc7c83173dad0882d19f95024d6a087d"
+  },
+  {
+    "path": "src/Integration/WebhookSignature.php",
+    "methods": [
+      {
+        "name": "sign",
+        "signature": "public static function sign(string $secret, string $timestamp, string $eventId, string $body): string",
+        "line": 10
+      },
+      {
+        "name": "verify",
+        "signature": "public static function verify(string $secret, string $timestamp, string $eventId, string $body, string $signature, \\DateTimeImmutable $now): void",
+        "line": 15
+      }
+    ],
+    "sha256": "f05d6e119c1e8413c8586221ccd4feb92a36dcda22c4539fa216f443181916eb"
+  },
+  {
+    "path": "src/Integration/WebhookTarget.php",
+    "methods": [
+      {
+        "name": "__construct",
+        "signature": "public function __construct(public string $url, public string $host, public string $address, public int $port = 443)",
+        "line": 7
+      }
+    ],
+    "sha256": "2c9b5ddce5335fe5a53164d0cbbfcc4df34fab9e7873518bb63d05117cdc233f"
+  },
+  {
+    "path": "src/Integration/WebhookUrlPolicy.php",
+    "methods": [
+      {
+        "name": "__construct",
+        "signature": "public function __construct(private readonly DnsResolver $dns, private readonly array $allowedHosts = [])",
+        "line": 10
+      },
+      {
+        "name": "publicAddress",
+        "signature": "public static function publicAddress(string $address): bool",
+        "line": 26
+      },
+      {
+        "name": "validate",
+        "signature": "public function validate(string $url): WebhookTarget",
+        "line": 51
+      }
+    ],
+    "sha256": "e2bb2401297ec8a66b0a8e5c1062749d54feb68fe160469d4997f564b8b63a48"
+  },
+  {
+    "path": "src/OutboxDispatcher.php",
+    "methods": [
+      {
+        "name": "__construct",
+        "signature": "public function __construct(private readonly Connection $db, private readonly Clock $clock = new SystemClock)",
+        "line": 12
+      },
+      {
+        "name": "dispatch",
+        "signature": "public function dispatch(string $scope, callable $consumer, int $limit = 100): int",
+        "line": 16
+      }
+    ],
+    "sha256": "0a4c8d2d909a78f0f2b61d199a8c9e34972887be1149516fb54c0e4d2c033b97"
+  },
+  {
+    "path": "src/Planning/BulkService.php",
+    "methods": [
+      {
+        "name": "__construct",
+        "signature": "public function __construct(private readonly Connection $db, private readonly Clock $clock, private readonly AuthorizationProvider $authorization, private readonly TaskService $tasks)",
+        "line": 17
+      },
+      {
+        "name": "execute",
+        "signature": "public function execute(ExecutionContext $context, array $items, string $mode, string $operation): array",
+        "line": 21
+      }
+    ],
+    "sha256": "ec115e14ad2b69f5543ded80f79a701db7729264d301bd13a92d13274790e1da"
+  },
+  {
+    "path": "src/Planning/MarkerService.php",
+    "methods": [
+      {
+        "name": "__construct",
+        "signature": "public function __construct(private readonly Connection $db, private readonly Clock $clock, private readonly AuthorizationProvider $authorization, private readonly TaskService $tasks, private readonly ProjectService $projects)",
+        "line": 20
+      },
+      {
+        "name": "create",
+        "signature": "public function create(ExecutionContext $context, string $projectKey, string $kind, string $name, ?\\DateTimeImmutable $due, string $operation): array",
+        "line": 33
+      },
+      {
+        "name": "get",
+        "signature": "public function get(ExecutionContext $context, string $key, bool $write = false): array",
+        "line": 55
+      },
+      {
+        "name": "link",
+        "signature": "public function link(ExecutionContext $context, string $key, int $version, string $taskKey, int $taskVersion, bool $enabled, string $operation): array",
+        "line": 72
+      },
+      {
+        "name": "progress",
+        "signature": "public function progress(ExecutionContext $context, string $key): array",
+        "line": 101
+      },
+      {
+        "name": "change",
+        "signature": "public function change(ExecutionContext $context, string $key, int $version, string $name, ?\\DateTimeImmutable $due, string $operation): array",
+        "line": 111
+      }
+    ],
+    "sha256": "093d1d564edb94d4e5335a67c68f4f1bb1bb2662a0661ef4ce7cddcac8dd0716"
+  },
+  {
+    "path": "src/Planning/PointValue.php",
+    "methods": [
+      {
+        "name": "minor",
+        "signature": "public static function minor(?string $value): ?int",
+        "line": 9
+      },
+      {
+        "name": "format",
+        "signature": "public static function format(int $minor): string",
+        "line": 22
+      }
+    ],
+    "sha256": "f3a293fab6bb1870a7e16e66b2dda5c435f3629cebcfc930ea5be8e1b67e8cc3"
+  },
+  {
+    "path": "src/Planning/PositionService.php",
+    "methods": [
+      {
+        "name": "__construct",
+        "signature": "public function __construct(private readonly Connection $db, private readonly Clock $clock, private readonly AuthorizationProvider $authorization, private readonly TaskService $tasks, private readonly ProjectService $projects, private readonly SprintService $sprints)",
+        "line": 23
+      },
+      {
+        "name": "create",
+        "signature": "public function create(ExecutionContext $context, string $kind, string $reference, string $operation): array",
+        "line": 33
+      },
+      {
+        "name": "get",
+        "signature": "public function get(ExecutionContext $context, string $key, bool $write = false): array",
+        "line": 51
+      },
+      {
+        "name": "place",
+        "signature": "public function place(ExecutionContext $context, string $key, int $version, string $taskKey, int $taskVersion, ?string $after, ?string $before, string $operation): array",
+        "line": 65
+      },
+      {
+        "name": "listing",
+        "signature": "public function listing(ExecutionContext $context, string $key, int $limit = 100, ?array $cursor = null): array",
+        "line": 122
+      }
+    ],
+    "sha256": "c1e19a3bc422368b6e86f57c4568435502e89749b435f48032c994def876d4c4"
+  },
+  {
+    "path": "src/Planning/ReportingService.php",
+    "methods": [
+      {
+        "name": "__construct",
+        "signature": "public function __construct(private readonly Connection $db, private readonly AuthorizationProvider $authorization, private readonly TaskService $tasks, private readonly ProjectService $projects)",
+        "line": 15
+      },
+      {
+        "name": "totals",
+        "signature": "public function totals(ExecutionContext $context, ?string $projectKey = null): array",
+        "line": 25
+      },
+      {
+        "name": "subtreeTime",
+        "signature": "public function subtreeTime(ExecutionContext $context, string $taskKey): array",
+        "line": 44
+      },
+      {
+        "name": "flow",
+        "signature": "public function flow(ExecutionContext $context, string $taskKey, ?\\DateTimeImmutable $asOf = null): array",
+        "line": 53
+      }
+    ],
+    "sha256": "0d3dc065529e0ea0fc0d972d8f9ac26bb5956d7bc0467c4528dfb4046b9a60f2"
+  },
+  {
+    "path": "src/Planning/SprintService.php",
+    "methods": [
+      {
+        "name": "__construct",
+        "signature": "public function __construct(private readonly Connection $db, private readonly Clock $clock, private readonly AuthorizationProvider $authorization, private readonly TaskService $tasks, private readonly ProjectService $projects)",
+        "line": 21
+      },
+      {
+        "name": "get",
+        "signature": "public function get(ExecutionContext $context, string $key, bool $write = false, bool $lock = false): array",
+        "line": 31
+      },
+      {
+        "name": "create",
+        "signature": "public function create(ExecutionContext $context, string $projectKey, string $name, ?\\DateTimeImmutable $start, ?\\DateTimeImmutable $end, string $operation): array",
+        "line": 56
+      },
+      {
+        "name": "enroll",
+        "signature": "public function enroll(ExecutionContext $context, string $key, int $version, array $references, string $operation): array",
+        "line": 77
+      },
+      {
+        "name": "remove",
+        "signature": "public function remove(ExecutionContext $context, string $key, int $version, string $taskKey, int $taskVersion, string $operation): array",
+        "line": 116
+      },
+      {
+        "name": "start",
+        "signature": "public function start(ExecutionContext $context, string $key, int $version, string $operation): array",
+        "line": 147
+      },
+      {
+        "name": "snapshot",
+        "signature": "public function snapshot(ExecutionContext $context, string $key, int $version, string $operation): array",
+        "line": 170
+      },
+      {
+        "name": "close",
+        "signature": "public function close(ExecutionContext $context, string $key, int $version, string $policy, ?string $targetKey, ?int $targetVersion, string $operation): array",
+        "line": 186
+      },
+      {
+        "name": "report",
+        "signature": "public function report(ExecutionContext $context, string $key): array",
+        "line": 233
+      },
+      {
+        "name": "backlog",
+        "signature": "public function backlog(ExecutionContext $context, string $projectKey, int $afterId = 0, int $limit = 100): array",
+        "line": 311
+      }
+    ],
+    "sha256": "10196e83afbb25bdd3e3013461636d6198b9ecdc63bc72e1a900cd9c09c5847d"
+  },
+  {
+    "path": "src/Planning/TemplateService.php",
+    "methods": [
+      {
+        "name": "__construct",
+        "signature": "public function __construct(private readonly Connection $db, private readonly Clock $clock, private readonly AuthorizationProvider $authorization, private readonly TaskService $tasks, private readonly ProjectService $projects, private readonly WorkflowService $workflows, private readonly HierarchyService $hierarchy, private readonly TaskPlanningService $planning)",
+        "line": 23
+      },
+      {
+        "name": "get",
+        "signature": "public function get(ExecutionContext $context, string $key, ?int $revision = null): array",
+        "line": 35
+      },
+      {
+        "name": "publish",
+        "signature": "public function publish(ExecutionContext $context, ?string $key, int $version, string $name, array $definition, string $operation): array",
+        "line": 53
+      },
+      {
+        "name": "instantiate",
+        "signature": "public function instantiate(ExecutionContext $context, string $key, int $revision, string $projectCode, string $name, string $operation): array",
+        "line": 138
+      }
+    ],
+    "sha256": "859d5c85bed96bb38894888112a4db8377125457aa1694bd79dabe55f52f8ffd"
+  },
+  {
+    "path": "src/Planning/TimeTrackingService.php",
+    "methods": [
+      {
+        "name": "__construct",
+        "signature": "public function __construct(private readonly Connection $db, private readonly Clock $clock, private readonly AuthorizationProvider $authorization, private readonly TaskService $tasks)",
+        "line": 17
+      },
+      {
+        "name": "start",
+        "signature": "public function start(ExecutionContext $context, string $taskKey, string $operation): array",
+        "line": 47
+      },
+      {
+        "name": "timer",
+        "signature": "public function timer(ExecutionContext $context, string $key): array",
+        "line": 66
+      },
+      {
+        "name": "cancelOwn",
+        "signature": "public function cancelOwn(ExecutionContext $context, string $key, int $version, string $operation): array",
+        "line": 85
+      },
+      {
+        "name": "stop",
+        "signature": "public function stop(ExecutionContext $context, string $key, int $version, string $operation, string $overlapPolicy = 'reject', ?string $actor = null): array",
+        "line": 111
+      },
+      {
+        "name": "log",
+        "signature": "public function log(ExecutionContext $context, string $taskKey, \\DateTimeImmutable $start, \\DateTimeImmutable $end, ?string $note, string $operation, string $overlapPolicy = 'reject', ?string $actor = null): array",
+        "line": 145
+      },
+      {
+        "name": "amend",
+        "signature": "public function amend(ExecutionContext $context, string $key, int $version, \\DateTimeImmutable $start, \\DateTimeImmutable $end, ?string $note, bool $deleted, string $operation, string $overlapPolicy = 'reject'): array",
+        "line": 162
+      },
+      {
+        "name": "entry",
+        "signature": "public function entry(ExecutionContext $context, string $key): array",
+        "line": 188
+      },
+      {
+        "name": "stats",
+        "signature": "public function stats(ExecutionContext $context, string $taskKey, bool $truthFallback = true): array",
+        "line": 207
+      },
+      {
+        "name": "rebuild",
+        "signature": "public function rebuild(ExecutionContext $context, string $taskKey, string $operation): array",
+        "line": 223
+      }
+    ],
+    "sha256": "b603a45d933c230f12db92cfdac92d608150c6e0295642345209f141b2d0ba0c"
+  },
+  {
+    "path": "src/Responsibility/AssignmentEngine.php",
+    "methods": [
+      {
+        "name": "__construct",
+        "signature": "public function __construct(private readonly Connection $db, private readonly Clock $clock, private readonly ResponsibilityResolver $resolver)",
+        "line": 15
+      },
+      {
+        "name": "validate",
+        "signature": "public function validate(array $policy): array",
+        "line": 19
+      },
+      {
+        "name": "policy",
+        "signature": "public function policy(ExecutionContext $context, array $instance): array",
+        "line": 49
+      },
+      {
+        "name": "resolve",
+        "signature": "public function resolve(ExecutionContext $context, array $instance, array $policy): ?string",
+        "line": 66
+      },
+      {
+        "name": "assign",
+        "signature": "public function assign(ExecutionContext $context, array $instance, array $policy, ?int $policyId, ?string $primary, array $secondary, string $reason, ?int $visitId = null, bool $validateEligibility = true): void",
+        "line": 96
+      },
+      {
+        "name": "activated",
+        "signature": "public function activated(ExecutionContext $context, int $instanceId, string $operationId): void",
+        "line": 135
+      },
+      {
+        "name": "entered",
+        "signature": "public function entered(ExecutionContext $context, int $instanceId, int $visitId, object $stage, string $operationId): void",
+        "line": 148
+      },
+      {
+        "name": "close",
+        "signature": "public function close(ExecutionContext $context, int $instanceId): void",
+        "line": 174
+      },
+      {
+        "name": "leaving",
+        "signature": "public function leaving(ExecutionContext $context, int $instanceId): void",
+        "line": 180
+      },
+      {
+        "name": "activity",
+        "signature": "public function activity(ExecutionContext $context, int $instanceId): void",
+        "line": 185
+      },
+      {
+        "name": "beforeTransition",
+        "signature": "public function beforeTransition(ExecutionContext $context, array $instance, array $edge, array $payload): void",
+        "line": 189
+      }
+    ],
+    "sha256": "7684d9e5fd2342d092f6df87aef425eed118d369fcac15505bed84ff6a1d05ac"
+  },
+  {
+    "path": "src/Responsibility/AssignmentService.php",
+    "methods": [
+      {
+        "name": "__construct",
+        "signature": "public function __construct(private readonly Connection $db, private readonly Clock $clock, private readonly AuthorizationProvider $authorization, private readonly AssignmentEngine $engine, private readonly InstanceService $instances, private readonly PipelineService $pipelines)",
+        "line": 17
+      },
+      {
+        "name": "get",
+        "signature": "public function get(ExecutionContext $context, string $key): array",
+        "line": 28
+      },
+      {
+        "name": "assign",
+        "signature": "public function assign(ExecutionContext $context, string $key, int $version, string $operation, ?string $primary, array $secondary = []): array",
+        "line": 38
+      },
+      {
+        "name": "configureInstance",
+        "signature": "public function configureInstance(ExecutionContext $context, string $key, int $version, string $operation, array $policy): array",
+        "line": 56
+      },
+      {
+        "name": "configureStage",
+        "signature": "public function configureStage(ExecutionContext $context, string $pipelineKey, string $stageKey, int $version, string $operation, array $policy): array",
+        "line": 77
+      },
+      {
+        "name": "depart",
+        "signature": "public function depart(ExecutionContext $context, string $key, int $version, string $operation, string $actor, string $policy): array",
+        "line": 102
+      }
+    ],
+    "sha256": "ce41c3109ee67219619b8dd56bbd118ba0c9ec89ce9c47eef6bb449978053937"
+  },
+  {
+    "path": "src/Responsibility/ContextResponsibilityResolver.php",
+    "methods": [
+      {
+        "name": "candidates",
+        "signature": "public function candidates(ExecutionContext $context, string $reference, string $purpose): array",
+        "line": 11
+      },
+      {
+        "name": "eligible",
+        "signature": "public function eligible(ExecutionContext $context, string $actor, string $purpose): bool",
+        "line": 16
+      }
+    ],
+    "sha256": "e72e54f090b4ba1c1cefdd46086dece66c9d8698767138622077129966665305"
+  },
+  {
+    "path": "src/Scheduling/DailyQuietHours.php",
+    "methods": [
+      {
+        "name": "__construct",
+        "signature": "public function __construct(private string $timezone = 'UTC', private ?string $start = null, private ?string $end = null, private array $channels = ['in_app'])",
+        "line": 11
+      },
+      {
+        "name": "nextAllowed",
+        "signature": "public function nextAllowed(ExecutionContext $context, string $channel, \\DateTimeImmutable $at): ?\\DateTimeImmutable",
+        "line": 27
+      }
+    ],
+    "sha256": "873539ce22af6e78e0290f34a223d8a649182c82cc26d99bb594abb8b7b7403e"
+  },
+  {
+    "path": "src/Scheduling/DateService.php",
+    "methods": [
+      {
+        "name": "__construct",
+        "signature": "public function __construct(private readonly Connection $db, private readonly Clock $clock, private readonly AuthorizationProvider $authorization, private readonly TaskService $tasks)",
+        "line": 17
+      },
+      {
+        "name": "change",
+        "signature": "public function change(ExecutionContext $context, string $key, int $version, ?string $start, ?string $end, ?string $due, string $timezone, bool $allDay, string $policy, string $operation): array",
+        "line": 22
+      },
+      {
+        "name": "calendar",
+        "signature": "public function calendar(ExecutionContext $context, \\DateTimeImmutable $from, \\DateTimeImmutable $until, int $afterId = 0, int $limit = 100): array",
+        "line": 62
+      }
+    ],
+    "sha256": "1a0c8547a10af67cc64ae2f0b814f193ff4587eb059b0635281005133dfde988"
+  },
+  {
+    "path": "src/Scheduling/LocalTime.php",
+    "methods": [
+      {
+        "name": "zone",
+        "signature": "public static function zone(string $name): \\DateTimeZone",
+        "line": 9
+      },
+      {
+        "name": "date",
+        "signature": "public static function date(string $value): void",
+        "line": 18
+      },
+      {
+        "name": "resolve",
+        "signature": "public static function resolve(string $wall, string $timezone, string $policy = 'reject'): \\DateTimeImmutable",
+        "line": 26
+      },
+      {
+        "name": "stamp",
+        "signature": "public static function stamp(?\\DateTimeImmutable $time): ?string",
+        "line": 56
+      }
+    ],
+    "sha256": "a0105e0deba48d309940059a5a86e7f8e51073e894bfab484baa97626ae0424c"
+  },
+  {
+    "path": "src/Scheduling/PersianCalendar.php",
+    "methods": [
+      {
+        "name": "parts",
+        "signature": "public static function parts(string $gregorian): array",
+        "line": 25
+      },
+      {
+        "name": "date",
+        "signature": "public static function date(int $year, int $month, int $day): string",
+        "line": 34
+      },
+      {
+        "name": "days",
+        "signature": "public static function days(int $year, int $month): int",
+        "line": 49
+      }
+    ],
+    "sha256": "56f1ceb61e94f1acb00097ed6ded515ab9f71135e11116860389f1f13f1819b7"
+  },
+  {
+    "path": "src/Scheduling/RecurrenceRule.php",
+    "methods": [
+      {
+        "name": "parse",
+        "signature": "public static function parse(array|string $input): array",
+        "line": 13
+      },
+      {
+        "name": "expand",
+        "signature": "public static function expand(string $system, string $anchor, string $timezone, array $rule, \\DateTimeImmutable $from, \\DateTimeImmutable $until, CalendarRegistry $calendars, int $limit = 100): array",
+        "line": 81
+      }
+    ],
+    "sha256": "6d4915cfe79c034f8702ca511d221a2fb2e8d699c5060c3389f3d77fb55a1db7"
+  },
+  {
+    "path": "src/Scheduling/RecurrenceService.php",
+    "methods": [
+      {
+        "name": "__construct",
+        "signature": "public function __construct(private readonly Connection $db, private readonly Clock $clock, private readonly AuthorizationProvider $authorization, private readonly TaskService $tasks, private readonly DateService $dates, private readonly ProjectService $projects, private readonly WorkflowService $workflows, private readonly CalendarRegistry $calendars)",
+        "line": 22
+      },
+      {
+        "name": "get",
+        "signature": "public function get(ExecutionContext $context, string $key, bool $write = false): array",
+        "line": 33
+      },
+      {
+        "name": "create",
+        "signature": "public function create(ExecutionContext $context, string $taskKey, int $taskVersion, string $system, string $anchor, string $timezone, array|string $input, string $operation): array",
+        "line": 49
+      },
+      {
+        "name": "preview",
+        "signature": "public function preview(ExecutionContext $context, string $key, \\DateTimeImmutable $from, \\DateTimeImmutable $until, int $limit = 100): array",
+        "line": 85
+      },
+      {
+        "name": "generate",
+        "signature": "public function generate(ExecutionContext $context, string $key, int $version, \\DateTimeImmutable $from, \\DateTimeImmutable $until, string $operation, int $limit = 100): array",
+        "line": 123
+      },
+      {
+        "name": "changeRule",
+        "signature": "public function changeRule(ExecutionContext $context, string $key, int $version, array|string $input, string $operation, bool $stop = false): array",
+        "line": 213
+      },
+      {
+        "name": "exception",
+        "signature": "public function exception(ExecutionContext $context, string $key, int $version, string $occurrenceKey, int $taskVersion, ?\\DateTimeImmutable $override, bool $cancel, string $operation): array",
+        "line": 246
+      }
+    ],
+    "sha256": "52a971f19cff19656a09d1b21753d5dff58512707e664fc6185d5766d4050a71"
+  },
+  {
+    "path": "src/Scheduling/ReminderInvalidator.php",
+    "methods": [
+      {
+        "name": "cancelTask",
+        "signature": "public static function cancelTask(Connection $db, int $taskId): void",
+        "line": 9
+      }
+    ],
+    "sha256": "ce9b5693d492fb6c5bf2e3e6e0aaefed130715ec8b9e36a6c82d0301b8be2d14"
+  },
+  {
+    "path": "src/Scheduling/ReminderSchedule.php",
+    "methods": [
+      {
+        "name": "refresh",
+        "signature": "public static function refresh(Connection $db, object $task, array $data): void",
+        "line": 9
+      }
+    ],
+    "sha256": "bea55844858aa4cbf2a4ca24604238287fafc2883b559461af851695f5b94ac9"
+  },
+  {
+    "path": "src/Scheduling/ReminderService.php",
+    "methods": [
+      {
+        "name": "__construct",
+        "signature": "public function __construct(private readonly Connection $db, private readonly Clock $clock, private readonly AuthorizationProvider $authorization, private readonly TaskService $tasks, private readonly NotificationPreferences $preferences, private readonly ?SubjectRegistry $subjects = null, private readonly ?ReminderRecipients $recipients = null)",
+        "line": 23
+      },
+      {
+        "name": "parseTime",
+        "signature": "public function parseTime(string $wall, string $timezone, string $calendar = 'gregorian', string $dstPolicy = 'reject'): \\DateTimeImmutable",
+        "line": 33
+      },
+      {
+        "name": "suggestedRecipient",
+        "signature": "public function suggestedRecipient(ExecutionContext $context, ?string $type = null, ?string $id = null): string",
+        "line": 49
+      },
+      {
+        "name": "createGeneral",
+        "signature": "public function createGeneral(ExecutionContext $context, string $body, \\DateTimeImmutable $when, string $timezone, string $operation, ?string $subjectType = null, ?string $subjectId = null, ?string $recipient = null, bool $allowPast = false): array",
+        "line": 82
+      },
+      {
+        "name": "updateGeneral",
+        "signature": "public function updateGeneral(ExecutionContext $context, string $key, int $version, array $changes, string $operation): array",
+        "line": 113
+      },
+      {
+        "name": "changeState",
+        "signature": "public function changeState(ExecutionContext $context, string $key, int $version, string $action, string $operation): array",
+        "line": 184
+      },
+      {
+        "name": "query",
+        "signature": "public function query(ExecutionContext $context, int $limit = 30, int $afterId = 0): array",
+        "line": 205
+      },
+      {
+        "name": "count",
+        "signature": "public function count(ExecutionContext $context): int",
+        "line": 214
+      },
+      {
+        "name": "activity",
+        "signature": "public function activity(ExecutionContext $context, string $key): array",
+        "line": 219
+      },
+      {
+        "name": "get",
+        "signature": "public function get(ExecutionContext $context, string $key): array",
+        "line": 258
+      },
+      {
+        "name": "create",
+        "signature": "public function create(ExecutionContext $context, string $taskKey, string $anchor, int $offsetSeconds, ?\\DateTimeImmutable $absolute, string $channel, string $operation): array",
+        "line": 322
+      },
+      {
+        "name": "snooze",
+        "signature": "public function snooze(ExecutionContext $context, string $key, int $version, \\DateTimeImmutable $until, string $operation): array",
+        "line": 356
+      },
+      {
+        "name": "dispatch",
+        "signature": "public function dispatch(ExecutionContext $context, int $limit = 100): array",
+        "line": 379
+      }
+    ],
+    "sha256": "356e03455512015901963d118a6a8b169fc99d9e38a154feac14eb3d3e72a741"
+  },
+  {
+    "path": "src/Scheduling/SelfReminderRecipients.php",
+    "methods": [
+      {
+        "name": "suggest",
+        "signature": "public function suggest(ExecutionContext $context, ?string $type, ?string $id): string",
+        "line": 11
+      },
+      {
+        "name": "authorize",
+        "signature": "public function authorize(ExecutionContext $context, string $recipient, ?string $type, ?string $id): void",
+        "line": 16
+      }
+    ],
+    "sha256": "2dc0a9b1bddfd34345ecb83eda2d2d907bfb896db6f49a5e171b4b1fb1bb9808"
+  },
+  {
+    "path": "src/Schema/IdentifierCollation.php",
+    "methods": [
+      {
+        "name": "forConnection",
+        "signature": "public static function forConnection(Connection $connection): string",
+        "line": 10
+      }
+    ],
+    "sha256": "f2096c5dc3e2e9b6498c8025e337dbeea85a968114eb36ee63c2714c0c7f4dbe"
+  },
+  {
+    "path": "src/SLA/CalendarRegistry.php",
+    "methods": [
+      {
+        "name": "__construct",
+        "signature": "public function __construct(private array $calendars = [])",
+        "line": 11
+      },
+      {
+        "name": "get",
+        "signature": "public function get(string $key): WorkingCalendar",
+        "line": 20
+      }
+    ],
+    "sha256": "cfb38094937b7126cfc450eee5a450ed278f5d0dc41e56c684238da6f3b1acd9"
+  },
+  {
+    "path": "src/SLA/SlaEngine.php",
+    "methods": [
+      {
+        "name": "__construct",
+        "signature": "public function __construct(private readonly Connection $db, private readonly Clock $clock, private readonly CalendarRegistry $calendars)",
+        "line": 13
+      },
+      {
+        "name": "now",
+        "signature": "public function now(): \\DateTimeImmutable",
+        "line": 17
+      },
+      {
+        "name": "activated",
+        "signature": "public function activated(ExecutionContext $context, int $instanceId, string $operationId): void",
+        "line": 22
+      },
+      {
+        "name": "date",
+        "signature": "public function date(string $value): \\DateTimeImmutable",
+        "line": 26
+      },
+      {
+        "name": "format",
+        "signature": "public function format(\\DateTimeImmutable $value): string",
+        "line": 31
+      },
+      {
+        "name": "policy",
+        "signature": "public function policy(object $visit): array",
+        "line": 36
+      },
+      {
+        "name": "add",
+        "signature": "public function add(\\DateTimeImmutable $start, int $seconds, array $policy): \\DateTimeImmutable",
+        "line": 46
+      },
+      {
+        "name": "seconds",
+        "signature": "public function seconds(\\DateTimeImmutable $start, \\DateTimeImmutable $end, array $policy): int",
+        "line": 51
+      },
+      {
+        "name": "worked",
+        "signature": "public function worked(object $visit, array $policy, ?\\DateTimeImmutable $until = null, bool $sinceAnchor = false): int",
+        "line": 60
+      },
+      {
+        "name": "entered",
+        "signature": "public function entered(ExecutionContext $context, int $instanceId, int $visitId, object $stage, string $operationId): void",
+        "line": 76
+      },
+      {
+        "name": "leaving",
+        "signature": "public function leaving(ExecutionContext $context, int $instanceId): void",
+        "line": 94
+      },
+      {
+        "name": "activity",
+        "signature": "public function activity(ExecutionContext $context, int $instanceId): void",
+        "line": 117
+      },
+      {
+        "name": "beforeTransition",
+        "signature": "public function beforeTransition(ExecutionContext $context, array $instance, array $edge, array $payload): void",
+        "line": 131
+      }
+    ],
+    "sha256": "6f5dcb0318dbed1d4e6bd7652ad8a0c15ee54983f10bf7cf1e86fd9c797e8e43"
+  },
+  {
+    "path": "src/SLA/SlaService.php",
+    "methods": [
+      {
+        "name": "__construct",
+        "signature": "public function __construct(private readonly Connection $db, private readonly Clock $clock, private readonly AuthorizationProvider $authorization, private readonly SlaEngine $engine, private readonly InstanceService $instances)",
+        "line": 16
+      },
+      {
+        "name": "get",
+        "signature": "public function get(ExecutionContext $context, int $visitId): array",
+        "line": 27
+      },
+      {
+        "name": "pause",
+        "signature": "public function pause(ExecutionContext $context, int $visitId, int $slaVersion, string $operation, string $reason): array",
+        "line": 52
+      },
+      {
+        "name": "resume",
+        "signature": "public function resume(ExecutionContext $context, int $visitId, int $slaVersion, string $operation): array",
+        "line": 83
+      },
+      {
+        "name": "reset",
+        "signature": "public function reset(ExecutionContext $context, int $visitId, int $slaVersion, string $operation): array",
+        "line": 119
+      },
+      {
+        "name": "markDeadCandidate",
+        "signature": "public function markDeadCandidate(ExecutionContext $context, string $instanceKey, int $visitId): array",
+        "line": 145
+      },
+      {
+        "name": "run",
+        "signature": "public function run(ExecutionContext $context, int $limit = 100): array",
+        "line": 156
+      }
+    ],
+    "sha256": "0f18ca586736c7e42f12aa2898342c9308d3d795650471bf31789200099d0a8f"
+  },
+  {
+    "path": "src/SLA/StagePolicyService.php",
+    "methods": [
+      {
+        "name": "__construct",
+        "signature": "public function __construct(private readonly Connection $db, private readonly Clock $clock, private readonly AuthorizationProvider $authorization, private readonly CalendarRegistry $calendars, private readonly PipelineService $pipelines)",
+        "line": 17
+      },
+      {
+        "name": "publishSla",
+        "signature": "public function publishSla(ExecutionContext $context, string $pipelineKey, string $stageKey, int $pipelineVersion, string $operation, array $policy): array",
+        "line": 22
+      }
+    ],
+    "sha256": "e7899730e794a57e7a14ef37fdd3dab4db4606ec9b8e18b3d3259da41feb048a"
+  },
+  {
+    "path": "src/SLA/WeeklyWorkingCalendar.php",
+    "methods": [
+      {
+        "name": "__construct",
+        "signature": "public function __construct(string $timezone, private array $shifts, private array $holidays = [])",
+        "line": 13
+      },
+      {
+        "name": "addSeconds",
+        "signature": "public function addSeconds(\\DateTimeImmutable $start, int $seconds): \\DateTimeImmutable",
+        "line": 89
+      },
+      {
+        "name": "secondsBetween",
+        "signature": "public function secondsBetween(\\DateTimeImmutable $start, \\DateTimeImmutable $end): int",
+        "line": 114
+      }
+    ],
+    "sha256": "5612c01d57b637b34cfe03b2be2ffe3cbc0a678d82449ec3412e4349bd08c302"
+  },
+  {
+    "path": "src/StageLifecycleChain.php",
+    "methods": [
+      {
+        "name": "__construct",
+        "signature": "public function __construct(private array $hooks)",
+        "line": 10
+      },
+      {
+        "name": "activated",
+        "signature": "public function activated(ExecutionContext $context, int $instanceId, string $operationId): void",
+        "line": 14
+      },
+      {
+        "name": "entered",
+        "signature": "public function entered(ExecutionContext $context, int $instanceId, int $visitId, object $stage, string $operationId): void",
+        "line": 21
+      },
+      {
+        "name": "leaving",
+        "signature": "public function leaving(ExecutionContext $context, int $instanceId): void",
+        "line": 28
+      },
+      {
+        "name": "activity",
+        "signature": "public function activity(ExecutionContext $context, int $instanceId): void",
+        "line": 35
+      },
+      {
+        "name": "beforeTransition",
+        "signature": "public function beforeTransition(ExecutionContext $context, array $instance, array $edge, array $payload): void",
+        "line": 42
+      }
+    ],
+    "sha256": "9f6700ee94102ceaebd60186659b3881aee40598a8fb39c4805e1ff6ba378505"
+  },
+  {
+    "path": "src/SubjectRegistry.php",
+    "methods": [
+      {
+        "name": "__construct",
+        "signature": "public function __construct(private array $handlers = [])",
+        "line": 11
+      },
+      {
+        "name": "handler",
+        "signature": "public function handler(string $alias): SubjectHandler",
+        "line": 20
+      },
+      {
+        "name": "all",
+        "signature": "public function all(): array",
+        "line": 25
+      }
+    ],
+    "sha256": "043beaa4532d2b072df5172e1f1e1746fc520f44f39bc729af9d2b35c6f1fb8f"
+  },
+  {
+    "path": "src/SystemClock.php",
+    "methods": [
+      {
+        "name": "now",
+        "signature": "public function now(): \\DateTimeImmutable",
+        "line": 9
+      }
+    ],
+    "sha256": "fa5fb5d5452810ea4498d3d6404d82a5c04f01b0686f3d2899f14433e0eb6aeb"
+  },
+  {
+    "path": "src/TaskGraph/CalendarLag.php",
+    "methods": [
+      {
+        "name": "shift",
+        "signature": "public static function shift(\\DateTimeImmutable $anchor, int $minutes, string $clock, ?string $reference, CalendarRegistry $registry): \\DateTimeImmutable",
+        "line": 10
+      }
+    ],
+    "sha256": "15ee306a86272526f2a39b889e7e8d65ed0b4f8f30d32d5c93021bebe682ec7c"
+  },
+  {
+    "path": "src/TaskGraph/DependencyService.php",
+    "methods": [
+      {
+        "name": "__construct",
+        "signature": "public function __construct(private readonly Connection $db, private readonly Clock $clock, private readonly AuthorizationProvider $authorization, private readonly TaskService $tasks, private readonly CalendarRegistry $calendars)",
+        "line": 19
+      },
+      {
+        "name": "add",
+        "signature": "public function add(ExecutionContext $context, string $predecessor, int $predecessorVersion, string $successor, int $successorVersion, string $type, array $policy, string $operation): array",
+        "line": 23
+      },
+      {
+        "name": "addBatch",
+        "signature": "public function addBatch(ExecutionContext $context, array $items, string $operation): array",
+        "line": 28
+      },
+      {
+        "name": "get",
+        "signature": "public function get(ExecutionContext $context, string $key, string $capability = 'view'): array",
+        "line": 109
+      },
+      {
+        "name": "links",
+        "signature": "public function links(ExecutionContext $context, string $taskKey, int $limit = 100, int $afterId = 0): array",
+        "line": 122
+      },
+      {
+        "name": "remove",
+        "signature": "public function remove(ExecutionContext $context, string $key, int $version, string $operation): array",
+        "line": 135
+      }
+    ],
+    "sha256": "58ac2c271464bf6eeabb4d8e6620ee29ab5c6639e30b0f51772245b3ae04a1f1"
+  },
+  {
+    "path": "src/TaskGraph/HierarchyIndex.php",
+    "methods": [
+      {
+        "name": "root",
+        "signature": "public static function root(Connection $db, ExecutionContext $context, int $id): void",
+        "line": 12
+      },
+      {
+        "name": "move",
+        "signature": "public static function move(Connection $db, ExecutionContext $context, int $id, ?int $parentId, int $maxDepth): void",
+        "line": 17
+      }
+    ],
+    "sha256": "23bdf472e95a81dea335546f9a70d655642d267668b8d20429c112982825611d"
+  },
+  {
+    "path": "src/TaskGraph/HierarchyService.php",
+    "methods": [
+      {
+        "name": "__construct",
+        "signature": "public function __construct(private readonly Connection $db, private readonly Clock $clock, private readonly TaskService $tasks, private readonly ProjectService $projects, private readonly AuthorizationProvider $authorization)",
+        "line": 19
+      },
+      {
+        "name": "reparent",
+        "signature": "public function reparent(ExecutionContext $context, string $key, int $version, ?string $parentKey, ?int $parentVersion, string $operation): array",
+        "line": 23
+      },
+      {
+        "name": "configureDepth",
+        "signature": "public function configureDepth(ExecutionContext $context, string $projectKey, int $version, int $depth, string $operation): array",
+        "line": 47
+      },
+      {
+        "name": "tree",
+        "signature": "public function tree(ExecutionContext $context, string $key, int $limit = 100, int $afterId = 0): array",
+        "line": 71
+      },
+      {
+        "name": "progress",
+        "signature": "public function progress(ExecutionContext $context, string $key, string $mode = 'direct'): array",
+        "line": 84
+      },
+      {
+        "name": "previewDelete",
+        "signature": "public function previewDelete(ExecutionContext $context, string $key, string $policy = 'deny_if_children'): array",
+        "line": 103
+      },
+      {
+        "name": "executeDelete",
+        "signature": "public function executeDelete(ExecutionContext $context, array $preview, string $operation): array",
+        "line": 121
+      }
+    ],
+    "sha256": "91d8a344dc5926e13aa0f6f290c598d8c2323be53233d8889172bffb10f750de"
+  },
+  {
+    "path": "src/TaskGraph/NativeTaskRules.php",
+    "methods": [
+      {
+        "name": "__construct",
+        "signature": "public function __construct(private readonly Connection $db, private readonly Clock $clock, private readonly CalendarRegistry $calendars)",
+        "line": 16
+      },
+      {
+        "name": "activated",
+        "signature": "public function activated(ExecutionContext $context, int $instanceId, string $operationId): void",
+        "line": 20
+      },
+      {
+        "name": "entered",
+        "signature": "public function entered(ExecutionContext $context, int $instanceId, int $visitId, object $stage, string $operationId): void",
+        "line": 24
+      },
+      {
+        "name": "leaving",
+        "signature": "public function leaving(ExecutionContext $context, int $instanceId): void",
+        "line": 28
+      },
+      {
+        "name": "activity",
+        "signature": "public function activity(ExecutionContext $context, int $instanceId): void",
+        "line": 32
+      },
+      {
+        "name": "beforeTransition",
+        "signature": "public function beforeTransition(ExecutionContext $context, array $instance, array $edge, array $payload): void",
+        "line": 36
+      }
+    ],
+    "sha256": "d1b326bc7c3c55c81b57528e68facdbcba15eed92fbffc2ac7761e697bf14647"
+  },
+  {
+    "path": "src/TaskGraph/PreviewValue.php",
+    "methods": [
+      {
+        "name": "ordered",
+        "signature": "public static function ordered(array $value): array",
+        "line": 7
+      }
+    ],
+    "sha256": "f39120fe353ca3cffdf38c8a26fde48d1e8292b52380e8dc0794d2c724666093"
+  },
+  {
+    "path": "src/TaskGraph/ScopeGraphLock.php",
+    "methods": [
+      {
+        "name": "acquire",
+        "signature": "public static function acquire(Connection $db, ExecutionContext $context): int",
+        "line": 10
+      },
+      {
+        "name": "changed",
+        "signature": "public static function changed(Connection $db, ExecutionContext $context): void",
+        "line": 20
+      }
+    ],
+    "sha256": "a068784839ae99f8239ca2fb852a59a24b0f861eda38c8ef908dfe34ff685699"
+  },
+  {
+    "path": "src/TaskGraph/TaskActualClock.php",
+    "methods": [
+      {
+        "name": "current",
+        "signature": "public static function current(Connection $db, string $scope, int $taskId): array",
+        "line": 9
+      }
+    ],
+    "sha256": "f57fc5bbcb4314098b74e974c4723250f91004b5a66e19c823e1e08098f3284f"
+  },
+  {
+    "path": "src/TaskGraph/TaskPlanningService.php",
+    "methods": [
+      {
+        "name": "__construct",
+        "signature": "public function __construct(private readonly Connection $db, private readonly Clock $clock, private readonly AuthorizationProvider $authorization, private readonly TaskService $tasks, private readonly ProjectService $projects, private readonly CalendarRegistry $calendars)",
+        "line": 20
+      },
+      {
+        "name": "estimate",
+        "signature": "public function estimate(ExecutionContext $context, string $key, int $version, ?int $minutes, ?string $points, string $operation): array",
+        "line": 31
+      },
+      {
+        "name": "previewSchedule",
+        "signature": "public function previewSchedule(ExecutionContext $context, string $key, ?\\DateTimeImmutable $start, ?\\DateTimeImmutable $finish): array",
+        "line": 55
+      },
+      {
+        "name": "executeSchedule",
+        "signature": "public function executeSchedule(ExecutionContext $context, array $preview, string $operation): array",
+        "line": 151
+      },
+      {
+        "name": "criticalPath",
+        "signature": "public function criticalPath(ExecutionContext $context, string $projectKey, ?\\DateTimeImmutable $anchor = null): array",
+        "line": 200
+      }
+    ],
+    "sha256": "683293ab0b8b7d2276fe2d7d32bcba868ec2d7f262e45d96610056a0f9f4a0a3"
+  },
+  {
+    "path": "src/TaskManager.php",
+    "methods": [
+      {
+        "name": "__construct",
+        "signature": "public function __construct(private readonly TaskService $tasks, private readonly WorkflowService $workflows, private readonly PipelineService $pipelines, private readonly InstanceService $instances, private readonly ProjectService $projects, private readonly CaseService $cases, private readonly SlaService $sla, private readonly StagePolicyService $stagePolicies, private readonly AssignmentService $assignments, private readonly ApprovalService $approvals, private readonly HandoffService $handoffs, private readonly LocalRouteService $routes, private readonly ExternalSagaService $sagas, private readonly GroupService $groups, private readonly MilestoneService $milestones, private readonly HierarchyService $hierarchy, private readonly DependencyService $dependencies, private readonly TaskPlanningService $planning, private readonly CollaborationService $collaboration, private readonly ChecklistService $checklists, private readonly AttachmentService $attachments, private readonly TimeTrackingService $time, private readonly SprintService $sprints, private readonly PositionService $positions, private readonly MarkerService $markers, private readonly ReportingService $reports, private readonly TemplateService $templates, private readonly BulkService $bulk, private readonly DateService $dates, private readonly RecurrenceService $recurrences, private readonly ReminderService $reminders, private readonly CustomFieldService $fields, private readonly QueryService $queries, private readonly PresetService $presets, private readonly AutomationService $automation, private readonly EventPump $events, private readonly WebhookService $webhooks, private readonly ExportService $exports, private readonly ReportService $enterpriseReports, private readonly IntegrationFactory $integrations, private readonly ?EntryRoutingService $entryRouting = null)",
+        "line": 49
+      },
+      {
+        "name": "entryRouting",
+        "signature": "public function entryRouting(): EntryRoutingService",
+        "line": 81
+      },
+      {
+        "name": "integrations",
+        "signature": "public function integrations(): IntegrationFactory",
+        "line": 86
+      },
+      {
+        "name": "tasks",
+        "signature": "public function tasks(): TaskService",
+        "line": 91
+      },
+      {
+        "name": "workflows",
+        "signature": "public function workflows(): WorkflowService",
+        "line": 96
+      },
+      {
+        "name": "pipelines",
+        "signature": "public function pipelines(): PipelineService",
+        "line": 101
+      },
+      {
+        "name": "instances",
+        "signature": "public function instances(): InstanceService",
+        "line": 106
+      },
+      {
+        "name": "projects",
+        "signature": "public function projects(): ProjectService",
+        "line": 111
+      },
+      {
+        "name": "cases",
+        "signature": "public function cases(): CaseService",
+        "line": 116
+      },
+      {
+        "name": "sla",
+        "signature": "public function sla(): SlaService",
+        "line": 121
+      },
+      {
+        "name": "stagePolicies",
+        "signature": "public function stagePolicies(): StagePolicyService",
+        "line": 126
+      },
+      {
+        "name": "assignments",
+        "signature": "public function assignments(): AssignmentService",
+        "line": 131
+      },
+      {
+        "name": "approvals",
+        "signature": "public function approvals(): ApprovalService",
+        "line": 136
+      },
+      {
+        "name": "handoffs",
+        "signature": "public function handoffs(): HandoffService",
+        "line": 141
+      },
+      {
+        "name": "routes",
+        "signature": "public function routes(): LocalRouteService",
+        "line": 146
+      },
+      {
+        "name": "sagas",
+        "signature": "public function sagas(): ExternalSagaService",
+        "line": 151
+      },
+      {
+        "name": "groups",
+        "signature": "public function groups(): GroupService",
+        "line": 156
+      },
+      {
+        "name": "milestones",
+        "signature": "public function milestones(): MilestoneService",
+        "line": 161
+      },
+      {
+        "name": "hierarchy",
+        "signature": "public function hierarchy(): HierarchyService",
+        "line": 166
+      },
+      {
+        "name": "dependencies",
+        "signature": "public function dependencies(): DependencyService",
+        "line": 171
+      },
+      {
+        "name": "planning",
+        "signature": "public function planning(): TaskPlanningService",
+        "line": 176
+      },
+      {
+        "name": "collaboration",
+        "signature": "public function collaboration(): CollaborationService",
+        "line": 181
+      },
+      {
+        "name": "checklists",
+        "signature": "public function checklists(): ChecklistService",
+        "line": 186
+      },
+      {
+        "name": "attachments",
+        "signature": "public function attachments(): AttachmentService",
+        "line": 191
+      },
+      {
+        "name": "time",
+        "signature": "public function time(): TimeTrackingService",
+        "line": 196
+      },
+      {
+        "name": "sprints",
+        "signature": "public function sprints(): SprintService",
+        "line": 201
+      },
+      {
+        "name": "positions",
+        "signature": "public function positions(): PositionService",
+        "line": 206
+      },
+      {
+        "name": "markers",
+        "signature": "public function markers(): MarkerService",
+        "line": 211
+      },
+      {
+        "name": "reports",
+        "signature": "public function reports(): ReportingService",
+        "line": 216
+      },
+      {
+        "name": "templates",
+        "signature": "public function templates(): TemplateService",
+        "line": 221
+      },
+      {
+        "name": "bulk",
+        "signature": "public function bulk(): BulkService",
+        "line": 226
+      },
+      {
+        "name": "dates",
+        "signature": "public function dates(): DateService",
+        "line": 231
+      },
+      {
+        "name": "recurrences",
+        "signature": "public function recurrences(): RecurrenceService",
+        "line": 236
+      },
+      {
+        "name": "reminders",
+        "signature": "public function reminders(): ReminderService",
+        "line": 241
+      },
+      {
+        "name": "fields",
+        "signature": "public function fields(): CustomFieldService",
+        "line": 246
+      },
+      {
+        "name": "queries",
+        "signature": "public function queries(): QueryService",
+        "line": 251
+      },
+      {
+        "name": "presets",
+        "signature": "public function presets(): PresetService",
+        "line": 256
+      },
+      {
+        "name": "automation",
+        "signature": "public function automation(): AutomationService",
+        "line": 261
+      },
+      {
+        "name": "events",
+        "signature": "public function events(): EventPump",
+        "line": 266
+      },
+      {
+        "name": "webhooks",
+        "signature": "public function webhooks(): WebhookService",
+        "line": 271
+      },
+      {
+        "name": "exports",
+        "signature": "public function exports(): ExportService",
+        "line": 276
+      },
+      {
+        "name": "enterpriseReports",
+        "signature": "public function enterpriseReports(): ReportService",
+        "line": 281
+      },
+      {
+        "name": "__call",
+        "signature": "public function __call(string $method, array $arguments): mixed",
+        "line": 286
+      }
+    ],
+    "sha256": "d75678ec378aaef1ac1424a3e07f7e8c6230d52619ab521dd1d9ef3c339e567e"
+  },
+  {
+    "path": "src/TaskManagerServiceProvider.php",
+    "methods": [
+      {
+        "name": "register",
+        "signature": "public function register(): void",
+        "line": 89
+      },
+      {
+        "name": "boot",
+        "signature": "public function boot(): void",
+        "line": 170
+      }
+    ],
+    "sha256": "0389a0785105e75eb0cc6c7845c2126be27fe6b10e974b19ac3d8522b1953157"
+  },
+  {
+    "path": "src/TaskResourceService.php",
+    "methods": [
+      {
+        "name": "__construct",
+        "signature": "public function __construct(private readonly Connection $db, private readonly Clock $clock, private readonly TaskService $tasks, private readonly ?AuthorizationProvider $authorization = null)",
+        "line": 15
+      },
+      {
+        "name": "create",
+        "signature": "public function create(ExecutionContext $context, string $taskKey, string $kind, array $data, string $operation): array",
+        "line": 48
+      },
+      {
+        "name": "get",
+        "signature": "public function get(ExecutionContext $context, string $kind, string $key): array",
+        "line": 69
+      },
+      {
+        "name": "change",
+        "signature": "public function change(ExecutionContext $context, string $kind, string $key, int $version, string $operation, ?array $data): array",
+        "line": 88
+      }
+    ],
+    "sha256": "4777aa9750cdb68b4f8e5bd478a8c622ada47330267f530dbd81a440602fd6da"
+  },
+  {
+    "path": "src/TaskService.php",
+    "methods": [
+      {
+        "name": "__construct",
+        "signature": "public function __construct(private readonly Connection $db, private readonly Clock $clock = new SystemClock, private readonly AuthorizationProvider $authorization = new ContextAuthorization, private readonly ?StageLifecycle $lifecycle = null)",
+        "line": 29
+      },
+      {
+        "name": "createTodo",
+        "signature": "public function createTodo(CreateTodo $command): TaskResult",
+        "line": 33
+      },
+      {
+        "name": "inContext",
+        "signature": "public function inContext(ExecutionContext $context): TaskSession",
+        "line": 38
+      },
+      {
+        "name": "change",
+        "signature": "public function change(MutateTask $command): TaskResult",
+        "line": 43
+      },
+      {
+        "name": "findTasks",
+        "signature": "public function findTasks(TaskQuery $query): array",
+        "line": 49
+      },
+      {
+        "name": "authorizedQuery",
+        "signature": "public function authorizedQuery(ExecutionContext $context, string $capability = 'view'): Builder",
+        "line": 95
+      },
+      {
+        "name": "get",
+        "signature": "public function get(ExecutionContext $context, string $id): array",
+        "line": 104
+      },
+      {
+        "name": "resolveKey",
+        "signature": "public function resolveKey(ExecutionContext $context, string $key): array",
+        "line": 125
+      },
+      {
+        "name": "query",
+        "signature": "public function query(ExecutionContext $context, int $page = 1, int $limit = 30): array",
+        "line": 148
+      },
+      {
+        "name": "count",
+        "signature": "public function count(ExecutionContext $context): int",
+        "line": 161
+      },
+      {
+        "name": "facets",
+        "signature": "public function facets(ExecutionContext $context): array",
+        "line": 166
+      },
+      {
+        "name": "lists",
+        "signature": "public function lists(ExecutionContext $context): array",
+        "line": 188
+      },
+      {
+        "name": "createList",
+        "signature": "public function createList(ExecutionContext $context, string $name, string $operation): array",
+        "line": 197
+      },
+      {
+        "name": "share",
+        "signature": "public function share(ExecutionContext $context, string $id, int $version, string $operation, string $actor, bool $edit = false, bool $revoke = false): array",
+        "line": 213
+      },
+      {
+        "name": "changeList",
+        "signature": "public function changeList(ExecutionContext $context, int $id, int $version, string $operation, array $values): array",
+        "line": 242
+      },
+      {
+        "name": "cloneTask",
+        "signature": "public function cloneTask(ExecutionContext $context, string $id, string $operation): array",
+        "line": 277
+      },
+      {
+        "name": "activity",
+        "signature": "public function activity(ExecutionContext $context, string $id): array",
+        "line": 289
+      },
+      {
+        "name": "create",
+        "signature": "public function create(ExecutionContext $context, string $title, string $operation): array",
+        "line": 335
+      },
+      {
+        "name": "mutate",
+        "signature": "public function mutate(ExecutionContext $context, string $id, int $version, string $operation, string $action, array $values = []): array",
+        "line": 376
+      }
+    ],
+    "sha256": "26abaa0b26139ea86d0124e367f98f4161d0f2dd1e8afd87013b1cd43672a88c"
+  },
+  {
+    "path": "src/TaskSession.php",
+    "methods": [
+      {
+        "name": "__construct",
+        "signature": "public function __construct(private TaskService $service, private ExecutionContext $context)",
+        "line": 11
+      },
+      {
+        "name": "create",
+        "signature": "public function create(string $title, string $operation): TaskResult",
+        "line": 15
+      },
+      {
+        "name": "complete",
+        "signature": "public function complete(string $id, int $version, string $operation): TaskResult",
+        "line": 20
+      },
+      {
+        "name": "get",
+        "signature": "public function get(string $id): TaskResult",
+        "line": 25
+      }
+    ],
+    "sha256": "79056588f0177141fb1a14d83ec7b5c4701bdbfe88822e929ccf2d89e42c4c4d"
+  },
+  {
+    "path": "src/UI/BoundCursor.php",
+    "methods": [
+      {
+        "name": "__construct",
+        "signature": "public function __construct(private string $secret)",
+        "line": 9
+      },
+      {
+        "name": "encode",
+        "signature": "public function encode(array $binding, array $position): string",
+        "line": 16
+      },
+      {
+        "name": "decode",
+        "signature": "public function decode(?string $token, array $binding): array",
+        "line": 23
+      }
+    ],
+    "sha256": "1bafb1378783804f30be50b98a6576fa6a980332fe2d4625f66e9553f90ca711"
+  },
+  {
+    "path": "src/UI/Calendar/DueEvents.php",
+    "methods": [],
+    "sha256": "b941927f84793b6b68ed04367ca866fcb6f814dcf2637dc14b59db00c0413f1b"
+  },
+  {
+    "path": "src/UI/Calendar/MilestoneEvents.php",
+    "methods": [],
+    "sha256": "961cd26f5bcd83a5b86b7fe1ae013411c3bc64edd396588b80fc5936ce3a7290"
+  },
+  {
+    "path": "src/UI/Calendar/RecurringEvents.php",
+    "methods": [],
+    "sha256": "c8952bc1a8d0157b69f15f9ee31f668e83296be7dd957cdc70f0518775880f20"
+  },
+  {
+    "path": "src/UI/Calendar/ScheduleEvents.php",
+    "methods": [],
+    "sha256": "d3fd69efb5ae598bd33f433a5bb7d5a181aef6c9392275b0600005c40d88d3fc"
+  },
+  {
+    "path": "src/UI/Calendar/SlaEvents.php",
+    "methods": [],
+    "sha256": "a01fe56bee98c0bcbc60eba8749cd3d651d64f64bd679888a8c36e4310eb2123"
+  },
+  {
+    "path": "src/UI/Calendar/SourceEvents.php",
+    "methods": [
+      {
+        "name": "__construct",
+        "signature": "public function __construct(private readonly TaskCalendar $calendar)",
+        "line": 17
+      },
+      {
+        "name": "fetch",
+        "signature": "public function fetch(EventQuery $query, CalendarContext $context): EventPage",
+        "line": 21
+      },
+      {
+        "name": "find",
+        "signature": "public function find(EventReference $reference, CalendarContext $context): ?CalendarEventData",
+        "line": 26
+      }
+    ],
+    "sha256": "f79b545f9ffe7194b60645070a7756fa3e50f87ea5cba07c8c8cd9fdc0d93550"
+  },
+  {
+    "path": "src/UI/Calendar/TaskCalendar.php",
+    "methods": [
+      {
+        "name": "__construct",
+        "signature": "public function __construct(private readonly Connection $db, private readonly TaskService $tasks, private readonly InstanceService $instances, private readonly ProjectService $projects, private readonly DateService $dates, private readonly RecurrenceService $recurrences, private readonly Surface $surface, private readonly ContextBridge $bridge, private readonly BoundCursor $cursors)",
+        "line": 38
+      },
+      {
+        "name": "fetch",
+        "signature": "public function fetch(EventQuery $query, CalendarContext $context): EventPage",
+        "line": 184
+      },
+      {
+        "name": "find",
+        "signature": "public function find(EventReference $reference, CalendarContext $context): ?CalendarEventData",
+        "line": 263
+      },
+      {
+        "name": "execute",
+        "signature": "public function execute(ActionCommand $command, CalendarContext $context): ActionResult",
+        "line": 320
+      }
+    ],
+    "sha256": "3c6c3f7b42498a21a40367865a8ac330a2cea8115277a9b0f3d445570d319d90"
+  },
+  {
+    "path": "src/UI/CardIdentity.php",
+    "methods": [
+      {
+        "name": "make",
+        "signature": "public static function make(string $source, string $key): string",
+        "line": 9
+      },
+      {
+        "name": "parse",
+        "signature": "public static function parse(string $id, Surface $surface): array",
+        "line": 14
+      }
+    ],
+    "sha256": "d5b23dc958b20a3c26e3ca2a22ac2e06b9902b04f6f44c5df3849309cf56b13d"
+  },
+  {
+    "path": "src/UI/ContextBridge.php",
+    "methods": [
+      {
+        "name": "__construct",
+        "signature": "public function __construct(private \\Closure $resolver)",
+        "line": 11
+      },
+      {
+        "name": "resolve",
+        "signature": "public function resolve(object $surface, Surface $definition): ExecutionContext",
+        "line": 15
+      }
+    ],
+    "sha256": "bee6725bda391d6398d6f3a3c4843475fe177277ace2ed2020c9b1b255646e37"
+  },
+  {
+    "path": "src/UI/Crm/CutoverService.php",
+    "methods": [
+      {
+        "name": "__construct",
+        "signature": "public function __construct(private readonly Connection $db, private readonly Clock $clock, private readonly AuthorizationProvider $authorization, private readonly HostAccess $access, private readonly TaskService $tasks, private readonly InstanceService $instances, private readonly WorkflowService $workflows, private readonly ProjectService $projects, private readonly PipelineService $pipelines, private readonly DateService $dates)",
+        "line": 27
+      },
+      {
+        "name": "get",
+        "signature": "public function get(ExecutionContext $c, string $source, bool $lock = false): array",
+        "line": 41
+      },
+      {
+        "name": "configure",
+        "signature": "public function configure(ExecutionContext $c, string $source, array $mapping, string $operation): array",
+        "line": 55
+      },
+      {
+        "name": "inventory",
+        "signature": "public function inventory(ExecutionContext $c, string $source): array",
+        "line": 116
+      },
+      {
+        "name": "importBatch",
+        "signature": "public function importBatch(ExecutionContext $c, string $source, int $version, int $afterId, string $operation, int $limit = 100): array",
+        "line": 156
+      },
+      {
+        "name": "reconcile",
+        "signature": "public function reconcile(ExecutionContext $c, string $source): array",
+        "line": 341
+      },
+      {
+        "name": "switch",
+        "signature": "public function switch(ExecutionContext $c, string $source, int $version, string $mode, string $operation): array",
+        "line": 372
+      },
+      {
+        "name": "shadow",
+        "signature": "public function shadow(ExecutionContext $c, string $source, string $legacyId): array",
+        "line": 401
+      }
+    ],
+    "sha256": "7bf6d8ecb07294897c2a7f7f919aa816d96b027ccf106103a6deb3235c181c6c"
+  },
+  {
+    "path": "src/UI/Crm/DealSubject.php",
+    "methods": [
+      {
+        "name": "__construct",
+        "signature": "public function __construct(private Connection $db, private HostAccess $access)",
+        "line": 14
+      },
+      {
+        "name": "idColumn",
+        "signature": "public function idColumn(): string",
+        "line": 18
+      },
+      {
+        "name": "scopeColumn",
+        "signature": "public function scopeColumn(): string",
+        "line": 23
+      },
+      {
+        "name": "query",
+        "signature": "public function query(ExecutionContext $context, string $capability): Builder",
+        "line": 28
+      },
+      {
+        "name": "guard",
+        "signature": "public function guard(ExecutionContext $context, string $subjectId, array $instance, string $action, array $payload): void",
+        "line": 45
+      }
+    ],
+    "sha256": "9b034cbf2285270cb07b017734a94859914026111ff827a475803ed4d1d79a6b"
+  },
+  {
+    "path": "src/UI/Crm/FollowupService.php",
+    "methods": [
+      {
+        "name": "__construct",
+        "signature": "public function __construct(private Connection $db, private TaskService $tasks, private SubjectRegistry $subjects, private Clock $clock)",
+        "line": 17
+      },
+      {
+        "name": "create",
+        "signature": "public function create(ExecutionContext $c, string $type, string $subjectId, string $title, string $operation): array",
+        "line": 34
+      },
+      {
+        "name": "tasks",
+        "signature": "public function tasks(ExecutionContext $c, string $type, string $subjectId, int $afterId = 0, int $limit = 50): array",
+        "line": 51
+      }
+    ],
+    "sha256": "82895d3f3c5144de9d59d92f9e693684bef94868dc661d220e25559fd845dfb9"
+  },
+  {
+    "path": "src/UI/Crm/HostAccess.php",
+    "methods": [
+      {
+        "name": "constrain",
+        "signature": "public function constrain(Builder $query, ExecutionContext $context, string $type, string $capability): void",
+        "line": 11
+      },
+      {
+        "name": "scopeFor",
+        "signature": "public function scopeFor(object $model): string",
+        "line": 13
+      }
+    ],
+    "sha256": "329210aabf893e1d5c172bdce974eee229ba8365c5d548b96ad2b39543e5af67"
+  },
+  {
+    "path": "src/UI/Crm/LeadSubject.php",
+    "methods": [
+      {
+        "name": "__construct",
+        "signature": "public function __construct(private Connection $db, private HostAccess $access)",
+        "line": 13
+      },
+      {
+        "name": "idColumn",
+        "signature": "public function idColumn(): string",
+        "line": 17
+      },
+      {
+        "name": "scopeColumn",
+        "signature": "public function scopeColumn(): string",
+        "line": 22
+      },
+      {
+        "name": "query",
+        "signature": "public function query(ExecutionContext $c, string $capability): Builder",
+        "line": 27
+      },
+      {
+        "name": "guard",
+        "signature": "public function guard(ExecutionContext $c, string $id, array $instance, string $action, array $payload): void",
+        "line": 35
+      }
+    ],
+    "sha256": "fc37e13fbeaaafb2923864d089537323d94cbb44c75b0d31f34971d21449b1fe"
+  },
+  {
+    "path": "src/UI/Crm/LegacyWriteGuard.php",
+    "methods": [
+      {
+        "name": "__construct",
+        "signature": "public function __construct(private HostAccess $access)",
+        "line": 11
+      },
+      {
+        "name": "saving",
+        "signature": "public function saving(object $model): void",
+        "line": 15
+      },
+      {
+        "name": "deleting",
+        "signature": "public function deleting(object $model): void",
+        "line": 20
+      },
+      {
+        "name": "restoring",
+        "signature": "public function restoring(object $model): void",
+        "line": 25
+      }
+    ],
+    "sha256": "5fb8d68c77372806e1e5a4468b0467dd116c3ef7fe9712aa3534fcff0c13eb87"
+  },
+  {
+    "path": "src/UI/Crm/WriteOwnership.php",
+    "methods": [
+      {
+        "name": "constrainTasks",
+        "signature": "public static function constrainTasks(Connection $db, Builder $query): void",
+        "line": 11
+      },
+      {
+        "name": "assertHost",
+        "signature": "public static function assertHost(Connection $db, string $scope, string $type, string $id): void",
+        "line": 19
+      }
+    ],
+    "sha256": "b1a8090c66b004c6db996930524c041e94560e0ecd1615bb1cdbe9956549549e"
+  },
+  {
+    "path": "src/UI/IntegrationFactory.php",
+    "methods": [
+      {
+        "name": "__construct",
+        "signature": "public function __construct(private Container $app)",
+        "line": 26
+      },
+      {
+        "name": "board",
+        "signature": "public function board(Surface $surface, ContextBridge $bridge, BoundCursor $cursors, ?\\Closure $handoff = null): Kanban\\TaskBoard",
+        "line": 30
+      },
+      {
+        "name": "calendar",
+        "signature": "public function calendar(Surface $surface, ContextBridge $bridge, BoundCursor $cursors): Calendar\\TaskCalendar",
+        "line": 39
+      },
+      {
+        "name": "crm",
+        "signature": "public function crm(): Crm\\CutoverService",
+        "line": 48
+      },
+      {
+        "name": "guardLegacyCrm",
+        "signature": "public function guardLegacyCrm(): void",
+        "line": 57
+      },
+      {
+        "name": "followups",
+        "signature": "public function followups(): Crm\\FollowupService",
+        "line": 66
+      }
+    ],
+    "sha256": "0e72193da2b30c3f68fae5e7d02187682f0689105a764cd98e65d0335a9e4aa6"
+  },
+  {
+    "path": "src/UI/Kanban/TaskBoard.php",
+    "methods": [
+      {
+        "name": "__construct",
+        "signature": "public function __construct(private readonly Connection $db, private readonly TaskService $tasks, private readonly InstanceService $instances, private readonly WorkflowService $workflows, private readonly PipelineService $pipelines, private readonly SubjectRegistry $subjects, private readonly AuthorizationProvider $authorization, private readonly Surface $surface, private readonly ContextBridge $bridge, private readonly BoundCursor $cursors, private readonly ?\\Closure $handoff = null)",
+        "line": 42
+      },
+      {
+        "name": "board",
+        "signature": "public function board(BoardContext $context): BoardData",
+        "line": 55
+      },
+      {
+        "name": "capabilities",
+        "signature": "public function capabilities(BoardContext $context): array",
+        "line": 62
+      },
+      {
+        "name": "stages",
+        "signature": "public function stages(BoardContext $context, BoardQuery $query): array",
+        "line": 134
+      },
+      {
+        "name": "stageCards",
+        "signature": "public function stageCards(BoardContext $context, string $stageId, BoardQuery $query): PageResult",
+        "line": 213
+      },
+      {
+        "name": "listCards",
+        "signature": "public function listCards(BoardContext $context, BoardQuery $query): PageResult",
+        "line": 218
+      },
+      {
+        "name": "archives",
+        "signature": "public function archives(BoardContext $context, BoardQuery $query): PageResult",
+        "line": 223
+      },
+      {
+        "name": "counts",
+        "signature": "public function counts(BoardContext $context, BoardQuery $query): CountResult",
+        "line": 228
+      },
+      {
+        "name": "card",
+        "signature": "public function card(BoardContext $context, string $cardId): ?CardData",
+        "line": 244
+      },
+      {
+        "name": "execute",
+        "signature": "public function execute(ActionCommand $command, BoardContext $context): ActionResult",
+        "line": 263
+      },
+      {
+        "name": "operationStatus",
+        "signature": "public function operationStatus(BoardContext $context, string $operationId): ?ActionResult",
+        "line": 366
+      },
+      {
+        "name": "sections",
+        "signature": "public function sections(BoardContext $context, CardData $card): array",
+        "line": 384
+      },
+      {
+        "name": "loadSection",
+        "signature": "public function loadSection(BoardContext $context, CardData $card, string $key, ?string $cursor, int $limit): CardDetailSectionData",
+        "line": 405
+      },
+      {
+        "name": "performAction",
+        "signature": "public function performAction(BoardContext $context, CardData $card, CardDetailAction $action): ActionResult",
+        "line": 461
+      }
+    ],
+    "sha256": "7e50a268a7bfa4cec191a1e73258e596c96b1d75dfc00a2a1ceaca75d7685046"
+  },
+  {
+    "path": "src/UI/Surface.php",
+    "methods": [
+      {
+        "name": "__construct",
+        "signature": "public function __construct(public string $key, public array $sources, public array $pipelines = [], public array $handoffRoutes = [])",
+        "line": 10
+      },
+      {
+        "name": "allows",
+        "signature": "public function allows(string $source): void",
+        "line": 22
+      }
+    ],
+    "sha256": "08508da7d6d79e3e360a6b05900b3b7fbd44e21f7393fd5c774b88421be73106"
+  },
+  {
+    "path": "src/Workflow/CaseService.php",
+    "methods": [
+      {
+        "name": "__construct",
+        "signature": "public function __construct(private readonly Connection $db, private readonly Clock $clock, private readonly AuthorizationProvider $authorization, private readonly InstanceService $instances)",
+        "line": 16
+      },
+      {
+        "name": "create",
+        "signature": "public function create(ExecutionContext $context, string $title, string $operation): array",
+        "line": 20
+      },
+      {
+        "name": "timeline",
+        "signature": "public function timeline(ExecutionContext $context, string $caseKey, int $limit = 100): array",
+        "line": 41
+      }
+    ],
+    "sha256": "5f519add4906107235ae12e92ea3e00ab75526108e5db5895e4bb10ce4749823"
+  },
+  {
+    "path": "src/Workflow/Definition.php",
+    "methods": [
+      {
+        "name": "stateMachine",
+        "signature": "public static function stateMachine(array $states, string $initial, array $commands = []): array",
+        "line": 10
+      },
+      {
+        "name": "validate",
+        "signature": "public static function validate(array $definition): void",
+        "line": 33
+      },
+      {
+        "name": "key",
+        "signature": "public static function key(mixed $value): void",
+        "line": 110
+      },
+      {
+        "name": "decode",
+        "signature": "public static function decode(string $json): array",
+        "line": 117
+      }
+    ],
+    "sha256": "c5ced2e3dcd92794e55bed10e41decb1968e35ce962c584e0d8010e594e29ef6"
+  },
+  {
+    "path": "src/Workflow/EntryRoutingService.php",
+    "methods": [
+      {
+        "name": "__construct",
+        "signature": "public function __construct(private Connection $db, private Clock $clock, private AuthorizationProvider $authorization, private PipelineService $pipelines, private InstanceService $instances, private EntryRoutingProvider $provider)",
+        "line": 17
+      },
+      {
+        "name": "getDefault",
+        "signature": "public function getDefault(ExecutionContext $context, string $routingKey): array",
+        "line": 35
+      },
+      {
+        "name": "setDefault",
+        "signature": "public function setDefault(ExecutionContext $context, string $routingKey, ?string $pipelineKey, int $version, string $operation): array",
+        "line": 43
+      },
+      {
+        "name": "resolve",
+        "signature": "public function resolve(ExecutionContext $context, string $routingKey, bool $parentFallback = true): array",
+        "line": 66
+      },
+      {
+        "name": "enter",
+        "signature": "public function enter(ExecutionContext $context, string $type, string $subjectId, int $fallbackRevision, string $routingKey, string $operation, bool $parentFallback = true, string $slot = 'main'): array",
+        "line": 91
+      },
+      {
+        "name": "retirePipeline",
+        "signature": "public function retirePipeline(ExecutionContext $context, string $key, int $version, string $operation, ?string $replacementKey = null): array",
+        "line": 105
+      },
+      {
+        "name": "detachRetired",
+        "signature": "public function detachRetired(ExecutionContext $context, string $key, int $limit = 100): array",
+        "line": 132
+      }
+    ],
+    "sha256": "14be69bc8cce944741bc07da5b04c02826d9e0ca29ba93f9fea8d3954d9fa4cb"
+  },
+  {
+    "path": "src/Workflow/InstanceService.php",
+    "methods": [
+      {
+        "name": "__construct",
+        "signature": "public function __construct(private readonly Connection $db, private readonly Clock $clock, private readonly AuthorizationProvider $authorization, private readonly SubjectRegistry $subjects, private readonly WorkflowService $workflows, private readonly PipelineService $pipelines, private readonly array $guards = [], private readonly ?StageLifecycle $lifecycle = null)",
+        "line": 20
+      },
+      {
+        "name": "get",
+        "signature": "public function get(ExecutionContext $context, string $key): array",
+        "line": 76
+      },
+      {
+        "name": "authorizedQuery",
+        "signature": "public function authorizedQuery(ExecutionContext $context): Builder",
+        "line": 89
+      },
+      {
+        "name": "query",
+        "signature": "public function query(ExecutionContext $context, int $limit = 30, ?string $afterKey = null): array",
+        "line": 94
+      },
+      {
+        "name": "count",
+        "signature": "public function count(ExecutionContext $context): int",
+        "line": 107
+      },
+      {
+        "name": "facets",
+        "signature": "public function facets(ExecutionContext $context): array",
+        "line": 112
+      },
+      {
+        "name": "visits",
+        "signature": "public function visits(ExecutionContext $context, string $key): array",
+        "line": 117
+      },
+      {
+        "name": "start",
+        "signature": "public function start(ExecutionContext $context, string $type, string $subjectId, int $revisionId, string $operation, string $slot = 'main', ?string $pipelineKey = null, ?string $stageKey = null, ?string $caseKey = null): array",
+        "line": 124
+      },
+      {
+        "name": "transition",
+        "signature": "public function transition(ExecutionContext $context, string $key, int $version, string $operation, string $transition, array $payload = [], ?string $stageKey = null, bool $confirmed = true): array",
+        "line": 192
+      },
+      {
+        "name": "executeBusinessCommand",
+        "signature": "public function executeBusinessCommand(ExecutionContext $context, string $key, int $version, string $operation, string $command, array $payload = [], ?string $stageKey = null): array",
+        "line": 197
+      },
+      {
+        "name": "availableTransitions",
+        "signature": "public function availableTransitions(ExecutionContext $context, string $key): array",
+        "line": 205
+      },
+      {
+        "name": "previewMove",
+        "signature": "public function previewMove(ExecutionContext $context, string $key, string $pipelineKey, array $map, ?string $stageKey = null): array",
+        "line": 373
+      },
+      {
+        "name": "moveToPipeline",
+        "signature": "public function moveToPipeline(ExecutionContext $context, array $preview, string $operation): array",
+        "line": 389
+      },
+      {
+        "name": "changeBoardVisibility",
+        "signature": "public function changeBoardVisibility(ExecutionContext $context, string $key): array",
+        "line": 436
+      },
+      {
+        "name": "leavePipeline",
+        "signature": "public function leavePipeline(ExecutionContext $context, string $key, int $version, string $operation): array",
+        "line": 442
+      },
+      {
+        "name": "reconcile",
+        "signature": "public function reconcile(ExecutionContext $context, string $key): array",
+        "line": 461
+      },
+      {
+        "name": "lockForCommand",
+        "signature": "public function lockForCommand(ExecutionContext $context, string $key, int $version, string $subjectCapability = 'edit'): array",
+        "line": 491
+      }
+    ],
+    "sha256": "ebc33a0e89b293105963e3688b4b1012dd9ff3efc575839213781163a8fbc9d3"
+  },
+  {
+    "path": "src/Workflow/PipelineService.php",
+    "methods": [
+      {
+        "name": "__construct",
+        "signature": "public function __construct(private readonly Connection $db, private readonly Clock $clock, private readonly AuthorizationProvider $authorization, private readonly WorkflowService $workflows)",
+        "line": 16
+      },
+      {
+        "name": "create",
+        "signature": "public function create(ExecutionContext $context, string $name, int $revisionId, array $stages, string $operation, string $transitionMode = 'custom'): array",
+        "line": 20
+      },
+      {
+        "name": "get",
+        "signature": "public function get(ExecutionContext $context, string $key): array",
+        "line": 53
+      }
+    ],
+    "sha256": "62046eeb9bc60b9b76a25ce5be6f2afbb3307972e63050fca236dbdd8286b798"
+  },
+  {
+    "path": "src/Workflow/ProjectService.php",
+    "methods": [
+      {
+        "name": "authorizedQuery",
+        "signature": "public function authorizedQuery(ExecutionContext $context): Builder",
+        "line": 23
+      },
+      {
+        "name": "__construct",
+        "signature": "public function __construct(private readonly Connection $db, private readonly Clock $clock, private readonly AuthorizationProvider $authorization, private readonly WorkflowService $workflows, private readonly TaskService $tasks, private readonly StageLifecycle $lifecycle)",
+        "line": 35
+      },
+      {
+        "name": "get",
+        "signature": "public function get(ExecutionContext $context, string $key, string $capability = 'view', bool $lock = false): array",
+        "line": 39
+      },
+      {
+        "name": "create",
+        "signature": "public function create(ExecutionContext $context, string $key, string $name, int $revisionId, string $operation): array",
+        "line": 63
+      },
+      {
+        "name": "change",
+        "signature": "public function change(ExecutionContext $context, string $key, int $version, string $operation, string $action, array $data): array",
+        "line": 82
+      },
+      {
+        "name": "previewTaskMove",
+        "signature": "public function previewTaskMove(ExecutionContext $context, string $taskKey, string $projectKey, string $type, array $stateMap): array",
+        "line": 122
+      },
+      {
+        "name": "moveTask",
+        "signature": "public function moveTask(ExecutionContext $context, array $preview, string $operation, ?string $parentKey = null): array",
+        "line": 140
+      },
+      {
+        "name": "previewSubtreeMove",
+        "signature": "public function previewSubtreeMove(ExecutionContext $context, string $rootKey, string $projectKey, array $stateMaps): array",
+        "line": 198
+      },
+      {
+        "name": "moveSubtree",
+        "signature": "public function moveSubtree(ExecutionContext $context, array $preview, string $operation): array",
+        "line": 241
+      },
+      {
+        "name": "previewWorkflowMigration",
+        "signature": "public function previewWorkflowMigration(ExecutionContext $context, string $projectKey, int $revisionId, array $stateMap, ?string $type = null): array",
+        "line": 321
+      },
+      {
+        "name": "migrateWorkflow",
+        "signature": "public function migrateWorkflow(ExecutionContext $context, array $preview, string $operation): array",
+        "line": 351
+      }
+    ],
+    "sha256": "d71b2f3fadc9d80e08b911969bff0e48ee2b733c8ad18b907b21f55245351837"
+  },
+  {
+    "path": "src/Workflow/StateIndex.php",
+    "methods": [
+      {
+        "name": "taskCategoryQuery",
+        "signature": "public static function taskCategoryQuery(Connection $db, string $scope): Builder",
+        "line": 10
+      },
+      {
+        "name": "currentTaskIds",
+        "signature": "public static function currentTaskIds(Connection $db, string $scope, array $categories): Builder",
+        "line": 16
+      },
+      {
+        "name": "category",
+        "signature": "public static function category(array $definition, string $key): string",
+        "line": 23
+      },
+      {
+        "name": "publish",
+        "signature": "public static function publish(Connection $db, int $revisionId, array $definition): void",
+        "line": 34
+      },
+      {
+        "name": "transition",
+        "signature": "public static function transition(Connection $db, int $fromRevision, string $from, int $toRevision, string $to): array",
+        "line": 45
+      }
+    ],
+    "sha256": "b91fd283c46c1545581890938f485c375fd90eb1159b1e8442df1b0eb0570a1d"
+  },
+  {
+    "path": "src/Workflow/TaskSubjectHandler.php",
+    "methods": [
+      {
+        "name": "__construct",
+        "signature": "public function __construct(private readonly TaskService $tasks)",
+        "line": 13
+      },
+      {
+        "name": "query",
+        "signature": "public function query(ExecutionContext $context, string $capability): Builder",
+        "line": 17
+      },
+      {
+        "name": "idColumn",
+        "signature": "public function idColumn(): string",
+        "line": 22
+      },
+      {
+        "name": "scopeColumn",
+        "signature": "public function scopeColumn(): string",
+        "line": 27
+      },
+      {
+        "name": "guard",
+        "signature": "public function guard(ExecutionContext $context, string $subjectId, array $instance, string $action, array $payload): void",
+        "line": 32
+      }
+    ],
+    "sha256": "aabce0577996da09d495b242f39fb01239fdc8bb8d33d81b45badfe2714c009d"
+  },
+  {
+    "path": "src/Workflow/UnavailableEntryRoutingProvider.php",
+    "methods": [
+      {
+        "name": "authorize",
+        "signature": "public function authorize(ExecutionContext $context, string $routingKey): void",
+        "line": 11
+      },
+      {
+        "name": "parent",
+        "signature": "public function parent(ExecutionContext $context, string $routingKey): ?string",
+        "line": 16
+      }
+    ],
+    "sha256": "8c9541f1267a0e1b320e5ee5db3e7416370e844690126e657bc32d85f2b18b13"
+  },
+  {
+    "path": "src/Workflow/WorkflowService.php",
+    "methods": [
+      {
+        "name": "__construct",
+        "signature": "public function __construct(private readonly Connection $db, private readonly Clock $clock, private readonly AuthorizationProvider $authorization)",
+        "line": 15
+      },
+      {
+        "name": "publish",
+        "signature": "public function publish(ExecutionContext $context, string $key, int $expectedRevision, string $operation, array $definition): array",
+        "line": 19
+      },
+      {
+        "name": "revision",
+        "signature": "public function revision(ExecutionContext $context, int $id): array",
+        "line": 45
+      }
+    ],
+    "sha256": "7620319a503599d9ce84bc8cfcf727888ba6abf49ec02d763817bb49a7d6ba83"
+  }
+]

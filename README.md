@@ -1,34 +1,31 @@
 # Karnoweb Task Manager
 
-Work in progress. This repository is not a complete or production-ready implementation of the seven-phase plan in `dev/`.
+موتور مستقل Todo، پروژه و گردش‌کار برای Laravel 13 و PHP ‎^8.3. نصب Kanban، Calendar، CRM یا Ticket Chat برای هسته الزامی نیست.
 
-The implemented phase-one/two core includes personal tasks/lists, explicit context, scoped capabilities, optimistic commands, audit/outbox, immutable workflow revisions, projects/membership/types, pipelines/stages/capacity, external subject handlers, independent process slots, stage visits and authorized case timelines. Laravel 13 and PHP 8.3+ are required. UI packages and CRM are not dependencies.
+## نصب و شروع
 
-Install with Composer and run the package migrations from the host Laravel application. Resolve `Karnoweb\TaskManager\TaskService` or use the TaskManager facade. Every operation requires an explicit ExecutionContext; there is no implicit authenticated user or global tenant context.
+[نصب](docs/installation.md) را کامل کنید. فایل کامل [فرمان نمونه](examples/Console/TaskManagerExample.php) را در `app/Console/Commands/TaskManagerExample.php` کپی کنید:
 
-Run `composer test` for the SQLite baseline. The PostgreSQL profile currently uses a dedicated local test cluster on 127.0.0.1:55439, database `tm_acceptance`, user `tm_test`. Set `TM_TEST_DRIVER=pgsql` to run it. **The PostgreSQL suite recreates the public schema in that test database; never target application data.**
+```shell
+php artisan task-manager:example todo
+php artisan task-manager:example workflow
+php artisan task-manager:example reminder
+```
 
-OutboxDispatcher delivers committed events synchronously without requiring an external queue. Delivery is at least once: consumers must deduplicate using event_id. Never pass a browser-supplied scope directly to an operational dispatcher. Public task commands always recheck explicit context and visibility.
+این فرمان برای محیط توسعه است؛ قابلیت‌های ثابت آن را در درخواست HTTP استفاده نکنید. در برنامهٔ واقعی، هویت، محدوده و قابلیت‌ها باید از سیاست معتبر میزبان ساخته شوند.
 
-Phase-three combined evidence is in `docs/phase3-all-sqlite.xml` and `docs/phase3-all-postgres.xml`: 298 tests, including 63 phase-one/two scenario IDs and all 58 owned phase-three scenario IDs. PostgreSQL passed 1709 assertions with one MariaDB-only upgrade skip; SQLite passed 1512 assertions with 22 engine-specific skips. Targeted EnvKit MariaDB verification passed 30 tests / 236 assertions with one PostgreSQL-only E2E skip. Stage clocks/calendars, pause/resume/reset, deduplicated watchdogs and scoped responsibility policies/history/round-robin are implemented. Sequential/parallel/quorum approvals, durable votes and guarded decision execution are implemented. Delegation/parallel joins, terminal return/recall/timeout, immutable outcome evidence and recovery scans are implemented. Host-owned same-connection routing and separate-database Saga confirmation/compensation have executable contract fixtures. Campaign preview, committed milestone evidence, leased closure/recovery and manual handoff repair are implemented. Backend E2E-02..06 have executable fixtures. The phase-three owned gate passed. Scale smoke and exact-identifier security/upgrade evidence are documented; full load, Oracle MySQL 8 and installed-host acceptance remain unverified. This paragraph records historical phase-three evidence; phase-four and phase-five evidence follows below. These are not phase-seven acceptance results.
+Facade (نمای دسترسی ساده): `Karnoweb\TaskManager\Facades\TaskManager`. مدیر قابل تزریق: `Karnoweb\TaskManager\TaskManager`.
 
+## مستندات توسعه‌دهنده
 
-Phase four is implemented and passed the user-authorized **SQLite-only scope**: final regression 419 tests / 2086 assertions / zero failures or errors / 22 engine-specific skips. All 52 owned scenario IDs passed 58 actual data cases / 288 assertions; their independent PHP/Persian Markdown files and actual JUnit evidence are verified by `python tools/verify_phase4_gate.py`. See [implementation](docs/PHASE-4-IMPLEMENTATION-FA.md), [usage and facade examples](docs/PHASE-4-USAGE-FA.md), [schema/consistency decisions](docs/PHASE-4-DECISIONS.md), [test report](docs/PHASE-4-TEST-REPORT.md) and [gate](docs/PHASE-4-GATE.json).
+- [شروع سریع](docs/quickstart.md)، [پیکربندی](docs/configuration.md)، [فهرست راهنماها](docs/guides/index.md)
+- [مرجع امضاهای واقعی سرویس‌ها](docs/api/reference.md)، [قراردادها و داده‌ها](docs/api/contracts.md)
+- [Ticketing](docs/guides/ticketing-integration.md)، [CRM](docs/guides/crm-integration.md)، [Kanban](docs/guides/kanban-integration.md)، [Calendar](docs/guides/calendar-integration.md)
+- [معماری](docs/advanced/architecture.md)، [امنیت](docs/advanced/security.md)، [کارگرها](docs/advanced/workers.md)، [کارایی](docs/advanced/performance.md)
+- [آزمون](docs/testing.md)، [رفع اشکال](docs/troubleshooting.md)، [ارتقا](docs/upgrade.md)
 
-Hierarchy/controlled subtree project moves, four dependency types with actual-clock/business-lag guards and schedule previews, checklists/comments/watchers/host file downloads, immutable project templates, sprint membership/snapshots/leaf velocity, exact contextual ranks, time tracking/projection rebuilds, permitted reporting and atomic/partial bulk commands are available. The 100-task/depth-eight/separate-Bug-workflow fixture passed with no leaf/ancestor double counting. Active sprint scope changes are reported immediately while historical snapshots stay frozen.
+## وضعیت راستی‌آزمایی
 
-**No phase-four PostgreSQL/MariaDB/Oracle MySQL or physical multi-connection race was run.** Per the user's instruction these are deferred to phase seven; SQLite conflicting-client tests do not establish real lock/concurrency correctness. The gate is `PASS_SQLITE_SCOPE`, not a release decision.
+گزارش جاری در [گزارش اصلاحات](docs/maintenance/corrections-report.md) ثبت می‌شود. گزارش‌های فازهای قبلی، شواهد تاریخی همان نسخه‌ها هستند؛ نامزد قدیمی فاز ۷ نتیجهٔ NO-GO (عدم تأیید انتشار) داشت. اصلاحات حاضر به معنی تأیید خودکار تمام ۳۶۲ سناریوی انتشار نیست.
 
-Phase five is implemented and passed the authorized **SQLite-only scope**: final regression 506 tests / 4602 assertions / zero failures or errors / 22 engine-specific skips. All 42 owned scenario IDs passed 42 actual cases / 1469 assertions, verified from the final regression evidence by `python tools/verify_phase5_gate.py`. See [implementation](docs/PHASE-5-IMPLEMENTATION-FA.md), [usage](docs/PHASE-5-USAGE-FA.md), [decisions](docs/PHASE-5-DECISIONS.md), [test report](docs/PHASE-5-TEST-REPORT.md) and [gate](docs/PHASE-5-GATE.json).
-
-Calendar spans, timezone and daylight-saving rules, bounded Gregorian/Persian recurrence, reminders, typed custom fields, normalized Persian search, authorized pagination, safe presets, versioned automation, durable event consumers, signed webhooks, private exports and historical process reports are available. SQLite fixtures cover 10,000 and 100,000 records with bounded query counts and PHP allocations. Notification and webhook tests use controlled transports without external delivery.
-
-Broader database verification, physical concurrency, real network integration and comprehensive acceptance remain deferred to phase seven. This paragraph records the phase-five checkpoint.
-
-Phase six is implemented and passed the authorized **SQLite-only scope**: final regression **564 tests / 4960 assertions / zero failures or errors / 22 engine-specific skips**. All **21 owned IDs / 21 cases / 147 assertions** passed. The final run includes six functional host E2E IDs in eight cases, actual CRM services, a persisted sample Ticket host, a real Livewire board action and the actual Calendar source dispatcher. Four separately locked Composer installations (Task-only, Kanban-only, Calendar-only, all) prove optional-package independence; standalone UI profiles have no Task Manager package installed.
-
-`TaskManager::integrations()` exposes explicit optional board/calendar adapters, authorized follow-up associations and controlled CRM migration. Context/source boundaries, domain-owned moves, command retries, scoped read-only Drawer sections, stable occurrence identity, real UI time payloads, shadow imports, source/target reconciliation and writer cutover are connected. Unchanged-data rollback is rehearsed; post-cutover changes require a separately reviewed host reverse migration. Legacy raw SQL/bulk writers must be retired or restricted by the host. Calendar provider caching stays off unless the host implements permission-aware invalidation.
-
-See [phase-six changes](docs/PHASE-6-IMPLEMENTATION-FA.md), [integration usage](docs/PHASE-6-USAGE-FA.md), [migration and rollback](docs/PHASE-6-MIGRATION-FA.md), [public service index](docs/API-REFERENCE-FA.md), [source review and boundaries](docs/PHASE-6-DECISIONS.md), [actual test report](docs/PHASE-6-TEST-REPORT.md) and [verified gate](docs/PHASE-6-GATE.json). `python tools/verify_phase6_gate.py` extracts owned evidence from the complete final JUnit report and checks actual installation locks. Local package metadata was used after network timeouts; this is not a clean internet-download claim.
-
-The candidate is recorded in `docs/PHASE-6-RC-FREEZE.json`. **Phase seven has not started.** Database/concurrency/network/load and final consuming-host visual/operational acceptance remain phase-seven work; this checkpoint is not a production release decision. The agent stops at the phase-six boundary.
+[تغییرات](CHANGELOG.md) · [تحلیل شکاف‌ها](docs/maintenance/gap-analysis.md) · [تطبیق معیارهای تیکتینگ](docs/maintenance/ticketing-acceptance.md) · [گزارش پاک‌سازی](docs/maintenance/cleanup-report.md)

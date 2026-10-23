@@ -167,7 +167,7 @@ final class TaskBoard implements ActionHandler, CardDetailsProvider, DataProvide
         }
         $i = $this->instances->get($c, $row['instance_key']);
 
-        return new CardData(CardIdentity::make($source, $i['instance_key']), $context->boardKey, CardIdentity::make($source, $i['active_stage_key']), $source.' '.$i['subject_id'], version: (string) $i['version'], permissions: ['move' => in_array('workflow.transition', $c->capabilities, true), 'view' => true]);
+        return new CardData(CardIdentity::make($source, $i['instance_key']), $context->boardKey, CardIdentity::make($source, $i['active_stage_key']), $source.' '.$i['subject_id'], version: (string) $i['version'], metadata: ['transition_candidates_json' => json_encode($this->instances->availableTransitions($c, $i['instance_key']), JSON_THROW_ON_ERROR)], permissions: ['move' => in_array('workflow.transition', $c->capabilities, true), 'view' => true]);
     }
 
     private function canEdit(ExecutionContext $c, string $key): bool
@@ -276,7 +276,7 @@ final class TaskBoard implements ActionHandler, CardDetailsProvider, DataProvide
                         throw new DomainError($result->messageCode ?? 'ui_action_unsupported');
                     }
 
-return ['card_id' => $id, 'version' => $result->newVersion, 'surface_hash' => hash('sha256', json_encode($this->surface, JSON_THROW_ON_ERROR))];
+                    return ['card_id' => $id, 'version' => $result->newVersion, 'surface_hash' => hash('sha256', json_encode($this->surface, JSON_THROW_ON_ERROR))];
                 },
                 function ($r) use ($context) {
                     if (! $this->card($context, $r['card_id'])) {
@@ -338,7 +338,8 @@ return ['card_id' => $id, 'version' => $result->newVersion, 'surface_hash' => ha
                 }
                 $definition = $this->workflows->revision($c, $instance['workflow_revision_id'])['definition'];
                 $targetState = $this->db->table('tm_pipeline_stages')->where('pipeline_id', $instance['pipeline_id'])->where('stage_key', $stage)->value('state_key');
-                $edges = array_filter($definition['transitions'], fn ($e) => $e['from'] === $instance['current_state_key'] && $e['to'] === $targetState);
+                $candidates = array_column($this->instances->availableTransitions($c, $instance['instance_key']), 'transition');
+                $edges = array_filter($definition['transitions'], fn ($e, $name) => in_array($name, $candidates, true) && $e['from'] === $instance['current_state_key'] && $e['to'] === $targetState, ARRAY_FILTER_USE_BOTH);
                 $edge = $command->payload['transition'] ?? (count($edges) === 1 ? array_key_first($edges) : null);
                 if (! is_string($edge) || ! isset($edges[$edge])) {
                     throw new DomainError('transition_ambiguous');
@@ -459,7 +460,7 @@ return ['card_id' => $id, 'version' => $result->newVersion, 'surface_hash' => ha
 
     public function performAction(BoardContext $context, CardData $card, CardDetailAction $action): ActionResult
     {
-        if (! $this->card($context,$card->id)) {
+        if (! $this->card($context, $card->id)) {
             return new ActionResult(ActionStatus::NOT_FOUND);
         }
 

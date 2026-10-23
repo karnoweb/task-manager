@@ -1,6 +1,6 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <testsuites>
-  <testsuite name="InstallationProbe" file="D:\my-packages\task-manager\tests\HostProfiles\InstallationProbe.php" tests="1" assertions="13" errors="0" failures="0" skipped="0" time="0.888211">
-    <testcase name="test_installed_profile_boots_real_packages_and_persists_only_its_own_truth" file="D:\my-packages\task-manager\tests\HostProfiles\InstallationProbe.php" line="22" class="InstallationProbe" classname="InstallationProbe" assertions="13" time="0.888211"/>
+  <testsuite name="InstallationProbe" file="D:\my-packages\task-manager\tests\HostProfiles\InstallationProbe.php" tests="1" assertions="13" errors="0" failures="0" skipped="0" time="1.046492">
+    <testcase name="test_installed_profile_boots_real_packages_and_persists_only_its_own_truth" file="D:\my-packages\task-manager\tests\HostProfiles\InstallationProbe.php" line="74" class="InstallationProbe" classname="InstallationProbe" assertions="13" time="1.046492"/>
   </testsuite>
 </testsuites>

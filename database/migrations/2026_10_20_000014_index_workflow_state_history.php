@@ -41,6 +41,19 @@ return new class extends Migration
         if (DB::table('tm_instance_transitions')->whereNotNull('to_revision_id')->exists()) {
             throw new RuntimeException('state_history_rollback_requires_export');
         }
+        // InnoDB may replace the implicit instance FK index with the composite index.
+        // Restore a supporting index before removing that composite during rollback.
+        if (in_array(DB::connection()->getDriverName(), ['mysql', 'mariadb'], true)) {
+            $supported = false;
+            foreach (Schema::getIndexes('tm_instance_transitions') as $index) {
+                if ($index['name'] !== 'tm_transition_category_lookup' && ($index['columns'][0] ?? null) === 'instance_id') {
+                    $supported = true;
+                }
+            }
+            if (! $supported) {
+                Schema::table('tm_instance_transitions', fn (Blueprint $t) => $t->index('instance_id', 'tm_transition_instance_fk_rollback'));
+            }
+        }
         Schema::table('tm_instance_transitions', function (Blueprint $t) {
             $t->dropForeign(['from_revision_id']);
             $t->dropForeign(['to_revision_id']);

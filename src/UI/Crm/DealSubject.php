@@ -33,7 +33,9 @@ final readonly class DealSubject implements SubjectHandler
         $this->access->constrain($q, $context, 'crm.deal', $capability);
         if ($capability === 'edit') {
             $q->whereNotExists(function (Builder $x) use ($context) {
-                $x->selectRaw('1')->from('tm_host_imports')->join('tm_host_cutovers', 'tm_host_cutovers.id', '=', 'tm_host_imports.cutover_id')->where('tm_host_cutovers.scope_key', $context->scope)->where('tm_host_imports.legacy_type', 'crm.deals')->whereColumn('tm_host_imports.legacy_id', 'crm_deals.id')->where('tm_host_cutovers.mode', '!=', 'active');
+                $grammar = $this->db->getQueryGrammar();
+                $cast = in_array($this->db->getDriverName(), ['mysql', 'mariadb'], true) ? 'CHAR' : 'VARCHAR(120)';
+                $x->selectRaw('1')->from('tm_host_imports')->join('tm_host_cutovers', 'tm_host_cutovers.id', '=', 'tm_host_imports.cutover_id')->where('tm_host_cutovers.scope_key', $context->scope)->where('tm_host_imports.legacy_type', 'crm.deals')->whereRaw($grammar->wrap('tm_host_imports.legacy_id').' = CAST('.$grammar->wrap('crm_deals.id').' AS '.$cast.')')->where('tm_host_cutovers.mode', '!=', 'active');
             });
         }
 

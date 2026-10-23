@@ -17,12 +17,16 @@ final class PipelineService
     {
     }
 
-    public function create(ExecutionContext $context, string $name, int $revisionId, array $stages, string $operation): array
+    public function create(ExecutionContext $context, string $name, int $revisionId, array $stages, string $operation, string $transitionMode = 'custom'): array
     {
         $context->require('pipeline.manage');
         $this->authorization->authorize($context, 'pipeline.manage');
-        if (trim($name) === '' || strlen($name) > 120 || ! $stages) {
+        if (trim($name) === '' || strlen($name) > 120 || ! $stages || ! in_array($transitionMode, ['custom', 'sequential', 'free'], true)) {
             throw new DomainError('pipeline_invalid');
+        }
+
+        if ($transitionMode === 'sequential' && count(array_unique(array_column($stages, 'state'))) !== count($stages)) {
+            throw new DomainError('sequential_stage_ambiguous');
         }
         $definition = $this->workflows->revision($context, $revisionId)['definition'];
         foreach ($stages as $key => $stage) {
@@ -33,10 +37,10 @@ final class PipelineService
             }
         }
 
-        return (new CommandExecutor($this->db))->execute($context, $operation, ['action' => 'create_pipeline', 'name' => $name, 'revision' => $revisionId, 'stages' => $stages], function () use ($context, $name, $revisionId, $stages, $operation) {
+        return (new CommandExecutor($this->db))->execute($context, $operation, ['action' => 'create_pipeline', 'name' => $name, 'revision' => $revisionId, 'stages' => $stages, ...($transitionMode === 'custom' ? [] : ['transition_mode' => $transitionMode])], function () use ($context, $name, $revisionId, $stages, $operation, $transitionMode) {
             $key = (string) Str::uuid();
             $id = $this->db->table('tm_pipelines')->insertGetId(['pipeline_key' => $key, 'scope_key' => $context->scope, 'name' => $name,
-                'owner_ref' => $context->actor, 'workflow_revision_id' => $revisionId]);
+                'owner_ref' => $context->actor, 'workflow_revision_id' => $revisionId, 'transition_mode' => $transitionMode]);
             foreach ($stages as $stageKey => $stage) {
                 $this->db->table('tm_pipeline_stages')->insert(['pipeline_id' => $id, 'stage_key' => $stageKey, 'state_key' => $stage['state'], 'capacity' => $stage['capacity'] ?? null]);
             }

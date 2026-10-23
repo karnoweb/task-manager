@@ -15,9 +15,11 @@ use Karnoweb\TaskManager\Contracts\AuthorizationRevision;
 use Karnoweb\TaskManager\Contracts\Clock;
 use Karnoweb\TaskManager\Contracts\CommitEvidenceProvider;
 use Karnoweb\TaskManager\Contracts\DnsResolver;
+use Karnoweb\TaskManager\Contracts\EntryRoutingProvider;
 use Karnoweb\TaskManager\Contracts\ExportStorage;
 use Karnoweb\TaskManager\Contracts\NotificationPreferences;
 use Karnoweb\TaskManager\Contracts\NotificationTransport;
+use Karnoweb\TaskManager\Contracts\ReminderRecipients;
 use Karnoweb\TaskManager\Contracts\ResponsibilityResolver;
 use Karnoweb\TaskManager\Contracts\SecretVault;
 use Karnoweb\TaskManager\Contracts\StageLifecycle;
@@ -64,6 +66,7 @@ use Karnoweb\TaskManager\Scheduling\DailyQuietHours;
 use Karnoweb\TaskManager\Scheduling\DateService;
 use Karnoweb\TaskManager\Scheduling\RecurrenceService;
 use Karnoweb\TaskManager\Scheduling\ReminderService;
+use Karnoweb\TaskManager\Scheduling\SelfReminderRecipients;
 use Karnoweb\TaskManager\SLA\CalendarRegistry;
 use Karnoweb\TaskManager\SLA\SlaEngine;
 use Karnoweb\TaskManager\SLA\SlaService;
@@ -73,17 +76,22 @@ use Karnoweb\TaskManager\TaskGraph\HierarchyService;
 use Karnoweb\TaskManager\TaskGraph\NativeTaskRules;
 use Karnoweb\TaskManager\TaskGraph\TaskPlanningService;
 use Karnoweb\TaskManager\Workflow\CaseService;
+use Karnoweb\TaskManager\Workflow\EntryRoutingService;
 use Karnoweb\TaskManager\Workflow\InstanceService;
 use Karnoweb\TaskManager\Workflow\PipelineService;
 use Karnoweb\TaskManager\Workflow\ProjectService;
 use Karnoweb\TaskManager\Workflow\TaskSubjectHandler;
+use Karnoweb\TaskManager\Workflow\UnavailableEntryRoutingProvider;
 use Karnoweb\TaskManager\Workflow\WorkflowService;
 
 final class TaskManagerServiceProvider extends ServiceProvider
 {
     public function register(): void
     {
+        $this->app->bindIf(EntryRoutingProvider::class, UnavailableEntryRoutingProvider::class);
+        $this->app->bind(EntryRoutingService::class, fn ($app) => new EntryRoutingService($app['db']->connection(), $app->make(Clock::class), $app->make(AuthorizationProvider::class), $app->make(PipelineService::class), $app->make(InstanceService::class), $app->make(EntryRoutingProvider::class)));
         $this->mergeConfigFrom(__DIR__.'/../config/task-manager.php', 'task-manager');
+        $this->app->bindIf(ReminderRecipients::class, SelfReminderRecipients::class);
         $this->app->bindIf(AttachmentStorage::class, UnavailableAttachmentStorage::class);
         $this->app->bind(TimeTrackingService::class, fn ($app) => new TimeTrackingService($app['db']->connection(), $app->make(Clock::class), $app->make(AuthorizationProvider::class), $app->make(TaskService::class)));
         $this->app->bind(SprintService::class, fn ($app) => new SprintService($app['db']->connection(), $app->make(Clock::class), $app->make(AuthorizationProvider::class), $app->make(TaskService::class), $app->make(ProjectService::class)));
@@ -95,14 +103,14 @@ final class TaskManagerServiceProvider extends ServiceProvider
         $this->app->bind(DateService::class, fn ($app) => new DateService($app['db']->connection(), $app->make(Clock::class), $app->make(AuthorizationProvider::class), $app->make(TaskService::class)));
         $this->app->bind(RecurrenceService::class, fn ($app) => new RecurrenceService($app['db']->connection(), $app->make(Clock::class), $app->make(AuthorizationProvider::class), $app->make(TaskService::class), $app->make(DateService::class), $app->make(ProjectService::class), $app->make(WorkflowService::class), $app->make(CalendarRegistry::class)));
         $this->app->bindIf(NotificationPreferences::class, fn ($app) => new DailyQuietHours($app['config']->get('task-manager.quiet_hours.timezone', 'UTC'), $app['config']->get('task-manager.quiet_hours.start'), $app['config']->get('task-manager.quiet_hours.end'), $app['config']->get('task-manager.notification_channels', ['in_app'])));
-        $this->app->bind(ReminderService::class, fn ($app) => new ReminderService($app['db']->connection(), $app->make(Clock::class), $app->make(AuthorizationProvider::class), $app->make(TaskService::class), $app->make(NotificationPreferences::class)));
+        $this->app->bind(ReminderService::class, fn ($app) => new ReminderService($app['db']->connection(), $app->make(Clock::class), $app->make(AuthorizationProvider::class), $app->make(TaskService::class), $app->make(NotificationPreferences::class), $app->make(SubjectRegistry::class), $app->make(ReminderRecipients::class)));
         $this->app->bindIf(AuthorizationRevision::class, PackageAuthorizationRevision::class);
         $this->app->bind(CustomFieldService::class, fn ($app) => new CustomFieldService($app['db']->connection(), $app->make(Clock::class), $app->make(AuthorizationProvider::class), $app->make(TaskService::class), $app->make(ResponsibilityResolver::class)));
         $this->app->bind(QueryService::class, fn ($app) => new QueryService($app['db']->connection(), $app->make(Clock::class), $app->make(AuthorizationProvider::class), $app->make(AuthorizationRevision::class), $app->make(TaskService::class), $app->make(CustomFieldService::class)));
         $this->app->bind(PresetService::class, fn ($app) => new PresetService($app['db']->connection(), $app->make(Clock::class), $app->make(AuthorizationProvider::class), $app->make(TaskService::class), $app->make(ChecklistService::class)));
         $this->app->bindIf(ExportStorage::class, fn ($app) => new LocalExportStorage($app['config']->get('task-manager.export_directory') ?? storage_path('app/private/task-manager-exports'), $app['config']->get('task-manager.export_max_bytes', 104857600)));
         $this->app->bind(ExportService::class, fn ($app) => new ExportService($app['db']->connection(), $app->make(Clock::class), $app->make(AuthorizationProvider::class), $app->make(AuthorizationRevision::class), $app->make(QueryService::class), $app->make(TaskService::class), $app->make(InstanceService::class), $app->make(GroupService::class), $app->make(ExportStorage::class)));
-        $this->app->bind(EventAccess::class, fn ($app) => new EventAccess($app['db']->connection(), $app->make(TaskService::class), $app->make(InstanceService::class), $app->make(GroupService::class), $app->make(HandoffService::class)));
+        $this->app->bind(EventAccess::class, fn ($app) => new EventAccess($app['db']->connection(), $app->make(TaskService::class), $app->make(InstanceService::class), $app->make(GroupService::class), $app->make(HandoffService::class), $app->make(ReminderService::class)));
         $this->app->bind(AutomationActions::class, fn ($app) => new AutomationActions($app['db']->connection(), $app->make(Clock::class), $app->make(AuthorizationProvider::class), $app->make(TaskService::class), $app->make(InstanceService::class), $app->make(AssignmentService::class), $app->make(ApprovalService::class), $app->make(HandoffService::class), $app->make(HierarchyService::class), $app->make(ProjectService::class), $app->make(WorkflowService::class), $app->make(ExportService::class), $app->make(SlaService::class)));
         $this->app->bind(AutomationService::class, fn ($app) => new AutomationService($app['db']->connection(), $app->make(Clock::class), $app->make(AuthorizationProvider::class), $app->make(TaskService::class), $app->make(EventAccess::class), $app->make(AutomationActions::class)));
         $this->app->bindIf(NotificationTransport::class, UnavailableNotificationTransport::class);

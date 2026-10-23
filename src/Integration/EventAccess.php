@@ -7,12 +7,13 @@ use Karnoweb\TaskManager\Context\ExecutionContext;
 use Karnoweb\TaskManager\Exceptions\DomainError;
 use Karnoweb\TaskManager\Group\GroupService;
 use Karnoweb\TaskManager\Handoff\HandoffService;
+use Karnoweb\TaskManager\Scheduling\ReminderService;
 use Karnoweb\TaskManager\TaskService;
 use Karnoweb\TaskManager\Workflow\InstanceService;
 
 final class EventAccess
 {
-    public function __construct(private readonly Connection $db, private readonly TaskService $tasks, private readonly InstanceService $instances, private readonly GroupService $groups, private readonly HandoffService $handoffs)
+    public function __construct(private readonly Connection $db, private readonly TaskService $tasks, private readonly InstanceService $instances, private readonly GroupService $groups, private readonly HandoffService $handoffs, private readonly ?ReminderService $reminders = null)
     {
     }
 
@@ -44,6 +45,14 @@ final class EventAccess
         } elseif ($event['aggregate_type'] === 'handoff') {
             $handoff = $this->handoffs->get($context, $event['aggregate_key']);
             $source['instance_key'] = $this->db->table('tm_workflow_instances')->where('id', $handoff['origin_id'])->value('instance_key');
+        } elseif ($event['aggregate_type'] === 'reminder') {
+            if ($this->reminders === null) {
+                throw new DomainError('event_source_not_subscribable');
+            }
+            $reminder = $this->reminders->get($context, $event['aggregate_key']);
+            if ($reminder['actor_ref'] !== $context->actor) {
+                throw new DomainError('not_found');
+            }
         } else {
             throw new DomainError('event_source_not_subscribable');
         }

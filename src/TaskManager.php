@@ -11,6 +11,7 @@ use Karnoweb\TaskManager\Enterprise\ExportService;
 use Karnoweb\TaskManager\Enterprise\PresetService;
 use Karnoweb\TaskManager\Enterprise\QueryService;
 use Karnoweb\TaskManager\Enterprise\ReportService;
+use Karnoweb\TaskManager\Exceptions\DomainError;
 use Karnoweb\TaskManager\Group\GroupService;
 use Karnoweb\TaskManager\Group\MilestoneService;
 use Karnoweb\TaskManager\Handoff\ExternalSagaService;
@@ -37,6 +38,7 @@ use Karnoweb\TaskManager\TaskGraph\HierarchyService;
 use Karnoweb\TaskManager\TaskGraph\TaskPlanningService;
 use Karnoweb\TaskManager\UI\IntegrationFactory;
 use Karnoweb\TaskManager\Workflow\CaseService;
+use Karnoweb\TaskManager\Workflow\EntryRoutingService;
 use Karnoweb\TaskManager\Workflow\InstanceService;
 use Karnoweb\TaskManager\Workflow\PipelineService;
 use Karnoweb\TaskManager\Workflow\ProjectService;
@@ -71,8 +73,14 @@ final class TaskManager
         private readonly WebhookService $webhooks,
         private readonly ExportService $exports,
         private readonly ReportService $enterpriseReports,
-        private readonly IntegrationFactory $integrations)
+        private readonly IntegrationFactory $integrations,
+        private readonly ?EntryRoutingService $entryRouting = null)
     {
+    }
+
+    public function entryRouting(): EntryRoutingService
+    {
+        return $this->entryRouting ?? throw new DomainError('routing_not_configured');
     }
 
     public function integrations(): IntegrationFactory
