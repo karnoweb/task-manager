@@ -6,6 +6,7 @@ use Illuminate\Database\Schema\Blueprint;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Schema;
 use Illuminate\Support\Str;
+use Karnoweb\TaskManager\Schema\Tables;
 use Karnoweb\TaskManager\Tests\GroupTestCase;
 
 /** Explicit opt-in benchmark, outside the normal tests/ suite. */
@@ -41,8 +42,8 @@ final class GroupScaleBenchmarkTest extends GroupTestCase
                 }
                 DB::table('host_subjects')->insert($subjects);
                 DB::table('host_permissions')->insert($permissions);
-                DB::table('tm_workflow_instances')->insert($instances);
-                $rows = DB::table('tm_workflow_instances')->where('scope_key', 'one')->where('subject_type', 'crm.lead')->whereIn('subject_id', $ids)->get(['id', 'subject_id']);
+                DB::table(Tables::name('workflow_instances'))->insert($instances);
+                $rows = DB::table(Tables::name('workflow_instances'))->where('scope_key', 'one')->where('subject_type', 'crm.lead')->whereIn('subject_id', $ids)->get(['id', 'subject_id']);
                 $slots = [];
                 $visits = [];
                 $members = [];
@@ -51,32 +52,32 @@ final class GroupScaleBenchmarkTest extends GroupTestCase
                     $visits[] = ['scope_key' => 'one', 'instance_id' => $row->id, 'pipeline_id' => $pipeline['id'], 'stage_key' => 'new', 'visit_no' => 1, 'entered_at' => $now];
                     $members[] = ['group_id' => $group['id'], 'instance_id' => $row->id, 'joined_at' => $now, 'enrollment_revision' => 2];
                 }
-                DB::table('tm_active_process_slots')->insert($slots);
-                DB::table('tm_stage_visits')->insert($visits);
-                DB::table('tm_process_group_members')->insert($members);
+                DB::table(Tables::name('active_process_slots'))->insert($slots);
+                DB::table(Tables::name('stage_visits'))->insert($visits);
+                DB::table(Tables::name('process_group_members'))->insert($members);
                 $instanceIds = $rows->pluck('id')->all();
                 $memberSlots = [];
                 $assignments = [];
-                foreach (DB::table('tm_process_group_members')->where('group_id', $group['id'])->whereIn('instance_id', $instanceIds)->get(['id', 'instance_id']) as $member) {
+                foreach (DB::table(Tables::name('process_group_members'))->where('group_id', $group['id'])->whereIn('instance_id', $instanceIds)->get(['id', 'instance_id']) as $member) {
                     $memberSlots[] = ['group_id' => $group['id'], 'instance_id' => $member->instance_id, 'member_id' => $member->id];
                 }
-                foreach (DB::table('tm_stage_visits')->whereIn('instance_id', $instanceIds)->get(['id', 'instance_id']) as $visit) {
+                foreach (DB::table(Tables::name('stage_visits'))->whereIn('instance_id', $instanceIds)->get(['id', 'instance_id']) as $visit) {
                     $assignments[] = ['scope_key' => 'one', 'instance_id' => $visit->instance_id, 'actor_ref' => 'a', 'kind' => 'primary', 'active_from' => $now,
                         'assigned_by' => 'a', 'reason_code' => 'synthetic_import', 'visit_id' => $visit->id];
                 }
-                DB::table('tm_active_group_members')->insert($memberSlots);
-                DB::table('tm_instance_assignments')->insert($assignments);
+                DB::table(Tables::name('active_group_members'))->insert($memberSlots);
+                DB::table(Tables::name('instance_assignments'))->insert($assignments);
                 $assignmentSlots = [];
-                foreach (DB::table('tm_instance_assignments')->whereIn('instance_id', $instanceIds)->get(['id', 'instance_id']) as $assignment) {
+                foreach (DB::table(Tables::name('instance_assignments'))->whereIn('instance_id', $instanceIds)->get(['id', 'instance_id']) as $assignment) {
                     $assignmentSlots[] = ['instance_id' => $assignment->instance_id, 'slot_key' => 'primary', 'actor_ref' => 'a', 'assignment_id' => $assignment->id];
                 }
-                DB::table('tm_assignment_slots')->insert($assignmentSlots);
+                DB::table(Tables::name('assignment_slots'))->insert($assignmentSlots);
             });
             if (($offset + 1000) % 10000 === 0) {
                 fwrite(STDERR, 'seed '.$prefix.' '.min($count, $offset + 1000).'/'.$count."\n");
             }
         }
-        DB::table('tm_process_groups')->where('id', $group['id'])->update(['version' => 2]);
+        DB::table(Tables::name('process_groups'))->where('id', $group['id'])->update(['version' => 2]);
     }
 
     public function test_bounded_preview_materialization_and_processing_for_10k_and_100k(): void
@@ -110,7 +111,7 @@ final class GroupScaleBenchmarkTest extends GroupTestCase
             $before = $queries;
             $run = $this->groupService()->executeClosure($this->manager(), $preview, 'scale-'.$count);
             $profile += ['materialize_seconds' => (hrtime(true) - $start) / 1e9, 'materialize_queries' => $queries - $before, 'materialize_peak_bytes' => memory_get_peak_usage(true)];
-            self::assertSame($count, DB::table('tm_group_operation_items')->where('run_id', $run['id'])->count());
+            self::assertSame($count, DB::table(Tables::name('group_operation_items'))->where('run_id', $run['id'])->count());
             self::assertLessThanOrEqual(128 * 1024 * 1024, $profile['materialize_peak_bytes']);
             $processed = 0;
             $durations = [];

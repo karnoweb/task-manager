@@ -35,7 +35,7 @@ final class WebhookUrlPolicy
                 }
             }
 
-return true;
+            return true;
         }
         if (! self::cidr($address, '2000::', 3)) {
             return false;
@@ -45,7 +45,7 @@ return true;
             }
         }
 
-return true;
+        return true;
     }
 
     public function validate(string $url): WebhookTarget
@@ -69,6 +69,6 @@ return true;
             }
         }
 
-return new WebhookTarget($url,$host,$addresses[0]);
+        return new WebhookTarget($url, $host, $addresses[0]);
     }
 }

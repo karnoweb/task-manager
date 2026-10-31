@@ -8,18 +8,20 @@ use Karnoweb\TaskManager\Context\ExecutionContext;
 use Karnoweb\TaskManager\Contracts\AuthorizationProvider;
 use Karnoweb\TaskManager\Contracts\Clock;
 use Karnoweb\TaskManager\Exceptions\DomainError;
+use Karnoweb\TaskManager\Schema\Tables;
 
 /** Audited metadata foundation. File storage and downloads remain host-owned. */
 final class TaskResourceService
 {
     public function __construct(private readonly Connection $db, private readonly Clock $clock, private readonly TaskService $tasks, private readonly ?AuthorizationProvider $authorization = null)
     {
+        Tables::assertConnection($db);
     }
 
     private function table(string $kind): string
     {
         return match ($kind) {
-            'comment' => 'tm_comments', 'attachment' => 'tm_attachments', default => throw new DomainError('resource_kind_invalid')
+            'comment' => Tables::name('comments'), 'attachment' => Tables::name('attachments'), default => throw new DomainError('resource_kind_invalid')
         };
     }
 
@@ -47,6 +49,7 @@ final class TaskResourceService
 
     public function create(ExecutionContext $context, string $taskKey, string $kind, array $data, string $operation): array
     {
+        $context->validateTenant();
         $table = $this->table($kind);
         $values = $this->validate($kind, $data);
 
@@ -58,7 +61,7 @@ final class TaskResourceService
             $key = (string) Str::uuid();
             $id = $this->db->table($table)->insertGetId(['public_key' => $key, 'scope_key' => $context->scope, 'task_id' => $task->id, 'author_ref' => $context->actor, 'created_at' => $this->clock->now()->setTimezone(new \DateTimeZone('UTC'))->format('Y-m-d H:i:s.u'), ...$values]);
             if ($kind === 'comment') {
-                $this->db->table('tm_comment_revisions')->insert(['comment_id' => $id, 'version' => 1, 'body' => $values['body'], 'editor_ref' => $context->actor, 'occurred_at' => $this->clock->now()->setTimezone(new \DateTimeZone('UTC'))->format('Y-m-d H:i:s.u')]);
+                $this->db->table(Tables::name('comment_revisions'))->insert(['comment_id' => $id, 'version' => 1, 'body' => $values['body'], 'editor_ref' => $context->actor, 'occurred_at' => $this->clock->now()->setTimezone(new \DateTimeZone('UTC'))->format('Y-m-d H:i:s.u')]);
             }
             $this->record($context, $kind, $key, $task, 'created', $operation, $values);
 
@@ -68,6 +71,7 @@ final class TaskResourceService
 
     public function get(ExecutionContext $context, string $kind, string $key): array
     {
+        $context->validateTenant();
         if (! Str::isUuid($key)) {
             throw new DomainError('not_found');
         }
@@ -87,6 +91,7 @@ final class TaskResourceService
 
     public function change(ExecutionContext $context, string $kind, string $key, int $version, string $operation, ?array $data): array
     {
+        $context->validateTenant();
         $table = $this->table($kind);
         $values = $data === null ? null : $this->validate($kind, $data);
 
@@ -113,7 +118,7 @@ final class TaskResourceService
             $changes = ['version' => $version + 1, ...($values ?? ['deleted_at' => $this->clock->now()->setTimezone(new \DateTimeZone('UTC'))->format('Y-m-d H:i:s')])];
             $this->db->table($table)->where('id', $resource['id'])->update($changes);
             if ($kind === 'comment') {
-                $this->db->table('tm_comment_revisions')->insert(['comment_id' => $resource['id'], 'version' => $version + 1, 'body' => $values['body'] ?? $current->body,
+                $this->db->table(Tables::name('comment_revisions'))->insert(['comment_id' => $resource['id'], 'version' => $version + 1, 'body' => $values['body'] ?? $current->body,
                     'editor_ref' => $context->actor, 'occurred_at' => $this->clock->now()->setTimezone(new \DateTimeZone('UTC'))->format('Y-m-d H:i:s.u'), 'deleted' => $values === null]);
                 $this->db->table($table)->where('id', $resource['id'])->update(['edited_at' => $this->clock->now()->setTimezone(new \DateTimeZone('UTC'))->format('Y-m-d H:i:s.u')]);
             } elseif ($values !== null) {

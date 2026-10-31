@@ -5,23 +5,32 @@ namespace Karnoweb\TaskManager\Tests;
 use Illuminate\Auth\Access\AuthorizationException;
 use Illuminate\Auth\GenericUser;
 use Illuminate\Foundation\Application;
+use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Gate;
+use Illuminate\Support\Facades\Schema;
 use Illuminate\Support\Str;
 use Karnoweb\TaskManager\Context\ExecutionContext;
+use Karnoweb\TaskManager\Contracts\UserResolver;
 use Karnoweb\TaskManager\DTO\MutateTask;
 use Karnoweb\TaskManager\DTO\TaskResult;
 use Karnoweb\TaskManager\Facades\TaskManager;
+use Karnoweb\TaskManager\Schema\Tables;
 
 /** Executes the PHP fences in the technical guides, without a copied implementation. */
 final class TechnicalDocumentationExamplesTest extends PackageTestCase
 {
     private const GUIDES = [
+        'README.md',
         'docs/README.md',
         'docs/01-getting-started/quick-start.md',
+        'docs/01-getting-started/resolvers.md',
         'docs/03-basic-usage/tasks-projects.md',
+        'docs/03-basic-usage/checklists-reminders.md',
         'docs/04-advanced/workflow.md',
+        'docs/04-advanced/custom-guards.md',
         'docs/API-IMPROVEMENT-PROPOSALS.md',
+        'docs/advanced/database.md',
     ];
 
     private function examples(): array
@@ -94,9 +103,15 @@ final class TechnicalDocumentationExamplesTest extends PackageTestCase
         $ids = array_keys($this->examples());
         sort($ids);
         self::assertSame([
-            'configure-permission', 'create-project-task', 'independent-workflow', 'manage-tasks', 'personal-todo',
+            'checklist-reminder', 'configure-permission', 'create-project-task', 'direct-project-task', 'explicit-worker-context', 'guarded-workflow', 'host-branch-class', 'host-resolver-config', 'host-scope-class', 'host-transition-guards', 'host-user-class', 'independent-workflow', 'manage-tasks', 'personal-todo', 'readme-todo', 'resolved-todo', 'table-prefix',
         ], $ids);
-        self::assertSame('sqlite', DB::connection()->getDriverName());
+        self::assertSame(getenv('TM_TEST_DRIVER') ?: 'sqlite', DB::connection()->getDriverName());
+    }
+
+    public function test_table_prefix_example_is_cacheable_and_resolves_the_documented_name(): void
+    {
+        config($this->example('table-prefix'));
+        self::assertSame('custom_tasks', Tables::name('tasks'));
     }
 
     public function test_todo_fence_creates_reads_and_completes_without_project_or_pipeline(): void
@@ -123,6 +138,97 @@ final class TechnicalDocumentationExamplesTest extends PackageTestCase
         self::assertSame(2, DB::table('tm_command_journal')->count());
         self::assertSame(2, DB::table('tm_audit_events')->count());
         self::assertSame(2, DB::table('tm_outbox')->count());
+    }
+
+    public function test_readme_example_uses_the_authenticated_host_identity(): void
+    {
+        $this->app->instance(UserResolver::class, fn () => Auth::user());
+        $this->actingAs($this->user());
+        $task = $this->example('readme-todo');
+        self::assertInstanceOf(TaskResult::class, $task);
+        self::assertSame('pending', $task->state);
+        self::assertSame('default', $task->scope);
+        self::assertSame('1', $task->owner);
+    }
+
+    public function test_resolver_guide_classes_config_todo_and_explicit_worker_execute(): void
+    {
+        Schema::create('branch_user', function ($table) {
+            $table->string('user_id');
+            $table->string('branch_id');
+        });
+        DB::table('branch_user')->insert([['user_id' => 'host-001', 'branch_id' => 'north'], ['user_id' => 'reminder-worker', 'branch_id' => 'north']]);
+        $this->example('host-user-class');
+        $this->example('host-branch-class');
+        $this->example('host-scope-class');
+        $settings = $this->example('host-resolver-config');
+        config($settings);
+        self::assertSame($settings, require $this->exportConfig($settings));
+        $this->actingAs(new GenericUser(['id' => 'host-001', 'tm_scope' => 'one', 'tm_branches' => ['north']]));
+        $context = TaskManager::context(branch: 'north');
+        self::assertSame('branch:north', $context->scope);
+        self::assertSame('host-001', $context->actor);
+        $task = $this->example('resolved-todo');
+        self::assertSame('host-001', $task->owner);
+        self::assertSame('branch:north', $task->scope);
+        self::assertSame(1, DB::table('tm_tasks')->count());
+        $this->error('context_branch_denied', fn () => TaskManager::context(branch: 'forbidden'));
+        $worker = $this->example('explicit-worker-context');
+        self::assertTrue($worker->serviceActor);
+        self::assertSame(['task.view'], $worker->capabilities);
+        $this->error('capability_denied', fn () => TaskManager::tasks()->inContext($worker)->create('Denied', 'denied'));
+        self::assertSame(1, DB::table('tm_tasks')->count());
+    }
+
+    private function exportConfig(array $config): string
+    {
+        $path = $this->app->storagePath('framework/cache/tm-resolver-config.php');
+        @mkdir(dirname($path), 0777, true);
+        file_put_contents($path, '<?php return '.var_export($config, true).';');
+
+        return $path;
+    }
+
+    public function test_direct_project_example_creates_without_a_temporary_todo_and_replays(): void
+    {
+        $this->configure();
+        $run = $this->example('direct-project-task');
+        $operation = (string) Str::uuid();
+        $result = $run($this->user(), $operation);
+        self::assertSame('open', $result['task']['state']);
+        self::assertSame(1, $result['task']['version']);
+        self::assertSame(1, DB::table('tm_tasks')->count());
+        self::assertSame(1, DB::table('tm_workflow_instances')->count());
+        self::assertSame(0, DB::table('tm_workflow_definitions')->where('key', 'personal')->count());
+        self::assertSame($result, $run($this->user(), $operation));
+    }
+
+    public function test_registered_guard_examples_use_the_container_resolved_engine(): void
+    {
+        $this->configure();
+        $this->example('host-transition-guards');
+        $run = $this->example('guarded-workflow');
+        $result = $run($this->user(), (string) Str::uuid());
+        self::assertSame('done', $result['finished']['current_state_key']);
+        self::assertSame(2, $result['finished']['version']);
+        self::assertSame('pending', TaskManager::tasks()->get($this->workflowContext(), $result['task']->publicKey)['state']);
+    }
+
+    public function test_checklist_and_reminder_example_records_independent_reminder_and_replays(): void
+    {
+        $this->configure();
+        $run = $this->example('checklist-reminder');
+        $operation = (string) Str::uuid();
+        $result = $run($this->user(), $operation);
+        self::assertSame(1, $result['list']['version']);
+        self::assertSame(2, $result['checked']['version']);
+        self::assertTrue((bool) $result['checked']['done']);
+        self::assertSame(1, DB::table('tm_checklist_items')->where('done', true)->count());
+        self::assertNull($result['reminder']['task_id']);
+        self::assertSame('pending', $result['reminder']['state']);
+        self::assertSame('pending', $result['task']->state);
+        self::assertEquals($result, $run($this->user(), $operation));
+        self::assertSame(1, DB::table('tm_reminders')->count());
     }
 
     public function test_todo_replay_keeps_commands_and_checks_current_scope(): void

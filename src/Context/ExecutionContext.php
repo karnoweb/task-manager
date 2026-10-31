@@ -27,8 +27,14 @@ final readonly class ExecutionContext
 
     public function require(string $capability): void
     {
+        $this->validateTenant();
         if (! in_array($capability, $this->capabilities, true)) {
             throw new DomainError('capability_denied');
         }
+    }
+
+    public function validateTenant(): void
+    {
+        TenantBoundary::validate($this);
     }
 }

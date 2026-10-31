@@ -6,6 +6,7 @@ use Illuminate\Database\Connection;
 use Karnoweb\TaskManager\Context\ExecutionContext;
 use Karnoweb\TaskManager\Contracts\AuthorizationProvider;
 use Karnoweb\TaskManager\Exceptions\DomainError;
+use Karnoweb\TaskManager\Schema\Tables;
 use Karnoweb\TaskManager\TaskService;
 use Karnoweb\TaskManager\Workflow\ProjectService;
 use Karnoweb\TaskManager\Workflow\StateIndex;
@@ -14,6 +15,7 @@ final class ReportingService
 {
     public function __construct(private readonly Connection $db, private readonly AuthorizationProvider $authorization, private readonly TaskService $tasks, private readonly ProjectService $projects)
     {
+        Tables::assertConnection($db);
     }
 
     private function authorize(ExecutionContext $context): void
@@ -24,6 +26,7 @@ final class ReportingService
 
     public function totals(ExecutionContext $context, ?string $projectKey = null): array
     {
+        $context->validateTenant();
         $this->authorize($context);
         $query = $this->tasks->authorizedQuery($context)->whereNull('deleted_at');
         if ($projectKey !== null) {
@@ -31,10 +34,10 @@ final class ReportingService
             $query->where('project_id', $project['id']);
         }
         $allIds = (clone $query)->select('id');
-        $leaves = (clone $query)->where('type_key', '!=', 'epic')->whereNotIn('id', $this->db->table('tm_tasks')->where('scope_key', $context->scope)->whereNull('deleted_at')->whereNotNull('parent_task_id')->select('parent_task_id'));
+        $leaves = (clone $query)->where('type_key', '!=', 'epic')->whereNotIn('id', $this->db->table(Tables::name('tasks'))->where('scope_key', $context->scope)->whereNull('deleted_at')->whereNotNull('parent_task_id')->select('parent_task_id'));
         $points = (int) (clone $leaves)->sum('story_points_minor');
         $doneLeaves = (clone $leaves)->whereIn('id', StateIndex::currentTaskIds($this->db, $context->scope, ['done']));
-        $spent = (int) $this->db->table('tm_task_time_entries')->where('scope_key', $context->scope)->whereNull('deleted_at')->whereIn('task_id', $allIds)->sum('duration_seconds');
+        $spent = (int) $this->db->table(Tables::name('task_time_entries'))->where('scope_key', $context->scope)->whereNull('deleted_at')->whereIn('task_id', $allIds)->sum('duration_seconds');
 
         return ['total_tasks' => (clone $query)->count(), 'done_tasks' => (clone $query)->whereIn('id', StateIndex::currentTaskIds($this->db, $context->scope, ['done']))->count(),
             'leaf_tasks' => (clone $leaves)->count(), 'points' => PointValue::format($points), 'done_points' => PointValue::format((int) (clone $doneLeaves)->sum('story_points_minor')),
@@ -43,18 +46,20 @@ final class ReportingService
 
     public function subtreeTime(ExecutionContext $context, string $taskKey): array
     {
+        $context->validateTenant();
         $this->authorize($context);
         $task = $this->tasks->get($context, $taskKey);
-        $ids = $this->tasks->authorizedQuery($context)->whereIn('id', $this->db->table('tm_task_closure')->where('scope_key', $context->scope)->where('ancestor_task_id', $task['id'])->select('descendant_task_id'))->select('id');
+        $ids = $this->tasks->authorizedQuery($context)->whereIn('id', $this->db->table(Tables::name('task_closure'))->where('scope_key', $context->scope)->where('ancestor_task_id', $task['id'])->select('descendant_task_id'))->select('id');
 
-        return ['spent_seconds' => (int) $this->db->table('tm_task_time_entries')->where('scope_key', $context->scope)->whereNull('deleted_at')->whereIn('task_id', $ids)->sum('duration_seconds'), 'source' => 'distinct_raw_time_entries'];
+        return ['spent_seconds' => (int) $this->db->table(Tables::name('task_time_entries'))->where('scope_key', $context->scope)->whereNull('deleted_at')->whereIn('task_id', $ids)->sum('duration_seconds'), 'source' => 'distinct_raw_time_entries'];
     }
 
     public function flow(ExecutionContext $context, string $taskKey, ?\DateTimeImmutable $asOf = null): array
     {
+        $context->validateTenant();
         $this->authorize($context);
         $task = $this->tasks->get($context, $taskKey);
-        $query = $this->db->table('tm_instance_transitions')->where('scope_key', $context->scope)->whereIn('instance_id', $this->db->table('tm_workflow_instances')->where('scope_key', $context->scope)->where('task_id', $task['id'])->where('slot_key', 'main')->select('id'));
+        $query = $this->db->table(Tables::name('instance_transitions'))->where('scope_key', $context->scope)->whereIn('instance_id', $this->db->table(Tables::name('workflow_instances'))->where('scope_key', $context->scope)->where('task_id', $task['id'])->where('slot_key', 'main')->select('id'));
         if ($asOf !== null) {
             $query->where('occurred_at', '<=', $asOf->setTimezone(new \DateTimeZone('UTC'))->format('Y-m-d H:i:s.u'));
         }

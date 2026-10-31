@@ -67,7 +67,8 @@ abstract class RealHostE2ETestCase extends PhaseSixTestCase
                 $table = $type === 'crm.lead' ? 'crm_leads' : 'crm_deals';
                 $q->where($table.'.branch_id', $c->scope)->where(function (Builder $a) use ($table, $c, $type, $capability) {
                     $a->where($table.'.assigned_to', $c->actor)->orWhereExists(function (Builder $g) use ($table, $c, $type, $capability) {
-                        $g->selectRaw('1')->from('phase_six_acl')->whereColumn('phase_six_acl.subject_id', $table.'.id')->where('type', $type)->where('actor', $c->actor);
+                        $cast = in_array($g->getConnection()->getDriverName(), ['mysql', 'mariadb'], true) ? 'CHAR' : 'VARCHAR(120)';
+                        $g->selectRaw('1')->from('phase_six_acl')->whereRaw('phase_six_acl.subject_id = CAST('.$table.'.id AS '.$cast.')')->where('type', $type)->where('actor', $c->actor);
                         if ($capability === 'edit') {
                             $g->where('edit', true);
                         }
@@ -128,7 +129,7 @@ abstract class RealHostE2ETestCase extends PhaseSixTestCase
         $sales = $this->pipelines()->create($this->manager(), 'Sales', $r['id'], $stageMap, 'sales');
         $router = new PhaseSixTicketRouter(DB::connection(), $deal->pipeline_id, $stages[0]->id);
         $this->app->instance(SubjectRouteRegistry::class, new SubjectRouteRegistry(['ticket.sales-v1' => $router]));
-        $origin = $this->instances()->start($this->manager(),'support.ticket',(string) $t->id,$r['id'],'ticket-start',pipelineKey: $p['pipeline_key']);
+        $origin = $this->instances()->start($this->manager(), 'support.ticket', (string) $t->id, $r['id'], 'ticket-start', pipelineKey: $p['pipeline_key']);
 
         return [$t, $origin, $sales, $r, $router];
     }

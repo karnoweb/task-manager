@@ -9,6 +9,7 @@ use Karnoweb\TaskManager\Contracts\AuthorizationProvider;
 use Karnoweb\TaskManager\Contracts\Clock;
 use Karnoweb\TaskManager\EventRecorder;
 use Karnoweb\TaskManager\Exceptions\DomainError;
+use Karnoweb\TaskManager\Schema\Tables;
 use Karnoweb\TaskManager\Workflow\CaseService;
 use Karnoweb\TaskManager\Workflow\Definition;
 use Karnoweb\TaskManager\Workflow\InstanceService;
@@ -29,6 +30,7 @@ final class LocalRouteService
 
     public function move(ExecutionContext $context, string $route, array $preview, string $reason, string $operation): array
     {
+        $context->validateTenant();
         $this->authorize($context);
         Definition::key($reason);
         $handler = $this->routes->local($route);
@@ -72,12 +74,12 @@ final class LocalRouteService
                     throw new DomainError('spawn_identity_invalid');
                 }
                 $case = $origin['case_id'] === null ? $this->cases->create($context, 'Subject conversion', $this->child($operation, 'case'))
-                    : ['id' => $origin['case_id'], 'case_key' => $this->db->table('tm_process_cases')->where('id', $origin['case_id'])->value('case_key')];
+                    : ['id' => $origin['case_id'], 'case_key' => $this->db->table(Tables::name('process_cases'))->where('id', $origin['case_id'])->value('case_key')];
                 $destination = $this->instances->start($context, $target['subject_type'], $target['subject_id'], $revisionId, $this->child($operation, 'destination'), $slot, $pipelineKey, caseKey: $case['case_key']);
                 $source = $this->instances->transition($context, $originKey, $version, $this->child($operation, 'source'), $sourceTransition, ['reason_code' => $reason]);
-                $this->db->table('tm_workflow_instances')->where('id', $origin['id'])->update(['case_id' => $case['id']]);
-                $this->db->table('tm_case_subjects')->insertOrIgnore(['case_id' => $case['id'], 'subject_type' => $origin['subject_type'], 'subject_id' => $origin['subject_id']]);
-                $id = $this->db->table('tm_subject_conversions')->insertGetId(['scope_key' => $context->scope, 'origin_id' => $origin['id'], 'destination_id' => $destination['id'], 'route_ref' => $route,
+                $this->db->table(Tables::name('workflow_instances'))->where('id', $origin['id'])->update(['case_id' => $case['id']]);
+                $this->db->table(Tables::name('case_subjects'))->insertOrIgnore(['case_id' => $case['id'], 'subject_type' => $origin['subject_type'], 'subject_id' => $origin['subject_id']]);
+                $id = $this->db->table(Tables::name('subject_conversions'))->insertGetId(['scope_key' => $context->scope, 'origin_id' => $origin['id'], 'destination_id' => $destination['id'], 'route_ref' => $route,
                     'reason_code' => $reason, 'operation_id' => $operation, 'created_at' => $this->clock->now()->setTimezone(new \DateTimeZone('UTC'))->format('Y-m-d H:i:s')]);
                 (new EventRecorder($this->db, $this->clock))->append($context, 'instance', $originKey, 'subject_spawned', $operation,
                     ['conversion_id' => $id, 'route' => $route, 'destination_key' => $destination['instance_key'], 'reason_code' => $reason], $origin['task_id']);

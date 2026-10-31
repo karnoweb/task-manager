@@ -80,7 +80,7 @@ final class RealHostE2ETest extends RealHostE2ETestCase
                     throw new DomainError('group_source_invalid');
                 }
 
-return ['revision' => $r->snapshot_version, 'cutoff_at' => new \DateTimeImmutable($r->completed_at->format(DATE_ATOM))];
+                return ['revision' => $r->snapshot_version, 'cutoff_at' => new \DateTimeImmutable($r->completed_at->format(DATE_ATOM))];
             }
         };
         $this->app->instance(GroupSourceRegistry::class, new GroupSourceRegistry(['crm.campaign' => $source]));
@@ -239,16 +239,16 @@ return ['revision' => $r->snapshot_version, 'cutoff_at' => new \DateTimeImmutabl
         $group = $handoffs->parallel($c, $origin['instance_key'], 1, $targets, ['reason_code' => 'reviews', 'target_team' => 'contracts', 'returns' => ['approved' => ['transition' => 'review']]], ['mode' => 'all', 'outcomes' => ['approved'], 'priority' => ['approved'], 'remaining' => 'keep_active_detached'], 'parallel');
         $keys = [];
         foreach ($group['members'] as $m) {
-            $keys[] = DB::table('tm_workflow_instances')->where('id',$m['destination_id'])->value('instance_key');
+            $keys[] = DB::table('tm_workflow_instances')->where('id', $m['destination_id'])->value('instance_key');
         }
-        $this->instances()->transition($c,$keys[0],1,'legal','accept');
-        self::assertSame('awaiting_join',$handoffs->settle($c,$group['members'][0]['handoff_key'],1,'legal-return')['status']);
-        self::assertSame('new',$this->instances()->get($c,$keys[1])['current_state_key']);
-        $this->error('version_conflict',fn () => $this->instances()->transition($c,$keys[1],2,'stale-risk','accept'));
-        $this->instances()->transition($c,$keys[1],1,'risk','accept');
-        $handoffs->settle($c,$group['members'][1]['handoff_key'],1,'risk-return');
-        self::assertSame('review',$this->instances()->get($c,$origin['instance_key'])['current_state_key']);
-        self::assertSame('resolved',DB::table('tm_handoff_groups')->where('id',$group['group_id'])->value('status'));
+        $this->instances()->transition($c, $keys[0], 1, 'legal', 'accept');
+        self::assertSame('awaiting_join', $handoffs->settle($c, $group['members'][0]['handoff_key'], 1, 'legal-return')['status']);
+        self::assertSame('new', $this->instances()->get($c, $keys[1])['current_state_key']);
+        $this->error('version_conflict', fn () => $this->instances()->transition($c, $keys[1], 2, 'stale-risk', 'accept'));
+        $this->instances()->transition($c, $keys[1], 1, 'risk', 'accept');
+        $handoffs->settle($c, $group['members'][1]['handoff_key'], 1, 'risk-return');
+        self::assertSame('review', $this->instances()->get($c, $origin['instance_key'])['current_state_key']);
+        self::assertSame('resolved', DB::table('tm_handoff_groups')->where('id', $group['group_id'])->value('status'));
         self::assertSame(1,DB::table('tm_outbox')->where('action','handoff_returned')->count());
     }
 }

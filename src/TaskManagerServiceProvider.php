@@ -9,6 +9,7 @@ use Karnoweb\TaskManager\Collaboration\AttachmentService;
 use Karnoweb\TaskManager\Collaboration\ChecklistService;
 use Karnoweb\TaskManager\Collaboration\CollaborationService;
 use Karnoweb\TaskManager\Collaboration\UnavailableAttachmentStorage;
+use Karnoweb\TaskManager\Context\ContextFactory;
 use Karnoweb\TaskManager\Contracts\AttachmentStorage;
 use Karnoweb\TaskManager\Contracts\AuthorizationProvider;
 use Karnoweb\TaskManager\Contracts\AuthorizationRevision;
@@ -81,6 +82,8 @@ use Karnoweb\TaskManager\Workflow\InstanceService;
 use Karnoweb\TaskManager\Workflow\PipelineService;
 use Karnoweb\TaskManager\Workflow\ProjectService;
 use Karnoweb\TaskManager\Workflow\TaskSubjectHandler;
+use Karnoweb\TaskManager\Workflow\TransitionGuards;
+use Karnoweb\TaskManager\Workflow\SubjectTaskService;
 use Karnoweb\TaskManager\Workflow\UnavailableEntryRoutingProvider;
 use Karnoweb\TaskManager\Workflow\WorkflowService;
 
@@ -88,6 +91,7 @@ final class TaskManagerServiceProvider extends ServiceProvider
 {
     public function register(): void
     {
+        $this->app->bindIf(ContextFactory::class, fn ($app) => new ContextFactory($app, $app['config']));
         $this->app->bindIf(EntryRoutingProvider::class, UnavailableEntryRoutingProvider::class);
         $this->app->bind(EntryRoutingService::class, fn ($app) => new EntryRoutingService($app['db']->connection(), $app->make(Clock::class), $app->make(AuthorizationProvider::class), $app->make(PipelineService::class), $app->make(InstanceService::class), $app->make(EntryRoutingProvider::class)));
         $this->mergeConfigFrom(__DIR__.'/../config/task-manager.php', 'task-manager');
@@ -130,6 +134,7 @@ final class TaskManagerServiceProvider extends ServiceProvider
         $this->app->bind(WebhookUrlPolicy::class, fn ($app) => new WebhookUrlPolicy($app->make(DnsResolver::class), $app['config']->get('task-manager.webhook_allowed_hosts', [])));
         $this->app->bind(WebhookService::class, fn ($app) => new WebhookService($app['db']->connection(), $app->make(Clock::class), $app->make(AuthorizationProvider::class), $app->make(EventAccess::class), $app->make(WebhookUrlPolicy::class), $app->make(SecretVault::class), $app->make(WebhookTransport::class)));
         $this->app->bind(ReportService::class, fn ($app) => new ReportService($app['db']->connection(), $app->make(Clock::class), $app->make(AuthorizationProvider::class), $app->make(AuthorizationRevision::class), $app->make(InstanceService::class), $app->make(ProjectService::class), $app->make(GroupService::class)));
+        $this->app->bindIf(TransitionGuards::class, fn () => new TransitionGuards);
         $this->app->bindIf(Clock::class, SystemClock::class);
         $this->app->bindIf(AuthorizationProvider::class, ContextAuthorization::class);
         $this->app->bindIf(SubjectRouteRegistry::class, fn () => new SubjectRouteRegistry);
@@ -144,7 +149,9 @@ final class TaskManagerServiceProvider extends ServiceProvider
         $this->app->bind(HierarchyService::class, fn ($app) => new HierarchyService($app['db']->connection(), $app->make(Clock::class), $app->make(TaskService::class), $app->make(ProjectService::class), $app->make(AuthorizationProvider::class)));
         $this->app->bind(DependencyService::class, fn ($app) => new DependencyService($app['db']->connection(), $app->make(Clock::class), $app->make(AuthorizationProvider::class), $app->make(TaskService::class), $app->make(CalendarRegistry::class)));
         $this->app->bind(TaskPlanningService::class, fn ($app) => new TaskPlanningService($app['db']->connection(), $app->make(Clock::class), $app->make(AuthorizationProvider::class), $app->make(TaskService::class), $app->make(ProjectService::class), $app->make(CalendarRegistry::class)));
-        $this->app->bindIf(SubjectRegistry::class, fn ($app) => new SubjectRegistry(['task' => new TaskSubjectHandler($app->make(TaskService::class))]));
+        $this->app->singleton(SubjectRegistrations::class);
+        $this->app->bind(SubjectTaskService::class, fn ($app) => new SubjectTaskService($app['db']->connection(), $app->make(TaskService::class), $app->make(SubjectRegistry::class), $app->make(Clock::class)));
+        $this->app->bindIf(SubjectRegistry::class, fn ($app) => new SubjectRegistry(['task' => new TaskSubjectHandler($app->make(TaskService::class)), ...$app->make(SubjectRegistrations::class)->handlers($app)]));
         $this->app->bindIf(CalendarRegistry::class, fn () => new CalendarRegistry);
         $this->app->bind(SlaEngine::class, fn ($app) => new SlaEngine($app['db']->connection(), $app->make(Clock::class), $app->make(CalendarRegistry::class)));
         $this->app->bindIf(ResponsibilityResolver::class, ContextResponsibilityResolver::class);
@@ -162,7 +169,7 @@ final class TaskManagerServiceProvider extends ServiceProvider
         $this->app->bind(ChecklistService::class, fn ($app) => new ChecklistService($app['db']->connection(), $app->make(Clock::class), $app->make(AuthorizationProvider::class), $app->make(TaskService::class), $app->make(ResponsibilityResolver::class), $app->make(HierarchyService::class), $app->make(ProjectService::class), $app->make(WorkflowService::class)));
         $this->app->bind(WorkflowService::class, fn ($app) => new WorkflowService($app['db']->connection(), $app->make(Clock::class), $app->make(AuthorizationProvider::class)));
         $this->app->bind(PipelineService::class, fn ($app) => new PipelineService($app['db']->connection(), $app->make(Clock::class), $app->make(AuthorizationProvider::class), $app->make(WorkflowService::class)));
-        $this->app->bind(InstanceService::class, fn ($app) => new InstanceService($app['db']->connection(), $app->make(Clock::class), $app->make(AuthorizationProvider::class), $app->make(SubjectRegistry::class), $app->make(WorkflowService::class), $app->make(PipelineService::class), lifecycle: $app->make(StageLifecycle::class)));
+        $this->app->bind(InstanceService::class, fn ($app) => new InstanceService($app['db']->connection(), $app->make(Clock::class), $app->make(AuthorizationProvider::class), $app->make(SubjectRegistry::class), $app->make(WorkflowService::class), $app->make(PipelineService::class), lifecycle: $app->make(StageLifecycle::class), transitionGuards: $app->make(TransitionGuards::class)));
         $this->app->bind(ProjectService::class, fn ($app) => new ProjectService($app['db']->connection(), $app->make(Clock::class), $app->make(AuthorizationProvider::class), $app->make(WorkflowService::class), $app->make(TaskService::class), $app->make(StageLifecycle::class)));
         $this->app->bind(CaseService::class, fn ($app) => new CaseService($app['db']->connection(), $app->make(Clock::class), $app->make(AuthorizationProvider::class), $app->make(InstanceService::class)));
     }

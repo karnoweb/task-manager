@@ -23,6 +23,6 @@ final class TM195Test extends ApprovalTestCase
         self::assertSame(['b', 'c', 'd'], $this->approvals()->get($c, $step['step_key'])['policy']['approvers']);
         self::assertSame(['c', 'd'], $replacement['policy']['approvers']);
         self::assertSame('review', $this->instances()->get($c, $i['instance_key'])['current_state_key']);
-        self::assertSame(1,DB::table('tm_active_approval_steps')->count());
+        self::assertSame(1, DB::table('tm_active_approval_steps')->count());
     }
 }

@@ -27,6 +27,7 @@ final class ConsumerRegistry
 
     public function deliver(string $key, ExecutionContext $context, array $event): void
     {
+        $context->validateTenant();
         $this->require($key);
         ($this->consumers[$key])($context, $event);
     }

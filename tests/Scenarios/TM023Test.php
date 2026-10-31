@@ -20,6 +20,6 @@ final class TM023Test extends WorkflowTestCase
         $instance = DB::table('tm_workflow_instances')->where('task_id', $converted['id'])->first();
         $fixed = $this->instances()->transition($c, $instance->instance_key, $instance->version, 'fix', 'fix');
         self::assertSame('fixed', $fixed['current_state_key']);
-        self::assertSame('new', $this->service()->get($c,$t['public_key'])['state']);
+        self::assertSame('new', $this->service()->get($c, $t['public_key'])['state']);
     }
 }

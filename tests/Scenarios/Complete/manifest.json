@@ -1,0 +1,2006 @@
+[
+    {
+        "id": "SC-01",
+        "class": "Karnoweb\\TaskManager\\Tests\\Scenarios\\Complete\\Scenario01TodoTest",
+        "file": "tests/Scenarios/Complete/Scenario01TodoTest.php",
+        "source": "PersonalApiTest",
+        "original_methods": [
+            "test_immutable_sessions_do_not_leak_context_and_query_has_constant_query_count"
+        ],
+        "title": "چرخه کامل Todo",
+        "methods": [
+            "test_complete_scenario_01"
+        ],
+        "steps": [
+            "ساخت A با عملیات create: pending و نسخه ۱",
+            "بازپخش create: همان نتیجه و فقط یک Task",
+            "ویرایش عنوان به Updated: نسخه ۲؛ complete: done",
+            "reopen: pending؛ archive: فهرست خالی؛ restore: یک نتیجه",
+            "تغییر کاربر به b: فهرست خالی و not_found؛ نشست قبلی همچنان داده a را می‌خواند"
+        ],
+        "tables": "tm_tasks، tm_lists، tm_workflow_instances، tm_command_journal، tm_audit_events، tm_outbox",
+        "initial": "کاربر a در قلمرو one و سپس b؛ داده اولیه خالی",
+        "failures": "idempotency_key_conflict و version_conflict در FoundationTest؛ نبود دسترسی در همین زنجیره بررسی می‌شود.",
+        "preserved_methods": [
+            [
+                "PersonalApiTest",
+                "test_immutable_sessions_do_not_leak_context_and_query_has_constant_query_count"
+            ],
+            [
+                "PersonalApiTest",
+                "test_list_optimistic_lifecycle_and_inbox_protection"
+            ],
+            [
+                "DeveloperExperienceTest",
+                "test_direct_creation_is_atomic_idempotent_and_has_no_personal_task_or_revision"
+            ],
+            [
+                "DeveloperExperienceTest",
+                "test_project_type_workflow_and_initial_in_progress_are_honored"
+            ],
+            [
+                "DeveloperExperienceTest",
+                "test_direct_creation_rejects_cross_scope_membership_and_revoked_replay"
+            ],
+            [
+                "DeveloperExperienceTest",
+                "test_invalid_type_title_archived_project_and_terminal_initial_state_create_nothing"
+            ],
+            [
+                "DeveloperExperienceTest",
+                "test_host_edit_constraint_rolls_back_every_creation_write"
+            ],
+            [
+                "DeveloperExperienceTest",
+                "test_host_project_edit_constraint_is_checked_on_creation_and_replay"
+            ],
+            [
+                "DeveloperExperienceTest",
+                "test_project_lifecycle_exception_rolls_back_task_instance_sequence_journal_and_event"
+            ],
+            [
+                "DeveloperExperienceTest",
+                "test_task_sessions_delegate_everyday_operations_and_keep_context_local"
+            ],
+            [
+                "DeveloperExperienceTest",
+                "test_pagination_configuration_defaults_explicit_limits_and_safe_ceiling"
+            ],
+            [
+                "DeveloperExperienceTest",
+                "test_container_guards_keep_subject_and_lifecycle_checks_and_roll_back_exceptions"
+            ],
+            [
+                "DeveloperExperienceTest",
+                "test_all_four_query_paths_apply_config_and_preserve_named_argument_compatibility"
+            ],
+            [
+                "DeveloperExperienceTest",
+                "test_missing_guard_and_legacy_constructor_precedence_are_preserved"
+            ],
+            [
+                "DeveloperExperienceTest",
+                "test_facade_annotations_match_every_accessor_and_legacy_forwarding_still_runs"
+            ],
+            [
+                "PersonalApiTest",
+                "test_immutable_sessions_do_not_leak_context_and_query_has_constant_query_count"
+            ],
+            [
+                "PersonalApiTest",
+                "test_list_optimistic_lifecycle_and_inbox_protection"
+            ],
+            [
+                "FoundationTest",
+                "test_create_complete_reopen_records_atomic_history"
+            ],
+            [
+                "FoundationTest",
+                "test_idempotency_returns_original_result_without_duplicate_writes"
+            ],
+            [
+                "FoundationTest",
+                "test_cross_actor_and_scope_cannot_read_count_or_update"
+            ],
+            [
+                "FoundationTest",
+                "test_stale_version_rolls_back_all_side_effects"
+            ],
+            [
+                "FoundationTest",
+                "test_archive_delete_restore_preserve_identity"
+            ],
+            [
+                "FoundationTest",
+                "test_invalid_title_creates_no_inbox_or_event"
+            ],
+            [
+                "FoundationTest",
+                "test_empty_context_is_rejected"
+            ],
+            [
+                "FoundationTest",
+                "test_share_revoke_immediately_changes_queries_and_activity"
+            ],
+            [
+                "FoundationTest",
+                "test_clone_does_not_copy_shares_or_completed_state"
+            ],
+            [
+                "FoundationTest",
+                "test_outbox_failure_retries_after_commit_with_same_event_identity"
+            ],
+            [
+                "FoundationTest",
+                "test_outbox_cannot_deliver_inside_outer_transaction"
+            ],
+            [
+                "FoundationTest",
+                "test_nested_transaction_rollback_removes_task_journal_and_outbox"
+            ],
+            [
+                "FoundationTest",
+                "test_two_scopes_have_independent_personal_definitions"
+            ],
+            [
+                "FoundationTest",
+                "test_move_between_owned_lists_preserves_rank_and_rejects_foreign_list"
+            ],
+            [
+                "FoundationTest",
+                "test_facade_has_service_parity_and_missing_context_fails_closed"
+            ],
+            [
+                "FoundationTest",
+                "test_service_actor_requires_explicit_limited_capabilities"
+            ],
+            [
+                "FoundationTest",
+                "test_clock_controls_completion_and_audit_without_waiting"
+            ],
+            [
+                "FoundationTest",
+                "test_share_view_does_not_grant_edit_and_facets_stay_scoped"
+            ],
+            [
+                "FoundationTest",
+                "test_payload_field_order_is_canonical_for_retry"
+            ],
+            [
+                "FoundationTest",
+                "test_clone_operation_does_not_collide_with_user_supplied_suffix"
+            ],
+            [
+                "FoundationTest",
+                "test_display_sequences_and_alias_resolution_are_scoped"
+            ],
+            [
+                "FoundationTest",
+                "test_migration_rollback_and_reinstall"
+            ],
+            [
+                "FoundationTest",
+                "test_host_sql_authorization_applies_to_counts_facets_mutations_and_replays"
+            ],
+            [
+                "FoundationTest",
+                "test_typed_create_command_returns_typed_result"
+            ],
+            [
+                "FoundationTest",
+                "test_postgres_real_concurrent_same_operation_creates_one_task"
+            ],
+            [
+                "FoundationTest",
+                "test_postgres_concurrent_updates_accept_exactly_one_version"
+            ]
+        ]
+    },
+    {
+        "id": "SC-02",
+        "class": "Karnoweb\\TaskManager\\Tests\\Scenarios\\Complete\\Scenario02ChecklistReminderTest",
+        "file": "tests/Scenarios/Complete/Scenario02ChecklistReminderTest.php",
+        "source": "RecurrenceHistoryTest",
+        "original_methods": [
+            "test_after_completion_materializes_only_one_followup_after_real_completion"
+        ],
+        "title": "Todo، چک‌لیست، یادآور و تکرار",
+        "methods": [
+            "test_complete_scenario_02"
+        ],
+        "steps": [
+            "ساخت master و یک چک‌لیست با مورد Verify",
+            "انجام مورد: پیشرفت ۱۰۰ درصد؛ ساخت یادآور Follow up مستقل",
+            "تعریف تکرار روزانه after_completion: پیش از تکمیل هیچ فرزندی ایجاد نمی‌شود",
+            "تکمیل master و تولید: دقیقاً یک فرزند؛ تولید مجدد با فرزند باز: صفر",
+            "تکمیل فرزند و تولید بعدی: یک فرزند تازه"
+        ],
+        "tables": "tm_tasks، tm_checklists، tm_checklist_items، tm_reminders و جدول‌های recurrence",
+        "initial": "master؛ ساعت ثابت 2026-10-20؛ سررسید یادآور 2090-01-01 UTC",
+        "failures": "خطاهای تکرار و بازپخش در RecurrenceHistoryTest؛ این زنجیره عدم تولید زودهنگام و تکرار ناخواسته را می‌سنجد.",
+        "preserved_methods": [
+            [
+                "CollaborationCoreTest",
+                "test_independent_checklists_and_combined_task_progress_use_real_item_counts"
+            ],
+            [
+                "CollaborationCoreTest",
+                "test_item_assignment_due_filter_and_conversion_are_authorized_and_idempotent"
+            ],
+            [
+                "CollaborationCoreTest",
+                "test_comment_plain_text_safe_html_edit_history_window_and_moderation"
+            ],
+            [
+                "CollaborationCoreTest",
+                "test_mentions_and_watchers_filter_current_visibility_without_granting_permissions"
+            ],
+            [
+                "CollaborationCoreTest",
+                "test_watcher_toggle_changes_recipients_without_creating_access"
+            ],
+            [
+                "CollaborationCoreTest",
+                "test_reply_cannot_link_a_comment_from_another_task_and_rolls_back"
+            ],
+            [
+                "CollaborationCoreTest",
+                "test_actual_file_download_tickets_are_actor_task_version_expiry_and_permission_bound"
+            ],
+            [
+                "CollaborationCoreTest",
+                "test_legacy_unverified_attachment_metadata_never_issues_a_file_download"
+            ],
+            [
+                "CollaborationCoreTest",
+                "test_comment_soft_delete_restore_window_and_parent_revocation_preserve_history"
+            ],
+            [
+                "CollaborationCoreTest",
+                "test_checklist_comment_reads_and_item_writes_do_not_accept_an_unrelated_actor"
+            ],
+            [
+                "ReminderCoreTest",
+                "test_relative_reminder_queues_once_and_due_changes_invalidate_old_generation"
+            ],
+            [
+                "ReminderCoreTest",
+                "test_quiet_hours_snooze_and_permission_revocation_never_deliver_stale_work"
+            ],
+            [
+                "SchedulingCoreTest",
+                "test_half_open_schedule_due_only_and_all_day_preserve_local_dates_across_zones"
+            ],
+            [
+                "SchedulingCoreTest",
+                "test_dst_gap_rejects_and_fold_has_explicit_earliest_latest_choices"
+            ],
+            [
+                "SchedulingCoreTest",
+                "test_daily_generation_is_horizon_bounded_unique_and_retry_safe"
+            ],
+            [
+                "SchedulingCoreTest",
+                "test_weekly_local_time_survives_dst_and_configured_friday_holidays"
+            ],
+            [
+                "SchedulingCoreTest",
+                "test_persian_months_leap_esfand_and_missing_day_policies_are_real_calendar_operations"
+            ],
+            [
+                "SchedulingCoreTest",
+                "test_monthly_gregorian_skip_and_last_day_are_explicit"
+            ],
+            [
+                "RecurrenceHistoryTest",
+                "test_one_occurrence_exception_and_whole_rule_change_preserve_completed_history"
+            ],
+            [
+                "RecurrenceHistoryTest",
+                "test_after_completion_materializes_only_one_followup_after_real_completion"
+            ],
+            [
+                "RecurrenceHistoryTest",
+                "test_preset_copies_safe_checklist_defaults_once_and_rejects_foreign_members"
+            ]
+        ]
+    },
+    {
+        "id": "SC-03",
+        "class": "Karnoweb\\TaskManager\\Tests\\Scenarios\\Complete\\Scenario03ProjectTest",
+        "file": "tests/Scenarios/Complete/Scenario03ProjectTest.php",
+        "source": "DeveloperExperienceTest",
+        "original_methods": [
+            "test_direct_creation_is_atomic_idempotent_and_has_no_personal_task_or_revision"
+        ],
+        "title": "ساخت مستقیم Task پروژه",
+        "methods": [
+            "test_complete_scenario_03"
+        ],
+        "steps": [
+            "ساخت مستقیم: DX-1، new، نسخه Task و نمونه اصلی ۱",
+            "بررسی یک Task/Instance و نبود تعریف personal یا شناسه TM موقت",
+            "بازپخش direct: همان نتیجه؛ عنوان متفاوت با همان عملیات: idempotency_key_conflict",
+            "complete مستقیم روی Task پروژه: workflow_command_required؛ انتقال review: نسخه نمونه ۲",
+            "ویرایش عنوان با نسخه Task ۲: نسخه Task ۳ و نمونه همچنان ۲"
+        ],
+        "tables": "tm_projects، tm_tasks، tm_workflow_instances، tm_task_key_aliases، tm_outbox",
+        "initial": "تعریف sales، پروژه DX، نوع bug و عنوان Fix login",
+        "failures": "تعارض فرمان و رد complete نادرست در همین جریان؛ Rollback کامل ساخت در DeveloperExperienceTest حفظ شده است.",
+        "preserved_methods": [
+            [
+                "DeveloperExperienceTest",
+                "test_direct_creation_is_atomic_idempotent_and_has_no_personal_task_or_revision"
+            ],
+            [
+                "DeveloperExperienceTest",
+                "test_project_type_workflow_and_initial_in_progress_are_honored"
+            ],
+            [
+                "DeveloperExperienceTest",
+                "test_direct_creation_rejects_cross_scope_membership_and_revoked_replay"
+            ],
+            [
+                "DeveloperExperienceTest",
+                "test_invalid_type_title_archived_project_and_terminal_initial_state_create_nothing"
+            ],
+            [
+                "DeveloperExperienceTest",
+                "test_host_edit_constraint_rolls_back_every_creation_write"
+            ],
+            [
+                "DeveloperExperienceTest",
+                "test_host_project_edit_constraint_is_checked_on_creation_and_replay"
+            ],
+            [
+                "DeveloperExperienceTest",
+                "test_project_lifecycle_exception_rolls_back_task_instance_sequence_journal_and_event"
+            ],
+            [
+                "DeveloperExperienceTest",
+                "test_task_sessions_delegate_everyday_operations_and_keep_context_local"
+            ],
+            [
+                "DeveloperExperienceTest",
+                "test_pagination_configuration_defaults_explicit_limits_and_safe_ceiling"
+            ],
+            [
+                "DeveloperExperienceTest",
+                "test_container_guards_keep_subject_and_lifecycle_checks_and_roll_back_exceptions"
+            ],
+            [
+                "DeveloperExperienceTest",
+                "test_all_four_query_paths_apply_config_and_preserve_named_argument_compatibility"
+            ],
+            [
+                "DeveloperExperienceTest",
+                "test_missing_guard_and_legacy_constructor_precedence_are_preserved"
+            ],
+            [
+                "DeveloperExperienceTest",
+                "test_facade_annotations_match_every_accessor_and_legacy_forwarding_still_runs"
+            ],
+            [
+                "WorkflowCoreTest",
+                "test_external_subject_keeps_identity_and_is_not_copied_to_tasks"
+            ],
+            [
+                "WorkflowCoreTest",
+                "test_invalid_transition_required_fields_self_action_and_cancel"
+            ],
+            [
+                "WorkflowCoreTest",
+                "test_host_veto_rolls_back_host_domain_history_journal_and_outbox"
+            ],
+            [
+                "WorkflowCoreTest",
+                "test_external_permissions_are_applied_before_count_facets_and_paging"
+            ],
+            [
+                "WorkflowCoreTest",
+                "test_slots_are_independent_duplicates_rejected_and_terminal_frees_slot"
+            ],
+            [
+                "WorkflowCoreTest",
+                "test_stage_reentry_and_pipeline_move_preserve_visits_and_subject_identity"
+            ],
+            [
+                "WorkflowCoreTest",
+                "test_stage_mapping_validation_ambiguity_and_capacity"
+            ],
+            [
+                "WorkflowCoreTest",
+                "test_project_membership_revocation_is_immediate_even_for_task_owner"
+            ],
+            [
+                "WorkflowCoreTest",
+                "test_project_workflow_revisions_are_immutable_and_migration_requires_fresh_complete_map"
+            ],
+            [
+                "WorkflowCoreTest",
+                "test_case_timeline_filters_subject_permissions_without_private_host_text"
+            ],
+            [
+                "WorkflowCoreTest",
+                "test_legacy_host_writer_is_reported_as_conflict_and_alias_remains_stable"
+            ],
+            [
+                "WorkflowCoreTest",
+                "test_board_visibility_does_not_mutate_state_journal_or_events"
+            ],
+            [
+                "SubtreeProjectMoveTest",
+                "test_controlled_subtree_move_preserves_internal_paths_and_public_keys_and_rejects_stale_preview"
+            ],
+            [
+                "SubtreeProjectMoveTest",
+                "test_subtree_move_never_skips_source_permissions_or_active_sprint_memberships"
+            ]
+        ]
+    },
+    {
+        "id": "SC-04",
+        "class": "Karnoweb\\TaskManager\\Tests\\Scenarios\\Complete\\Scenario04HierarchyTest",
+        "file": "tests/Scenarios/Complete/Scenario04HierarchyTest.php",
+        "source": "HierarchyCoreTest",
+        "original_methods": [
+            "test_two_children_progress_zero_fifty_hundred_without_automatic_parent_transition"
+        ],
+        "title": "درخت کار و وابستگی",
+        "methods": [
+            "test_complete_scenario_04"
+        ],
+        "steps": [
+            "اتصال two و one به root",
+            "ساخت dependency از one به two؛ تلاش ایجاد چرخه: dependency_cycle",
+            "خواندن نسخه‌های تازه پس از تغییر وابستگی؛ پیشرفت ریشه صفر",
+            "تکمیل one: پیشرفت ۵۰ درصد؛ تکمیل two: ۱۰۰ درصد",
+            "وضعیت خود root همچنان pending؛ پیشرفت فرزند فرمان تکمیل ریشه نیست"
+        ],
+        "tables": "tm_tasks و جدول‌های hierarchy/dependency و ثبت فرمان/رویداد",
+        "initial": "سه Todo: root، one، two؛ مجوزهای PhaseFourTestCase",
+        "failures": "چرخه رد می‌شود و درخت معتبر حفظ می‌شود؛ آزمون‌های HierarchyCoreTest و DependencyCoreTest جزئیات تعارض و Rollback را نگه می‌دارند.",
+        "preserved_methods": [
+            [
+                "HierarchyCoreTest",
+                "test_two_children_progress_zero_fifty_hundred_without_automatic_parent_transition"
+            ],
+            [
+                "HierarchyCoreTest",
+                "test_multilevel_reparent_preserves_internal_paths_and_removes_old_ancestors"
+            ],
+            [
+                "HierarchyCoreTest",
+                "test_self_and_distant_descendant_cycles_roll_back_the_whole_command"
+            ],
+            [
+                "HierarchyCoreTest",
+                "test_default_depth_three_and_project_limit_eight_are_real_subtree_constraints"
+            ],
+            [
+                "HierarchyCoreTest",
+                "test_parent_requires_same_project_but_not_same_workflow_revision"
+            ],
+            [
+                "HierarchyCoreTest",
+                "test_parent_delete_defaults_to_denial_and_cascade_is_previewed_guarded_and_replay_safe"
+            ],
+            [
+                "HierarchyCoreTest",
+                "test_detach_delete_preserves_descendant_subtree_and_rejects_stale_preview"
+            ],
+            [
+                "HierarchyCoreTest",
+                "test_tree_progress_and_reparent_do_not_grant_a_shared_childs_hidden_parent_access"
+            ],
+            [
+                "DependencyCoreTest",
+                "test_initial_work_category_enforces_dependencies_and_records_real_start"
+            ],
+            [
+                "DependencyCoreTest",
+                "test_all_four_actual_dependency_kinds_enforce_real_anchor_and_lag"
+            ],
+            [
+                "DependencyCoreTest",
+                "test_personal_complete_and_reopen_use_the_current_actual_cycle_not_planned_dates"
+            ],
+            [
+                "DependencyCoreTest",
+                "test_cycle_in_a_three_edge_batch_rolls_back_all_links_versions_and_outbox"
+            ],
+            [
+                "DependencyCoreTest",
+                "test_related_links_do_not_block_and_current_permissions_filter_both_sides"
+            ],
+            [
+                "DependencyCoreTest",
+                "test_cross_scope_reference_is_explicitly_rejected_and_foreign_key_is_not_disclosed"
+            ],
+            [
+                "DependencyCoreTest",
+                "test_business_lag_skips_friday_and_negative_business_lag_is_computed_without_guessing"
+            ],
+            [
+                "DependencyCoreTest",
+                "test_warning_policy_records_a_durable_redacted_warning_without_forcing_business_failure"
+            ],
+            [
+                "HierarchyApprovalSafetyTest",
+                "test_child_pending_approval_blocks_parent_completion_and_atomic_subtree_terminal_mapping"
+            ]
+        ]
+    },
+    {
+        "id": "SC-05",
+        "class": "Karnoweb\\TaskManager\\Tests\\Scenarios\\Complete\\Scenario05SprintTimeTest",
+        "file": "tests/Scenarios/Complete/Scenario05SprintTimeTest.php",
+        "source": "SprintCoreTest",
+        "original_methods": [
+            "test_start_commits_points_and_daily_snapshot_does_not_rewrite_committed_estimates"
+        ],
+        "title": "اسپرینت، برنامه‌ریزی و زمان",
+        "methods": [
+            "test_complete_scenario_05"
+        ],
+        "steps": [
+            "ساخت One، افزودن Task و start اسپرینت",
+            "گزارش committed: points_minor=500",
+            "تغییر امتیاز زنده به ۱۳ و snapshot روز بعد",
+            "تعهد اسپرینت همچنان ۵۰۰؛ scope_change_points برابر 0.00",
+            "ثبت بازه 23:00 تا 23:15 UTC: مدت ۹۰۰ و باقی‌مانده ۲۷۰۰ ثانیه"
+        ],
+        "tables": "tm_sprints و جدول‌های برنامه‌ریزی، snapshot و time entry",
+        "initial": "یک Task پروژه با ۵ امتیاز و برآورد یک ساعت؛ ساعت ثابت",
+        "failures": "تعارض نسخه و همپوشانی زمان در SprintCoreTest و TimeTrackingTest؛ این جریان حفظ تعهد و محاسبه زمان را می‌سنجد.",
+        "preserved_methods": [
+            [
+                "TaskPlanningTest",
+                "test_date_propagation_is_read_only_until_execute_and_retains_successor_duration"
+            ],
+            [
+                "TaskPlanningTest",
+                "test_changed_version_or_forged_proposal_is_rejected_without_partial_date_writes"
+            ],
+            [
+                "TaskPlanningTest",
+                "test_successor_guard_does_not_treat_planned_predecessor_finish_as_actual_evidence"
+            ],
+            [
+                "TaskPlanningTest",
+                "test_critical_path_requires_evidence_then_calculates_real_elapsed_estimates_and_lag"
+            ],
+            [
+                "TaskPlanningTest",
+                "test_cross_project_dependency_requires_both_project_permissions"
+            ],
+            [
+                "SprintCoreTest",
+                "test_start_commits_points_and_daily_snapshot_does_not_rewrite_committed_estimates"
+            ],
+            [
+                "SprintCoreTest",
+                "test_active_scope_additions_and_removals_are_separate_from_original_commitment"
+            ],
+            [
+                "SprintCoreTest",
+                "test_completion_carries_only_unfinished_tasks_and_keeps_the_original_membership_history"
+            ],
+            [
+                "SprintCoreTest",
+                "test_velocity_counts_only_real_done_leaves_and_never_epic_plus_children"
+            ],
+            [
+                "SprintCoreTest",
+                "test_historical_burndown_and_same_day_snapshot_deduplication_survive_later_task_changes"
+            ],
+            [
+                "SprintCoreTest",
+                "test_unknown_points_are_reported_as_missing_instead_of_zero_velocity"
+            ],
+            [
+                "SprintCoreTest",
+                "test_a_task_cannot_reserve_two_active_sprints_and_current_project_permissions_apply"
+            ],
+            [
+                "TimeTrackingCoreTest",
+                "test_manual_time_and_estimate_calculate_spent_and_remaining_from_truth"
+            ],
+            [
+                "TimeTrackingCoreTest",
+                "test_half_open_overlap_rejects_or_warns_without_disclosing_other_tasks"
+            ],
+            [
+                "TimeTrackingCoreTest",
+                "test_one_active_timer_per_scope_actor_and_retry_safe_start_stop"
+            ],
+            [
+                "TimeTrackingCoreTest",
+                "test_projection_revision_detects_in_place_entry_edits_and_rebuilds_without_double_count"
+            ],
+            [
+                "TimeTrackingCoreTest",
+                "test_revoked_or_foreign_actor_cannot_read_time_notes_or_stop_someone_elses_timer"
+            ],
+            [
+                "TimeTrackingCoreTest",
+                "test_clock_rollback_keeps_the_timer_reservation_and_does_not_create_negative_time"
+            ],
+            [
+                "PlanningViewsTest",
+                "test_position_versions_reject_stale_clients_and_dense_ranks_rebalance_exactly"
+            ],
+            [
+                "PlanningViewsTest",
+                "test_departed_backlog_positions_are_pruned_without_removing_current_cards"
+            ],
+            [
+                "PlanningViewsTest",
+                "test_milestone_and_release_progress_is_independent_of_sprint_membership"
+            ],
+            [
+                "PlanningViewsTest",
+                "test_reporting_counts_raw_time_once_and_reparenting_updates_leaf_totals"
+            ],
+            [
+                "TemplateCoreTest",
+                "test_template_pins_workflow_and_template_revisions_with_retry_safe_real_project_creation"
+            ],
+            [
+                "TemplateCoreTest",
+                "test_invalid_template_graph_and_foreign_workflow_never_create_partial_templates"
+            ]
+        ]
+    },
+    {
+        "id": "SC-06",
+        "class": "Karnoweb\\TaskManager\\Tests\\Scenarios\\Complete\\Scenario06WorkflowPolicyTest",
+        "file": "tests/Scenarios/Complete/Scenario06WorkflowPolicyTest.php",
+        "source": "TicketWorkflowPolicyTest",
+        "original_methods": [
+            "test_sequential_forward_backward_and_structured_jump_denial",
+            "test_free_and_no_pipeline_still_enforce_host_guard_versions_and_operation_hash"
+        ],
+        "title": "گردش‌کار ترتیبی، آزاد و سیاست میزبان",
+        "methods": [
+            "test_complete_scenario_06"
+        ],
+        "steps": [
+            "شروع pipeline ترتیبی: open؛ انتقال reviewing و waiting",
+            "پرش waiting به closed رد می‌شود: transition_policy_denied؛ مقصدهای مجاز reviewing و done",
+            "بازگشت reviewing: تاریخچه سه انتقال معتبر",
+            "در حالت free و بدون pipeline انتقال open به closed مجاز و بازپخش بدون تکرار است",
+            "استفاده دوباره عملیات با مقصد متفاوت خطا دارد؛ veto میزبان وضعیت open را حفظ می‌کند"
+        ],
+        "tables": "tm_workflow_definitions، tm_workflow_instances، tm_instance_transitions، tm_security_decisions",
+        "initial": "Subject معتبر support.ticket؛ تعریف واقعی شش‌حالته",
+        "failures": "idempotency_key_conflict، host_guard_veto و transition_policy_denied در همین سناریو؛ مجوز میزبان حتی در حالت آزاد حذف نمی‌شود.",
+        "preserved_methods": [
+            [
+                "TicketWorkflowPolicyTest",
+                "test_sequential_forward_backward_and_structured_jump_denial"
+            ],
+            [
+                "TicketWorkflowPolicyTest",
+                "test_free_and_no_pipeline_still_enforce_host_guard_versions_and_operation_hash"
+            ],
+            [
+                "TicketWorkflowPolicyTest",
+                "test_business_command_has_separate_capability_required_result_and_no_ordinary_bypass"
+            ],
+            [
+                "TicketWorkflowPolicyTest",
+                "test_pipeline_change_applies_new_policy_and_detach_preserves_process_identity_and_assignments"
+            ],
+            [
+                "WorkflowCoreTest",
+                "test_external_subject_keeps_identity_and_is_not_copied_to_tasks"
+            ],
+            [
+                "WorkflowCoreTest",
+                "test_invalid_transition_required_fields_self_action_and_cancel"
+            ],
+            [
+                "WorkflowCoreTest",
+                "test_host_veto_rolls_back_host_domain_history_journal_and_outbox"
+            ],
+            [
+                "WorkflowCoreTest",
+                "test_external_permissions_are_applied_before_count_facets_and_paging"
+            ],
+            [
+                "WorkflowCoreTest",
+                "test_slots_are_independent_duplicates_rejected_and_terminal_frees_slot"
+            ],
+            [
+                "WorkflowCoreTest",
+                "test_stage_reentry_and_pipeline_move_preserve_visits_and_subject_identity"
+            ],
+            [
+                "WorkflowCoreTest",
+                "test_stage_mapping_validation_ambiguity_and_capacity"
+            ],
+            [
+                "WorkflowCoreTest",
+                "test_project_membership_revocation_is_immediate_even_for_task_owner"
+            ],
+            [
+                "WorkflowCoreTest",
+                "test_project_workflow_revisions_are_immutable_and_migration_requires_fresh_complete_map"
+            ],
+            [
+                "WorkflowCoreTest",
+                "test_case_timeline_filters_subject_permissions_without_private_host_text"
+            ],
+            [
+                "WorkflowCoreTest",
+                "test_legacy_host_writer_is_reported_as_conflict_and_alias_remains_stable"
+            ],
+            [
+                "WorkflowCoreTest",
+                "test_board_visibility_does_not_mutate_state_journal_or_events"
+            ],
+            [
+                "TicketWorkflowPolicyTest",
+                "test_sequential_forward_backward_and_structured_jump_denial"
+            ],
+            [
+                "TicketWorkflowPolicyTest",
+                "test_free_and_no_pipeline_still_enforce_host_guard_versions_and_operation_hash"
+            ],
+            [
+                "TicketWorkflowPolicyTest",
+                "test_business_command_has_separate_capability_required_result_and_no_ordinary_bypass"
+            ],
+            [
+                "TicketWorkflowPolicyTest",
+                "test_pipeline_change_applies_new_policy_and_detach_preserves_process_identity_and_assignments"
+            ],
+            [
+                "WorkflowSecurityTest",
+                "test_definition_rejects_malformed_arrays_and_unsafe_condition_operators"
+            ],
+            [
+                "WorkflowSecurityTest",
+                "test_subject_conditions_cannot_be_overwritten_by_caller_payload"
+            ],
+            [
+                "WorkflowSecurityTest",
+                "test_unknown_reason_code_cannot_close_instance"
+            ],
+            [
+                "WorkflowSecurityTest",
+                "test_external_only_service_actor_does_not_need_native_task_capabilities"
+            ],
+            [
+                "WorkflowSecurityTest",
+                "test_workflow_migration_rejects_preview_after_instance_changes_without_partial_writes"
+            ],
+            [
+                "WorkflowSecurityTest",
+                "test_downgrade_refuses_to_discard_external_identity"
+            ],
+            [
+                "WorkflowSecurityTest",
+                "test_default_revision_migration_preserves_closed_history_and_type_overrides"
+            ],
+            [
+                "WorkflowSecurityTest",
+                "test_inaccessible_and_nonexistent_case_timelines_are_indistinguishable"
+            ],
+            [
+                "DeveloperExperienceTest",
+                "test_direct_creation_is_atomic_idempotent_and_has_no_personal_task_or_revision"
+            ],
+            [
+                "DeveloperExperienceTest",
+                "test_project_type_workflow_and_initial_in_progress_are_honored"
+            ],
+            [
+                "DeveloperExperienceTest",
+                "test_direct_creation_rejects_cross_scope_membership_and_revoked_replay"
+            ],
+            [
+                "DeveloperExperienceTest",
+                "test_invalid_type_title_archived_project_and_terminal_initial_state_create_nothing"
+            ],
+            [
+                "DeveloperExperienceTest",
+                "test_host_edit_constraint_rolls_back_every_creation_write"
+            ],
+            [
+                "DeveloperExperienceTest",
+                "test_host_project_edit_constraint_is_checked_on_creation_and_replay"
+            ],
+            [
+                "DeveloperExperienceTest",
+                "test_project_lifecycle_exception_rolls_back_task_instance_sequence_journal_and_event"
+            ],
+            [
+                "DeveloperExperienceTest",
+                "test_task_sessions_delegate_everyday_operations_and_keep_context_local"
+            ],
+            [
+                "DeveloperExperienceTest",
+                "test_pagination_configuration_defaults_explicit_limits_and_safe_ceiling"
+            ],
+            [
+                "DeveloperExperienceTest",
+                "test_container_guards_keep_subject_and_lifecycle_checks_and_roll_back_exceptions"
+            ],
+            [
+                "DeveloperExperienceTest",
+                "test_all_four_query_paths_apply_config_and_preserve_named_argument_compatibility"
+            ],
+            [
+                "DeveloperExperienceTest",
+                "test_missing_guard_and_legacy_constructor_precedence_are_preserved"
+            ],
+            [
+                "DeveloperExperienceTest",
+                "test_facade_annotations_match_every_accessor_and_legacy_forwarding_still_runs"
+            ]
+        ]
+    },
+    {
+        "id": "SC-07",
+        "class": "Karnoweb\\TaskManager\\Tests\\Scenarios\\Complete\\Scenario07PipelineTest",
+        "file": "tests/Scenarios/Complete/Scenario07PipelineTest.php",
+        "source": "WorkflowCoreTest",
+        "original_methods": [
+            "test_stage_reentry_and_pipeline_move_preserve_visits_and_subject_identity"
+        ],
+        "title": "بازگشت مرحله و تغییر Pipeline",
+        "methods": [
+            "test_complete_scenario_07"
+        ],
+        "steps": [
+            "شروع و ورود review",
+            "بازگشت inbox با ثبت visit تازه",
+            "preview انتقال به pipeline دوم و اجرای انتقال با نسخه معتبر",
+            "شناسه Subject حفظ می‌شود؛ شمار visitها چهار است"
+        ],
+        "tables": "tm_pipelines، tm_pipeline_stages، tm_stage_visits، tm_workflow_instances",
+        "initial": "دو pipeline با تعریف سازگار و یک Subject پایدار",
+        "failures": "امنیت و ناسازگاری تعریف در WorkflowCoreTest باقی است؛ بازدید جدید تاریخچه قبلی را بازنویسی نمی‌کند.",
+        "preserved_methods": [
+            [
+                "WorkflowCoreTest",
+                "test_external_subject_keeps_identity_and_is_not_copied_to_tasks"
+            ],
+            [
+                "WorkflowCoreTest",
+                "test_invalid_transition_required_fields_self_action_and_cancel"
+            ],
+            [
+                "WorkflowCoreTest",
+                "test_host_veto_rolls_back_host_domain_history_journal_and_outbox"
+            ],
+            [
+                "WorkflowCoreTest",
+                "test_external_permissions_are_applied_before_count_facets_and_paging"
+            ],
+            [
+                "WorkflowCoreTest",
+                "test_slots_are_independent_duplicates_rejected_and_terminal_frees_slot"
+            ],
+            [
+                "WorkflowCoreTest",
+                "test_stage_reentry_and_pipeline_move_preserve_visits_and_subject_identity"
+            ],
+            [
+                "WorkflowCoreTest",
+                "test_stage_mapping_validation_ambiguity_and_capacity"
+            ],
+            [
+                "WorkflowCoreTest",
+                "test_project_membership_revocation_is_immediate_even_for_task_owner"
+            ],
+            [
+                "WorkflowCoreTest",
+                "test_project_workflow_revisions_are_immutable_and_migration_requires_fresh_complete_map"
+            ],
+            [
+                "WorkflowCoreTest",
+                "test_case_timeline_filters_subject_permissions_without_private_host_text"
+            ],
+            [
+                "WorkflowCoreTest",
+                "test_legacy_host_writer_is_reported_as_conflict_and_alias_remains_stable"
+            ],
+            [
+                "WorkflowCoreTest",
+                "test_board_visibility_does_not_mutate_state_journal_or_events"
+            ],
+            [
+                "UiProcessSafetyTest",
+                "test_mixed_task_and_real_opportunity_board_keeps_sources_and_current_permissions_separate"
+            ],
+            [
+                "UiProcessSafetyTest",
+                "test_contract_stage_drag_calls_the_trusted_handoff_handler_once_without_direct_status_write"
+            ],
+            [
+                "UiProcessSafetyTest",
+                "test_calendar_sla_marker_and_virtual_recurrence_details_have_stable_read_only_identity"
+            ],
+            [
+                "UiProcessSafetyTest",
+                "test_completed_legacy_tasks_keep_original_history_and_subject_link_evidence"
+            ],
+            [
+                "UiProcessSafetyTest",
+                "test_reimport_and_cutover_cannot_hide_missing_or_deleted_legacy_rows"
+            ],
+            [
+                "EntryRoutingTest",
+                "test_own_parent_and_missing_entry_destinations_have_one_stable_instance_and_audit"
+            ],
+            [
+                "EntryRoutingTest",
+                "test_default_replacement_is_versioned_and_does_not_relocate_existing_subjects"
+            ],
+            [
+                "EntryRoutingTest",
+                "test_retirement_replaces_default_and_recoverable_detach_preserves_records_and_history"
+            ]
+        ]
+    },
+    {
+        "id": "SC-08",
+        "class": "Karnoweb\\TaskManager\\Tests\\Scenarios\\Complete\\Scenario08AssignmentApprovalTest",
+        "file": "tests/Scenarios/Complete/Scenario08AssignmentApprovalTest.php",
+        "source": "ApprovalCoreTest",
+        "original_methods": [
+            "test_quorum_votes_resolve_once_and_duplicate_vote_or_replay_does_not_count_twice"
+        ],
+        "title": "مسئولیت و رأی تأیید",
+        "methods": [
+            "test_complete_scenario_08"
+        ],
+        "steps": [
+            "ثبت سیاست assignment و approval برای review، سپس شروع و ورود مرحله",
+            "مالک و مسئول اصلی a می‌مانند؛ دو جایگاه مسئولیت",
+            "رأی b: pending؛ بازپخش همان فرمان و رأی دوباره b فقط یک رأی",
+            "رأی c: approved و executed؛ نمونه به won منتقل می‌شود",
+            "دو رأی، یک approval_decided؛ رأی دیرهنگام d رد و مرحله فعال پاک می‌شود"
+        ],
+        "tables": "tm_assignment_slots، tm_instance_assignments، tm_approval_votes، tm_active_approval_steps، tm_outbox",
+        "initial": "مالک a؛ مسئول اصلی a، کمکی b؛ رأی‌دهندگان b/c/d و quorum=2",
+        "failures": "approval_already_resolved و منع شمارش رأی تکراری در همین زنجیره؛ آزمون‌های Assignment/Approval قبلی حفظ شده‌اند.",
+        "preserved_methods": [
+            [
+                "AssignmentCoreTest",
+                "test_primary_and_secondary_capacity_duplicate_and_owner_invariants"
+            ],
+            [
+                "AssignmentCoreTest",
+                "test_stage_dynamic_assignment_changes_executor_but_not_owner_and_keeps_intervals"
+            ],
+            [
+                "AssignmentCoreTest",
+                "test_empty_or_revoked_resolver_cannot_activate_stage"
+            ],
+            [
+                "AssignmentCoreTest",
+                "test_round_robin_uses_locked_scoped_queue_and_is_fair_for_stable_candidates"
+            ],
+            [
+                "AssignmentCoreTest",
+                "test_departure_policies_reject_or_restore_owner_and_close_old_history"
+            ],
+            [
+                "AssignmentCoreTest",
+                "test_explicit_unassigned_policy_is_required_to_remove_last_primary"
+            ],
+            [
+                "AssignmentCoreTest",
+                "test_personal_complete_and_reopen_close_and_restore_fixed_assignments"
+            ],
+            [
+                "AssignmentCoreTest",
+                "test_assignment_capability_scope_and_stale_version_fail_closed"
+            ],
+            [
+                "HandoffAssignmentTest",
+                "test_return_assignment_is_explicit_and_owner_is_preserved"
+            ],
+            [
+                "ApprovalCoreTest",
+                "test_quorum_votes_resolve_once_and_duplicate_vote_or_replay_does_not_count_twice"
+            ],
+            [
+                "ApprovalCoreTest",
+                "test_sequential_votes_reject_early_next_actor_and_stale_version"
+            ],
+            [
+                "ApprovalCoreTest",
+                "test_revocation_before_vote_is_rechecked_and_manager_can_cancel_for_explicit_repair"
+            ],
+            [
+                "ApprovalCoreTest",
+                "test_reject_requires_catalog_reason_and_uses_distinct_return_transition"
+            ],
+            [
+                "ApprovalCoreTest",
+                "test_pending_approval_cannot_be_bypassed_by_transition_or_pipeline_move"
+            ],
+            [
+                "ApprovalCoreTest",
+                "test_view_only_voter_records_consent_but_needs_authorized_executor"
+            ],
+            [
+                "ApprovalCoreTest",
+                "test_host_veto_retains_valid_votes_without_faking_workflow_completion"
+            ],
+            [
+                "ApprovalCoreTest",
+                "test_native_todo_complete_archive_delete_and_conversion_respect_pending_step"
+            ],
+            [
+                "ApprovalCoreTest",
+                "test_self_approval_and_invalid_quorum_fail_closed"
+            ],
+            [
+                "ApprovalCoreTest",
+                "test_project_migration_cannot_bypass_a_pending_manual_step"
+            ],
+            [
+                "ApprovalCoreTest",
+                "test_native_owner_can_execute_consented_completion_without_leaving_stale_execution_projection"
+            ],
+            [
+                "ApprovalConcurrencyTest",
+                "test_parallel_votes_have_explicit_conflict_retry_and_one_completion"
+            ]
+        ]
+    },
+    {
+        "id": "SC-09",
+        "class": "Karnoweb\\TaskManager\\Tests\\Scenarios\\Complete\\Scenario09SlaAutomationTest",
+        "file": "tests/Scenarios/Complete/Scenario09SlaAutomationTest.php",
+        "source": "EnterpriseProcessTest",
+        "original_methods": [
+            "test_real_handoff_return_triggers_guarded_automation_once_and_keeps_depth_lineage"
+        ],
+        "title": "مهلت خدمت و خودکارسازی",
+        "methods": [
+            "test_complete_scenario_09"
+        ],
+        "steps": [
+            "واگذاری مبدأ و توقف ساعت؛ جلو بردن زمان ۶۰ ثانیه",
+            "پذیرش مقصد و settle؛ ایجاد handoff_returned",
+            "انتشار قانون با transition approve و notify؛ اجرای worker",
+            "هر دو action completed و مبدأ won",
+            "بازپخش automation نتیجه ثابت و رویداد اضافه صفر؛ lineage عمق ۱؛ paused_seconds=60"
+        ],
+        "tables": "tm_handoffs، tm_stage_visits، tm_outbox، tm_event_lineage و جدول‌های automation",
+        "initial": "handoff واقعی با SLA فعال و ساعت ثابت",
+        "failures": "قید عمق و مجوز در EnterpriseProcessTest؛ بازپخش واقعی در همین سناریو، بدون اجرای دوباره transition.",
+        "preserved_methods": [
+            [
+                "SlaCoreTest",
+                "test_warning_and_breach_boundaries_are_exact_and_idempotent"
+            ],
+            [
+                "SlaCoreTest",
+                "test_iran_business_calendar_skips_friday_and_holidays"
+            ],
+            [
+                "SlaCoreTest",
+                "test_pause_resume_preserves_remaining_time_and_pause_metrics_across_repeats"
+            ],
+            [
+                "SlaCoreTest",
+                "test_cumulative_reentry_uses_previous_work_without_rewriting_old_visits"
+            ],
+            [
+                "SlaCoreTest",
+                "test_policy_revision_does_not_change_existing_visit_deadline"
+            ],
+            [
+                "SlaCoreTest",
+                "test_stale_and_dead_candidate_are_labels_and_activity_starts_new_stale_epoch"
+            ],
+            [
+                "SlaCoreTest",
+                "test_auto_transition_without_permission_or_with_host_veto_is_manual_review"
+            ],
+            [
+                "SlaCoreTest",
+                "test_job_for_exited_stage_never_changes_new_stage"
+            ],
+            [
+                "SlaCoreTest",
+                "test_reset_is_a_new_clock_epoch_and_not_resume"
+            ],
+            [
+                "SlaCoreTest",
+                "test_calendar_and_pause_inputs_fail_closed"
+            ],
+            [
+                "SlaCoreTest",
+                "test_auto_transition_obeys_host_veto_without_committing_host_side_effect"
+            ],
+            [
+                "SlaCoreTest",
+                "test_authorized_auto_transition_runs_through_the_workflow_engine_and_resolves_old_visit"
+            ],
+            [
+                "SlaCoreTest",
+                "test_pause_requires_capability_reason_and_current_version_and_cannot_move_clock_backwards"
+            ],
+            [
+                "SlaCoreTest",
+                "test_dst_shift_boundaries_are_rejected_when_ambiguous_or_nonexistent"
+            ],
+            [
+                "SlaCoreTest",
+                "test_terminal_auto_fail_keeps_terminal_visit_and_frees_active_slot"
+            ],
+            [
+                "SlaCoreTest",
+                "test_watchdog_recovers_pending_dead_candidate_after_prior_thresholds_committed"
+            ],
+            [
+                "SlaNativeLifecycleTest",
+                "test_archive_and_delete_cannot_hide_an_active_auxiliary_process_or_clock"
+            ],
+            [
+                "SlaNativeLifecycleTest",
+                "test_watchdog_ignores_a_native_source_archived_by_a_legacy_writer"
+            ],
+            [
+                "EnterpriseSlaReportTest",
+                "test_stage_elapsed_pause_and_breach_metrics_are_as_of_and_permission_filtered"
+            ],
+            [
+                "AutomationCoreTest",
+                "test_whitelisted_actions_use_real_guards_audit_and_retry_deduplication"
+            ],
+            [
+                "AutomationCoreTest",
+                "test_recursive_notification_events_stop_at_depth_and_budget_limits"
+            ],
+            [
+                "AutomationCoreTest",
+                "test_unknown_or_revoked_source_events_do_not_grant_automation_privileges"
+            ],
+            [
+                "EventDeliveryTest",
+                "test_durable_subscription_retry_and_replay_do_not_duplicate_successful_consumer_effects"
+            ],
+            [
+                "EventDeliveryTest",
+                "test_permission_revocation_after_enqueue_cancels_delivery_before_host_callback"
+            ],
+            [
+                "EventDeliveryTest",
+                "test_producer_rollback_and_committed_undispatched_event_recovery_are_explicit"
+            ],
+            [
+                "EnterpriseProcessTest",
+                "test_real_handoff_return_triggers_guarded_automation_once_and_keeps_depth_lineage"
+            ],
+            [
+                "EnterpriseProcessTest",
+                "test_handoff_webhook_has_signed_scope_allowlisted_payload_and_no_host_private_content"
+            ],
+            [
+                "EnterpriseProcessTest",
+                "test_group_closure_export_filters_items_and_rechecks_external_host_revocation"
+            ]
+        ]
+    },
+    {
+        "id": "SC-10",
+        "class": "Karnoweb\\TaskManager\\Tests\\Scenarios\\Complete\\Scenario10TicketTest",
+        "file": "tests/Scenarios/Complete/Scenario10TicketTest.php",
+        "source": "TicketingIntegrationTest",
+        "original_methods": [
+            "test_real_ticket_entry_assignment_wait_reply_reminder_and_close_result_share_one_truth"
+        ],
+        "title": "Ticket واقعی از ورود تا خاتمه",
+        "methods": [
+            "test_complete_scenario_10"
+        ],
+        "steps": [
+            "ساخت Ticket توسط ConversationService واقعی و انتساب به کاربر ۱",
+            "ثبت مسیر دپارتمان و ورود Workflow؛ حرکت reviewing سپس waiting",
+            "پاسخ مشتری ۲ وضعیت pending و نسخه نمونه را خودکار عوض نمی‌کند",
+            "یادآور به مسئول ۳ و ویرایش متن با حفظ گیرنده",
+            "close_result با نتیجه محرمانه: Ticket و نمونه closed؛ یک یادداشت داخلی؛ بازپخش بدون تکرار؛ یادآور مستقل pending"
+        ],
+        "tables": "جدول‌های واقعی Ticket/Message/Department و tm_workflow_instances، tm_reminders، tm_audit_events؛ صفر tm_tasks",
+        "initial": "پکیج ticket-chat واقعی، کاربران ۱/۲/۳، دپارتمان Support و نمونه میزبان آماده",
+        "failures": "داده محرمانه در audit نیست؛ خطای نبود میزبان موجب skip صریح می‌شود، نه شبیه‌سازی موفقیت.",
+        "preserved_methods": [
+            [
+                "TicketingIntegrationTest",
+                "test_real_ticket_entry_assignment_wait_reply_reminder_and_close_result_share_one_truth"
+            ],
+            [
+                "TicketingIntegrationTest",
+                "test_real_ticket_result_validation_and_outer_rollback_remove_all_partial_host_changes"
+            ],
+            [
+                "TicketingIntegrationTest",
+                "test_real_department_move_preserves_ticket_owner_reminder_and_hides_previous_private_notes"
+            ],
+            [
+                "TicketingIntegrationTest",
+                "test_actual_kanban_contract_advertises_scalar_policy_metadata_and_denies_a_sequential_jump"
+            ],
+            [
+                "TicketingIntegrationTest",
+                "test_default_recipient_is_suggested_at_creation_but_edit_and_retry_keep_the_original_choice"
+            ],
+            [
+                "TicketingIntegrationTest",
+                "test_retiring_operational_board_keeps_real_ticket_status_priority_assignment_and_reminder"
+            ],
+            [
+                "TicketWorkflowPolicyTest",
+                "test_sequential_forward_backward_and_structured_jump_denial"
+            ],
+            [
+                "TicketWorkflowPolicyTest",
+                "test_free_and_no_pipeline_still_enforce_host_guard_versions_and_operation_hash"
+            ],
+            [
+                "TicketWorkflowPolicyTest",
+                "test_business_command_has_separate_capability_required_result_and_no_ordinary_bypass"
+            ],
+            [
+                "TicketWorkflowPolicyTest",
+                "test_pipeline_change_applies_new_policy_and_detach_preserves_process_identity_and_assignments"
+            ]
+        ]
+    },
+    {
+        "id": "SC-11",
+        "class": "Karnoweb\\TaskManager\\Tests\\Scenarios\\Complete\\Scenario11DepartmentCrmTest",
+        "file": "tests/Scenarios/Complete/Scenario11DepartmentCrmTest.php",
+        "source": "RealHostE2ETest",
+        "original_methods": [
+            "test_e2e_04_ticket_spawn_uses_real_crm_service_rollback_and_safe_retry",
+            "test_e2e_05_same_real_ticket_moves_pipeline_and_department_with_new_permissions"
+        ],
+        "title": "اتصال واقعی CRM و انتقال دپارتمان",
+        "methods": [
+            "test_complete_scenario_11",
+            "test_same_ticket_department_variant"
+        ],
+        "steps": [
+            "جریان اول: ساخت Ticket و مقصد CRM با سرویس واقعی میزبان",
+            "خطای واقعی ساخت CRM: Rollback؛ اصلاح و retry ایمن با حفظ ارتباط",
+            "جریان دوم: همان Ticket به pipeline و دپارتمان جدید منتقل می‌شود",
+            "مجوزهای دپارتمان قبلی/جدید و هویت همان Subject بررسی می‌شوند"
+        ],
+        "tables": "جدول‌های واقعی CRM/Ticket و tm_handoffs/instances و ACL میزبان",
+        "initial": "پکیج CRM واقعی و مدل نمونه میزبان PhaseSixTicket؛ دو جریان مستقل",
+        "failures": "جریان rollback و safe retry مستقیماً assert می‌شود؛ نام دقیق متدهای اجرا در PHP همین سناریو است.",
+        "preserved_methods": [
+            [
+                "EntryRoutingTest",
+                "test_own_parent_and_missing_entry_destinations_have_one_stable_instance_and_audit"
+            ],
+            [
+                "EntryRoutingTest",
+                "test_default_replacement_is_versioned_and_does_not_relocate_existing_subjects"
+            ],
+            [
+                "EntryRoutingTest",
+                "test_retirement_replaces_default_and_recoverable_detach_preserves_records_and_history"
+            ],
+            [
+                "HostUiCompositionTest",
+                "test_real_livewire_board_renders_and_moves_the_same_backend_task"
+            ],
+            [
+                "HostUiCompositionTest",
+                "test_actual_calendar_dispatcher_composes_sources_without_cross_source_loss"
+            ],
+            [
+                "HostUiCompositionTest",
+                "test_real_calendar_ui_iso_payload_preserves_the_requested_instant"
+            ],
+            [
+                "HostUiCompositionTest",
+                "test_native_crm_trait_board_calls_crm_service_without_creating_engine_state"
+            ],
+            [
+                "HostUiCompositionTest",
+                "test_order_uses_actual_model_trait_in_both_ui_packages_without_task_records"
+            ],
+            [
+                "UiProcessSafetyTest",
+                "test_mixed_task_and_real_opportunity_board_keeps_sources_and_current_permissions_separate"
+            ],
+            [
+                "UiProcessSafetyTest",
+                "test_contract_stage_drag_calls_the_trusted_handoff_handler_once_without_direct_status_write"
+            ],
+            [
+                "UiProcessSafetyTest",
+                "test_calendar_sla_marker_and_virtual_recurrence_details_have_stable_read_only_identity"
+            ],
+            [
+                "UiProcessSafetyTest",
+                "test_completed_legacy_tasks_keep_original_history_and_subject_link_evidence"
+            ],
+            [
+                "UiProcessSafetyTest",
+                "test_reimport_and_cutover_cannot_hide_missing_or_deleted_legacy_rows"
+            ],
+            [
+                "LocalRouteTest",
+                "test_same_ticket_moves_with_department_change_by_owner_service"
+            ],
+            [
+                "LocalRouteTest",
+                "test_spawn_uses_owner_service_links_two_subjects_and_hides_ticket_private_content"
+            ],
+            [
+                "LocalRouteTest",
+                "test_owner_write_rolls_back_when_a_later_workflow_guard_denies"
+            ],
+            [
+                "LocalRouteTest",
+                "test_mismatched_transaction_connection_is_rejected_before_owner_write"
+            ],
+            [
+                "EntryRoutingTest",
+                "test_own_parent_and_missing_entry_destinations_have_one_stable_instance_and_audit"
+            ],
+            [
+                "EntryRoutingTest",
+                "test_default_replacement_is_versioned_and_does_not_relocate_existing_subjects"
+            ],
+            [
+                "EntryRoutingTest",
+                "test_retirement_replaces_default_and_recoverable_detach_preserves_records_and_history"
+            ],
+            [
+                "TicketingIntegrationTest",
+                "test_real_ticket_entry_assignment_wait_reply_reminder_and_close_result_share_one_truth"
+            ],
+            [
+                "TicketingIntegrationTest",
+                "test_real_ticket_result_validation_and_outer_rollback_remove_all_partial_host_changes"
+            ],
+            [
+                "TicketingIntegrationTest",
+                "test_real_department_move_preserves_ticket_owner_reminder_and_hides_previous_private_notes"
+            ],
+            [
+                "TicketingIntegrationTest",
+                "test_actual_kanban_contract_advertises_scalar_policy_metadata_and_denies_a_sequential_jump"
+            ],
+            [
+                "TicketingIntegrationTest",
+                "test_default_recipient_is_suggested_at_creation_but_edit_and_retry_keep_the_original_choice"
+            ],
+            [
+                "TicketingIntegrationTest",
+                "test_retiring_operational_board_keeps_real_ticket_status_priority_assignment_and_reminder"
+            ],
+            [
+                "LocalRouteTest",
+                "test_same_ticket_moves_with_department_change_by_owner_service"
+            ],
+            [
+                "LocalRouteTest",
+                "test_spawn_uses_owner_service_links_two_subjects_and_hides_ticket_private_content"
+            ],
+            [
+                "LocalRouteTest",
+                "test_owner_write_rolls_back_when_a_later_workflow_guard_denies"
+            ],
+            [
+                "LocalRouteTest",
+                "test_mismatched_transaction_connection_is_rejected_before_owner_write"
+            ],
+            [
+                "EnterpriseProcessTest",
+                "test_real_handoff_return_triggers_guarded_automation_once_and_keeps_depth_lineage"
+            ],
+            [
+                "EnterpriseProcessTest",
+                "test_handoff_webhook_has_signed_scope_allowlisted_payload_and_no_host_private_content"
+            ],
+            [
+                "EnterpriseProcessTest",
+                "test_group_closure_export_filters_items_and_rechecks_external_host_revocation"
+            ],
+            [
+                "TicketingIntegrationTest",
+                "test_real_ticket_entry_assignment_wait_reply_reminder_and_close_result_share_one_truth"
+            ],
+            [
+                "TicketingIntegrationTest",
+                "test_real_ticket_result_validation_and_outer_rollback_remove_all_partial_host_changes"
+            ],
+            [
+                "TicketingIntegrationTest",
+                "test_real_department_move_preserves_ticket_owner_reminder_and_hides_previous_private_notes"
+            ],
+            [
+                "TicketingIntegrationTest",
+                "test_actual_kanban_contract_advertises_scalar_policy_metadata_and_denies_a_sequential_jump"
+            ],
+            [
+                "TicketingIntegrationTest",
+                "test_default_recipient_is_suggested_at_creation_but_edit_and_retry_keep_the_original_choice"
+            ],
+            [
+                "TicketingIntegrationTest",
+                "test_retiring_operational_board_keeps_real_ticket_status_priority_assignment_and_reminder"
+            ]
+        ]
+    },
+    {
+        "id": "SC-12",
+        "class": "Karnoweb\\TaskManager\\Tests\\Scenarios\\Complete\\Scenario12HandoffCaseTest",
+        "file": "tests/Scenarios/Complete/Scenario12HandoffCaseTest.php",
+        "source": "HandoffCoreTest",
+        "original_methods": [
+            "test_success_returns_through_workflow_once_and_preserves_clock_metrics"
+        ],
+        "title": "واگذاری و پرونده فرایند",
+        "methods": [
+            "test_complete_scenario_12"
+        ],
+        "steps": [
+            "مبدأ waiting؛ تلاش عبور مستقیم: instance_on_hold",
+            "گذشت ۶۰ ثانیه؛ accept مقصد؛ settle با outcome approved/status resolved",
+            "مبدأ review و paused_seconds=60",
+            "بازپخش با همان و عملیات تازه روی واگذاری حل‌شده ممیزی اضافه نمی‌کند",
+            "خواندن case_id تازه و timeline پرونده غیرخالی"
+        ],
+        "tables": "tm_handoffs، tm_process_cases، tm_stage_visits، tm_audit_events",
+        "initial": "مبدأ و مقصد delegateFixture با SLA فعال",
+        "failures": "instance_on_hold در همین جریان؛ وضعیت origin قبل از واگذاری ممکن است case_id نداشته باشد، پس برای پرونده دوباره خوانده می‌شود.",
+        "preserved_methods": [
+            [
+                "HandoffCoreTest",
+                "test_delegate_pauses_origin_without_creating_a_new_origin_visit"
+            ],
+            [
+                "HandoffCoreTest",
+                "test_success_returns_through_workflow_once_and_preserves_clock_metrics"
+            ],
+            [
+                "HandoffCoreTest",
+                "test_changed_origin_is_never_overwritten"
+            ],
+            [
+                "HandoffCoreTest",
+                "test_return_guard_failure_preserves_destination_evidence_and_waiting_origin"
+            ],
+            [
+                "HandoffCoreTest",
+                "test_recall_is_a_guarded_cancel_and_never_success"
+            ],
+            [
+                "HandoffCoreTest",
+                "test_timeout_cannot_run_early_and_replays_one_result"
+            ],
+            [
+                "HandoffCoreTest",
+                "test_scope_is_checked_before_handoff_details"
+            ],
+            [
+                "HandoffCoreTest",
+                "test_nonterminal_destination_cannot_claim_success"
+            ],
+            [
+                "HandoffCoreTest",
+                "test_rejection_returns_for_correction_with_original_reason_audited"
+            ],
+            [
+                "HandoffCoreTest",
+                "test_duplicate_delegate_does_not_create_a_second_destination"
+            ],
+            [
+                "HandoffCoreTest",
+                "test_cycle_is_rejected_before_creating_another_process"
+            ],
+            [
+                "HandoffCoreTest",
+                "test_denied_destination_rolls_back_case_origin_and_events"
+            ],
+            [
+                "HandoffCoreTest",
+                "test_delegation_cannot_hide_an_unprocessed_expired_deadline"
+            ],
+            [
+                "HandoffCoreTest",
+                "test_cancellation_has_its_own_outcome_and_return_mapping"
+            ],
+            [
+                "HandoffCoreTest",
+                "test_contradictory_terminal_outcome_cannot_replace_recorded_success"
+            ],
+            [
+                "HandoffCoreTest",
+                "test_destination_clock_runs_independently_while_origin_is_paused"
+            ],
+            [
+                "HandoffCoreTest",
+                "test_destination_acceptance_receives_route_before_origin_is_changed"
+            ],
+            [
+                "HandoffCoreTest",
+                "test_changed_live_origin_requires_review_without_losing_its_waiting_flag"
+            ],
+            [
+                "HandoffCoreTest",
+                "test_two_boards_read_independent_instances_for_one_subject"
+            ],
+            [
+                "HandoffCoreTest",
+                "test_committed_destination_is_recovered_by_scoped_worker_after_restart"
+            ],
+            [
+                "HandoffCoreTest",
+                "test_nested_handoffs_share_a_redacted_permission_filtered_case_timeline"
+            ],
+            [
+                "HandoffCoreTest",
+                "test_cross_scope_destination_cannot_create_a_handoff_or_case_link"
+            ],
+            [
+                "HandoffParallelTest",
+                "test_all_waits_for_every_destination_then_resumes_exactly_once"
+            ],
+            [
+                "HandoffParallelTest",
+                "test_any_detaches_remaining_processes_with_no_second_return"
+            ],
+            [
+                "HandoffParallelTest",
+                "test_quorum_counts_distinct_destinations_and_extra_outcomes_do_not_resume_again"
+            ],
+            [
+                "HandoffParallelTest",
+                "test_duplicate_slots_roll_back_the_whole_parallel_batch"
+            ],
+            [
+                "HandoffParallelTest",
+                "test_detached_active_remainder_is_not_recalled_by_the_expired_group_deadline"
+            ],
+            [
+                "HandoffRepairTest",
+                "test_manual_join_requires_recorded_result_and_explicit_versioned_repair"
+            ],
+            [
+                "HandoffRepairTest",
+                "test_reviewed_source_version_can_be_accepted_without_rewriting_original_snapshot"
+            ],
+            [
+                "HandoffRepairTest",
+                "test_closed_origin_conflict_can_be_acknowledged_without_business_overwrite"
+            ],
+            [
+                "HandoffRepairTest",
+                "test_repair_requires_separate_capability"
+            ],
+            [
+                "HandoffRepairTest",
+                "test_mixed_join_keeps_member_outcomes_distinct_from_aggregate_result"
+            ],
+            [
+                "EnterpriseProcessTest",
+                "test_real_handoff_return_triggers_guarded_automation_once_and_keeps_depth_lineage"
+            ],
+            [
+                "EnterpriseProcessTest",
+                "test_handoff_webhook_has_signed_scope_allowlisted_payload_and_no_host_private_content"
+            ],
+            [
+                "EnterpriseProcessTest",
+                "test_group_closure_export_filters_items_and_rechecks_external_host_revocation"
+            ],
+            [
+                "ExternalSagaTest",
+                "test_lost_remote_ack_retries_without_duplicate_or_false_local_success"
+            ],
+            [
+                "ExternalSagaTest",
+                "test_remote_create_survives_local_failure_then_explicit_compensation_repairs_it"
+            ],
+            [
+                "ExternalSagaTest",
+                "test_failed_compensation_has_durable_manual_repair_state"
+            ],
+            [
+                "ExternalSagaTest",
+                "test_external_calls_are_rejected_inside_an_uncommitted_local_transaction"
+            ],
+            [
+                "ExternalSagaTest",
+                "test_scope_and_current_source_permission_are_rechecked_before_external_create"
+            ],
+            [
+                "ExternalSagaTest",
+                "test_manual_compensation_can_be_retried_with_current_version_and_owner_receipt"
+            ],
+            [
+                "ExternalSagaTest",
+                "test_lost_receipt_with_changed_source_uses_durable_lookup_for_manual_repair"
+            ],
+            [
+                "ExternalSagaTest",
+                "test_second_pending_saga_cannot_duplicate_origin_external_creation"
+            ],
+            [
+                "ExternalSagaTest",
+                "test_recovery_scan_finishes_only_current_scope_pending_requests"
+            ],
+            [
+                "ExternalSagaTest",
+                "test_invalid_remote_scope_is_manual_repair_and_never_confirmed"
+            ],
+            [
+                "ExternalSagaTest",
+                "test_private_export_is_rejected_before_saga_or_remote_effect_exists"
+            ]
+        ]
+    },
+    {
+        "id": "SC-13",
+        "class": "Karnoweb\\TaskManager\\Tests\\Scenarios\\Complete\\Scenario13CampaignTest",
+        "file": "tests/Scenarios/Complete/Scenario13CampaignTest.php",
+        "source": "GroupCoreTest",
+        "original_methods": [
+            "test_hundred_member_campaign_has_exact_75_15_10_results_with_five_live_delegations"
+        ],
+        "title": "پایان کمپین صدعضوی",
+        "methods": [
+            "test_complete_scenario_13"
+        ],
+        "steps": [
+            "گذشت ۶۰ ثانیه: ۱۲ رخداد SLA",
+            "بستن کمپین و preview: ۷۵ failed، ۱۵ continued و ۱۰ already_terminal",
+            "اجرای closure و پردازش دسته‌های ۲۰تایی؛ نتایج دقیق حفظ می‌شوند",
+            "۷۵ علت campaign_ended و ۱۰۰ group_item_processed",
+            "پنج واگذاری active و مبدأ waiting باقی می‌مانند؛ اجرای دوباره run هیچ رخداد اضافه نمی‌سازد"
+        ],
+        "tables": "tm_group_operation_items، tm_outbox، tm_handoffs، tm_workflow_instances، tm_stage_visits",
+        "initial": "صد عضو و پنج واگذاری فعال؛ ledger نمونه SQLite، نه سنجش بار PostgreSQL",
+        "failures": "تفکیک شکست تجاری failed از شکست زیرساخت؛ خروجی عمداً ۷۵ failed است و آزمون موفق محسوب می‌شود؛ بار و قفل سرور در این مأموریت تأیید نشده است.",
+        "preserved_methods": [
+            [
+                "GroupCoreTest",
+                "test_active_member_without_committed_milestone_fails_with_reason"
+            ],
+            [
+                "GroupCoreTest",
+                "test_verified_milestone_at_inclusive_cutoff_continues"
+            ],
+            [
+                "GroupCoreTest",
+                "test_unverified_intent_is_reviewed_instead_of_guessing_failure"
+            ],
+            [
+                "GroupCoreTest",
+                "test_hundred_member_campaign_has_exact_75_15_10_results_with_five_live_delegations"
+            ],
+            [
+                "GroupCoreTest",
+                "test_named_reservation_stage_without_milestone_is_not_protected"
+            ],
+            [
+                "GroupCoreTest",
+                "test_milestone_committed_after_cutoff_does_not_grandfather_member"
+            ],
+            [
+                "GroupCoreTest",
+                "test_already_terminal_member_gets_no_second_business_transition"
+            ],
+            [
+                "GroupCoreTest",
+                "test_invalid_campaign_source_cannot_start_any_closure_action"
+            ],
+            [
+                "GroupCoreTest",
+                "test_preview_and_delta_are_read_only_and_detect_process_version_changes"
+            ],
+            [
+                "GroupCoreTest",
+                "test_membership_change_invalidates_preview_before_run_creation"
+            ],
+            [
+                "GroupCoreTest",
+                "test_item_report_has_reason_operation_and_authorized_cursor_without_private_content"
+            ],
+            [
+                "GroupCoreTest",
+                "test_one_denied_member_does_not_escape_per_item_authorization_or_block_others"
+            ],
+            [
+                "GroupCoreTest",
+                "test_host_veto_is_one_manual_review_item_under_partial_success"
+            ],
+            [
+                "GroupCoreTest",
+                "test_run_key_reuse_with_different_payload_is_rejected_without_new_run"
+            ],
+            [
+                "GroupCoreTest",
+                "test_new_run_repreviews_terminal_members_without_duplicate_failure"
+            ],
+            [
+                "GroupCoreTest",
+                "test_sla_breach_only_marks_until_explicit_campaign_failure_policy_runs"
+            ],
+            [
+                "GroupCoreTest",
+                "test_protected_delegated_contract_continues_with_source_handoff_and_clock_intact"
+            ],
+            [
+                "GroupCoreTest",
+                "test_item_snapshot_pins_the_exact_hashed_version_when_source_changes_during_materialization"
+            ],
+            [
+                "NativeCommitEvidenceTest",
+                "test_actual_postgres_commit_timestamps_define_before_equal_and_after_cutoff"
+            ],
+            [
+                "NativeCommitEvidenceTest",
+                "test_uncommitted_transition_cannot_create_verified_evidence_and_rollback_removes_intent"
+            ],
+            [
+                "GroupConcurrencyTest",
+                "test_two_workers_claim_distinct_items_and_commit_one_action_per_member"
+            ],
+            [
+                "GroupConcurrencyTest",
+                "test_process_crash_after_40_commits_and_durable_claim_resumes_60_after_lease_expiry"
+            ]
+        ]
+    },
+    {
+        "id": "SC-14",
+        "class": "Karnoweb\\TaskManager\\Tests\\Scenarios\\Complete\\Scenario14IdentityScopeTest",
+        "file": "tests/Scenarios/Complete/Scenario14IdentityScopeTest.php",
+        "source": "ContextFactoryTest",
+        "original_methods": [
+            "test_request_time_resolvers_do_not_leak_users_branches_or_scopes_in_a_long_lived_factory"
+        ],
+        "title": "هویت، شعبه و جداسازی داده",
+        "methods": [
+            "test_complete_scenario_14"
+        ],
+        "steps": [
+            "فعال‌سازی شعبه و اتصال Resolverهای درخواست‌زمان",
+            "ساخت زمینه و Todo خصوصی A در org-a:north",
+            "تغییر کاربر و ساخت زمینه تازه: org-b:south و actor=b",
+            "کاربر b نمی‌تواند Task قبلی را get/query کند؛ زمینه a همچنان فقط داده خودش را دارد",
+            "درخواست north برای b: context_branch_denied"
+        ],
+        "tables": "tm_tasks؛ ساخت زمینه خودش نوشتن ندارد",
+        "initial": "یک Factory ماندگار؛ کاربر a/org-a/north سپس b/org-b/south",
+        "failures": "این سناریو عمداً Scope را با تصمیم صریح میزبان به سازمان/شعبه نگاشت می‌کند؛ پیش‌فرض هسته چنین نگاشتی ندارد.",
+        "preserved_methods": [
+            [
+                "WorkflowSecurityTest",
+                "test_definition_rejects_malformed_arrays_and_unsafe_condition_operators"
+            ],
+            [
+                "WorkflowSecurityTest",
+                "test_subject_conditions_cannot_be_overwritten_by_caller_payload"
+            ],
+            [
+                "WorkflowSecurityTest",
+                "test_unknown_reason_code_cannot_close_instance"
+            ],
+            [
+                "WorkflowSecurityTest",
+                "test_external_only_service_actor_does_not_need_native_task_capabilities"
+            ],
+            [
+                "WorkflowSecurityTest",
+                "test_workflow_migration_rejects_preview_after_instance_changes_without_partial_writes"
+            ],
+            [
+                "WorkflowSecurityTest",
+                "test_downgrade_refuses_to_discard_external_identity"
+            ],
+            [
+                "WorkflowSecurityTest",
+                "test_default_revision_migration_preserves_closed_history_and_type_overrides"
+            ],
+            [
+                "WorkflowSecurityTest",
+                "test_inaccessible_and_nonexistent_case_timelines_are_indistinguishable"
+            ],
+            [
+                "IdentifierIsolationTest",
+                "test_case_distinct_scope_and_actor_identifiers_do_not_share_visibility_or_operations"
+            ],
+            [
+                "IdentifierIsolationTest",
+                "test_populated_legacy_mariadb_collation_upgrade_preserves_records_and_restores_isolation"
+            ],
+            [
+                "EnterpriseHardeningTest",
+                "test_automation_current_state_conditions_throttle_and_rule_disabling_are_guarded"
+            ],
+            [
+                "EnterpriseHardeningTest",
+                "test_restricted_field_forms_respect_host_authorization_before_paging"
+            ],
+            [
+                "EnterpriseHardeningTest",
+                "test_moved_occurrence_is_listed_by_its_override_range_without_fabricating_new_identity"
+            ],
+            [
+                "ReportRevocationTest",
+                "test_external_source_revocation_invalidates_cached_and_journal_replayed_aggregates"
+            ],
+            [
+                "PhaseSixInstallationTest",
+                "test_kanban_only_host_runs_with_task_manager_absent"
+            ],
+            [
+                "PhaseSixInstallationTest",
+                "test_calendar_only_host_runs_with_task_manager_absent"
+            ],
+            [
+                "PhaseSixInstallationTest",
+                "test_task_only_host_runs_todo_project_facade_and_reporting_without_ui"
+            ],
+            [
+                "PhaseSixInstallationTest",
+                "test_orders_work_in_both_independent_ui_hosts_and_the_combined_host"
+            ],
+            [
+                "UiIntegrationTest",
+                "test_due_only_calendar_and_board_share_one_task_truth"
+            ],
+            [
+                "UiIntegrationTest",
+                "test_board_transition_retry_conflict_and_revocation_use_real_domain_services"
+            ],
+            [
+                "UiIntegrationTest",
+                "test_calendar_move_resize_versions_and_read_only_sla_are_enforced"
+            ],
+            [
+                "UiIntegrationTest",
+                "test_source_selection_empty_and_forged_cross_surface_ids_are_denied"
+            ],
+            [
+                "UiIntegrationTest",
+                "test_board_cursor_is_bound_to_actor_stage_sources_and_query"
+            ],
+            [
+                "UiIntegrationTest",
+                "test_recurring_query_is_read_only_stable_and_occurrence_safe_across_pages"
+            ],
+            [
+                "UiIntegrationTest",
+                "test_drawer_ignores_supplied_private_card_and_rechecks_permission"
+            ],
+            [
+                "RealHostE2ETest",
+                "test_e2e_01_personal_todo_becomes_project_task_visible_in_board_and_calendar"
+            ],
+            [
+                "RealHostE2ETest",
+                "test_e2e_02_real_crm_campaign_closes_hundred_members_with_exact_75_15_10_outcomes"
+            ],
+            [
+                "RealHostE2ETest",
+                "test_e2e_03_real_crm_opportunity_contract_quorum_and_explicit_return"
+            ],
+            [
+                "RealHostE2ETest",
+                "test_e2e_04_ticket_spawn_uses_real_crm_service_rollback_and_safe_retry"
+            ],
+            [
+                "RealHostE2ETest",
+                "test_e2e_05_same_real_ticket_moves_pipeline_and_department_with_new_permissions"
+            ],
+            [
+                "RealHostE2ETest",
+                "test_e2e_06_real_opportunity_parallel_slots_preserve_independent_truth_and_join_all"
+            ]
+        ]
+    },
+    {
+        "id": "SC-15",
+        "class": "Karnoweb\\TaskManager\\Tests\\Scenarios\\Complete\\Scenario15RetryOutboxTest",
+        "file": "tests/Scenarios/Complete/Scenario15RetryOutboxTest.php",
+        "source": "FoundationTest",
+        "original_methods": [
+            "test_outbox_failure_retries_after_commit_with_same_event_identity"
+        ],
+        "title": "تعارض نسخه، شناسه فرمان و تلاش مجدد رویداد",
+        "methods": [
+            "test_complete_scenario_15"
+        ],
+        "steps": [
+            "ساخت و بازپخش: همان Task؛ عنوان دیگر با عملیات قبلی رد می‌شود",
+            "نسخه صفر برای update: version_conflict؛ تراکنش بیرونی با خطای عمدی Rollback",
+            "فقط یک Task و رخداد committed باقی می‌ماند",
+            "ارسال Outbox با crash: رخداد منتشرنشده و تلاش اول",
+            "تلاش دوم همان event_id؛ بار بعد ارسال صفر؛ attempts=2 و یک Task"
+        ],
+        "tables": "tm_tasks، tm_command_journal، tm_outbox",
+        "initial": "یک Todo event با operation=create؛ SQLite تک‌فرایندی",
+        "failures": "این سناریو تعارض خوش‌بینانه و retry را اثبات می‌کند؛ رقابت هم‌زمان دو اتصال سرور را اثبات نمی‌کند. تست‌های Concurrency موجود حفظ ولی اجرا نمی‌شوند.",
+        "preserved_methods": [
+            [
+                "NotificationSafetyTest",
+                "test_queued_old_reminder_is_suppressed_and_unchanged_deadline_does_not_resend"
+            ],
+            [
+                "NotificationSafetyTest",
+                "test_notification_quiet_hours_defer_until_window_without_spending_retry_budget"
+            ],
+            [
+                "NotificationSafetyTest",
+                "test_unknown_event_schema_is_visible_as_dead_letter_and_keeps_outbox_evidence"
+            ],
+            [
+                "EventDeliveryTest",
+                "test_durable_subscription_retry_and_replay_do_not_duplicate_successful_consumer_effects"
+            ],
+            [
+                "EventDeliveryTest",
+                "test_permission_revocation_after_enqueue_cancels_delivery_before_host_callback"
+            ],
+            [
+                "EventDeliveryTest",
+                "test_producer_rollback_and_committed_undispatched_event_recovery_are_explicit"
+            ],
+            [
+                "WebhookCoreTest",
+                "test_signed_redacted_webhook_and_receipt_replay_checks_bind_scope_time_and_body"
+            ],
+            [
+                "WebhookCoreTest",
+                "test_private_metadata_mixed_dns_rebinding_and_redirects_never_escape_policy"
+            ],
+            [
+                "WebhookCoreTest",
+                "test_bounded_backoff_dead_letter_and_versioned_manual_retry_are_observable"
+            ],
+            [
+                "WebhookCoreTest",
+                "test_permission_revoked_during_dns_resolution_is_rechecked_before_transport"
+            ],
+            [
+                "ExportCoreTest",
+                "test_csv_json_streaming_filters_permissions_and_escapes_formula_cells"
+            ],
+            [
+                "ExportCoreTest",
+                "test_async_private_file_download_revalidates_revocation_and_expiry"
+            ],
+            [
+                "ProjectCreationConcurrencyTest",
+                "test_duplicate_creation_across_two_connections_creates_one_main_instance"
+            ],
+            [
+                "ProjectCreationConcurrencyTest",
+                "test_distinct_creation_commands_allocate_distinct_project_display_keys"
+            ],
+            [
+                "WorkflowConcurrencyTest",
+                "test_same_slot_concurrent_start_has_one_winner_and_no_orphan_instance"
+            ],
+            [
+                "WorkflowConcurrencyTest",
+                "test_wip_one_serializes_competing_transitions_using_stage_lock"
+            ],
+            [
+                "ExternalSagaConcurrencyTest",
+                "test_two_workers_use_one_remote_idempotency_key_and_one_local_confirmation"
+            ]
+        ]
+    }
+]

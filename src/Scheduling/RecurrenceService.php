@@ -10,6 +10,7 @@ use Karnoweb\TaskManager\Contracts\AuthorizationProvider;
 use Karnoweb\TaskManager\Contracts\Clock;
 use Karnoweb\TaskManager\EventRecorder;
 use Karnoweb\TaskManager\Exceptions\DomainError;
+use Karnoweb\TaskManager\Schema\Tables;
 use Karnoweb\TaskManager\SLA\CalendarRegistry;
 use Karnoweb\TaskManager\TaskGraph\ScopeGraphLock;
 use Karnoweb\TaskManager\TaskService;
@@ -32,10 +33,11 @@ final class RecurrenceService
 
     public function get(ExecutionContext $context, string $key, bool $write = false): array
     {
+        $context->validateTenant();
         if (! Str::isUuid($key)) {
             throw new DomainError('not_found');
         }
-        $row = $this->db->table('tm_recurrences')->where('scope_key', $context->scope)->where('series_key', $key)->where('owner_ref', $context->actor)->first();
+        $row = $this->db->table(Tables::name('recurrences'))->where('scope_key', $context->scope)->where('series_key', $key)->where('owner_ref', $context->actor)->first();
         if (! $row || ! $this->tasks->authorizedQuery($context, $write ? 'edit' : 'view')->where('id', $row->task_id)->whereNull('deleted_at')->exists()) {
             throw new DomainError('not_found');
         }
@@ -48,6 +50,7 @@ final class RecurrenceService
 
     public function create(ExecutionContext $context, string $taskKey, int $taskVersion, string $system, string $anchor, string $timezone, array|string $input, string $operation): array
     {
+        $context->validateTenant();
         $this->authorize($context);
         $rule = RecurrenceRule::parse($input);
         if (! in_array($system, ['gregorian', 'jalali'], true)) {
@@ -68,14 +71,14 @@ final class RecurrenceService
             } if ($task->version !== $taskVersion) {
                 throw new DomainError('version_conflict');
             }
-            if ($this->db->table('tm_recurrences')->where('task_id', $task->id)->exists()) {
+            if ($this->db->table(Tables::name('recurrences'))->where('task_id', $task->id)->exists()) {
                 throw new DomainError('recurrence_exists');
             }
-            $revision = $this->db->table('tm_workflow_instances')->where('task_id', $task->id)->where('slot_key', 'main')->orderByDesc('id')->value('workflow_revision_id');
+            $revision = $this->db->table(Tables::name('workflow_instances'))->where('task_id', $task->id)->where('slot_key', 'main')->orderByDesc('id')->value('workflow_revision_id');
             $template = ['title' => $task->title, 'description' => $task->description, 'priority' => $task->priority, 'project_id' => $task->project_id, 'type' => $task->type_key, 'workflow_revision_id' => $revision,
                 'starts_at' => $task->starts_at, 'ends_at' => $task->ends_at, 'due_at' => $task->due_at, 'all_day' => (bool) $task->all_day, 'local_start_date' => $task->local_start_date, 'local_end_date' => $task->local_end_date];
             $key = (string) Str::uuid();
-            $this->db->table('tm_recurrences')->insert(['series_key' => $key, 'scope_key' => $context->scope, 'owner_ref' => $context->actor, 'task_id' => $task->id, 'calendar_system' => $system, 'timezone' => $timezone, 'local_anchor' => $anchor, 'rule' => json_encode($rule, JSON_THROW_ON_ERROR), 'template' => json_encode($template, JSON_THROW_ON_ERROR)]);
+            $this->db->table(Tables::name('recurrences'))->insert(['series_key' => $key, 'scope_key' => $context->scope, 'owner_ref' => $context->actor, 'task_id' => $task->id, 'calendar_system' => $system, 'timezone' => $timezone, 'local_anchor' => $anchor, 'rule' => json_encode($rule, JSON_THROW_ON_ERROR), 'template' => json_encode($template, JSON_THROW_ON_ERROR)]);
             (new EventRecorder($this->db, $this->clock))->append($context, 'task', $taskKey, 'recurrence_created', $operation, ['series_key' => $key], $task->id);
 
             return $this->get($context, $key);
@@ -84,12 +87,13 @@ final class RecurrenceService
 
     public function preview(ExecutionContext $context, string $key, \DateTimeImmutable $from, \DateTimeImmutable $until, int $limit = 100): array
     {
+        $context->validateTenant();
         $series = $this->get($context, $key);
         if ($series['state'] !== 'active') {
             return [];
         }
         $items = RecurrenceRule::expand($series['calendar_system'], $series['local_anchor'], $series['timezone'], $series['rule'], $from, $until, $this->calendars, $limit);
-        $exceptions = $this->db->table('tm_recurrence_exceptions')->where('recurrence_id', $series['id'])->whereIn('occurrence_key', array_column($items, 'occurrence_key'))->get()->keyBy('occurrence_key');
+        $exceptions = $this->db->table(Tables::name('recurrence_exceptions'))->where('recurrence_id', $series['id'])->whereIn('occurrence_key', array_column($items, 'occurrence_key'))->get()->keyBy('occurrence_key');
         $result = [];
         foreach ($items as $item) {
             $exception = $exceptions[$item['occurrence_key']] ?? null;
@@ -100,8 +104,8 @@ final class RecurrenceService
                 $item['local_at'] = (new \DateTimeImmutable($exception->override_at, new \DateTimeZone('UTC')))->setTimezone(LocalTime::zone($series['timezone']))->format('Y-m-d H:i:s');
             } $result[] = $item;
         }
-        $extra = $this->db->table('tm_recurrence_exceptions')->where('recurrence_id', $series['id'])->where('cancelled', false)->where('override_at', '>=', LocalTime::stamp($from))->where('override_at', '<', LocalTime::stamp($until))
-            ->whereIn('occurrence_key', $this->db->table('tm_recurrence_occurrences')->where('recurrence_id', $series['id'])->where('state', 'active')->select('occurrence_key'))->limit(1001)->get();
+        $extra = $this->db->table(Tables::name('recurrence_exceptions'))->where('recurrence_id', $series['id'])->where('cancelled', false)->where('override_at', '>=', LocalTime::stamp($from))->where('override_at', '<', LocalTime::stamp($until))
+            ->whereIn('occurrence_key', $this->db->table(Tables::name('recurrence_occurrences'))->where('recurrence_id', $series['id'])->where('state', 'active')->select('occurrence_key'))->limit(1001)->get();
         if ($extra->count() > 1000) {
             throw new DomainError('recurrence_exception_page_required');
         }
@@ -122,6 +126,7 @@ final class RecurrenceService
 
     public function generate(ExecutionContext $context, string $key, int $version, \DateTimeImmutable $from, \DateTimeImmutable $until, string $operation, int $limit = 100): array
     {
+        $context->validateTenant();
         $this->authorize($context);
 
         return (new CommandExecutor($this->db))->execute($context, $operation, ['action' => 'recurrence_generate', 'key' => $key, 'version' => $version, 'from' => LocalTime::stamp($from), 'until' => LocalTime::stamp($until), 'limit' => $limit], function () use ($context, $key, $version, $from, $until, $operation, $limit) {
@@ -134,7 +139,7 @@ final class RecurrenceService
                 return ['series_key' => $key, 'created' => []];
             }
             if ($series['rule']['after_completion']) {
-                $last = $this->db->table('tm_recurrence_occurrences')->where('recurrence_id', $series['id'])->where('state', 'active')->orderByDesc('scheduled_at')->first();
+                $last = $this->db->table(Tables::name('recurrence_occurrences'))->where('recurrence_id', $series['id'])->where('state', 'active')->orderByDesc('scheduled_at')->first();
                 if (! StateIndex::currentTaskIds($this->db, $context->scope, ['done'])->where('task_id', $last?->task_id ?? $series['task_id'])->exists()) {
                     return ['series_key' => $key, 'created' => []];
                 }
@@ -145,13 +150,13 @@ final class RecurrenceService
             }
             $created = [];
             foreach ($this->preview($context, $key, $from, $until, $limit) as $item) {
-                $prior = $this->db->table('tm_recurrence_occurrences')->where('recurrence_id', $series['id'])->where('occurrence_key', $item['occurrence_key'])->lockForUpdate()->first();
+                $prior = $this->db->table(Tables::name('recurrence_occurrences'))->where('recurrence_id', $series['id'])->where('occurrence_key', $item['occurrence_key'])->lockForUpdate()->first();
                 if ($prior !== null && $prior->state === 'active') {
                     continue;
                 }
                 $child = 'occurrence:'.hash('sha256', $operation.':'.$item['occurrence_key']);
                 if ($prior !== null) {
-                    $public = $this->db->table('tm_tasks')->where('id', $prior->task_id)->value('public_key');
+                    $public = $this->db->table(Tables::name('tasks'))->where('id', $prior->task_id)->value('public_key');
                     $task = $this->tasks->get($context, $public);
                     if ($task['deleted_at'] !== null) {
                         $task = $this->tasks->mutate($context, $public, $task['version'], $child.':restore', 'undelete');
@@ -160,7 +165,7 @@ final class RecurrenceService
                     $task = $this->tasks->create($context, $series['template']['title'], $child.':create');
                     $task = $this->tasks->mutate($context, $task['public_key'], $task['version'], $child.':defaults', 'update', ['description' => $series['template']['description'], 'priority' => $series['template']['priority']]);
                     if ($series['template']['project_id'] !== null) {
-                        $projectKey = $this->db->table('tm_projects')->where('id', $series['template']['project_id'])->value('project_key');
+                        $projectKey = $this->db->table(Tables::name('projects'))->where('id', $series['template']['project_id'])->value('project_key');
                         $revision = $this->workflows->revision($context, $series['template']['workflow_revision_id']);
                         $preview = $this->projects->previewTaskMove($context, $task['public_key'], $projectKey, $series['template']['type'], [$task['state'] => $revision['definition']['initial']]);
                         if ($preview['revision_id'] !== $revision['id']) {
@@ -170,9 +175,9 @@ final class RecurrenceService
                 }
                 $task = $this->scheduleOccurrence($context, $series, $task, $item, $child.':dates');
                 if ($prior) {
-                    $this->db->table('tm_recurrence_occurrences')->where('id', $prior->id)->update(['rule_revision' => $version, 'scheduled_at' => $item['scheduled_at'], 'state' => 'active']);
+                    $this->db->table(Tables::name('recurrence_occurrences'))->where('id', $prior->id)->update(['rule_revision' => $version, 'scheduled_at' => $item['scheduled_at'], 'state' => 'active']);
                 } else {
-                    $this->db->table('tm_recurrence_occurrences')->insert(['recurrence_id' => $series['id'], 'occurrence_key' => $item['occurrence_key'], 'rule_revision' => $version, 'task_id' => $task['id'], 'scheduled_at' => $item['scheduled_at'], 'created_at' => LocalTime::stamp($this->clock->now())]);
+                    $this->db->table(Tables::name('recurrence_occurrences'))->insert(['recurrence_id' => $series['id'], 'occurrence_key' => $item['occurrence_key'], 'rule_revision' => $version, 'task_id' => $task['id'], 'scheduled_at' => $item['scheduled_at'], 'created_at' => LocalTime::stamp($this->clock->now())]);
                 }
                 $created[] = $task['public_key'];
             }
@@ -212,6 +217,7 @@ final class RecurrenceService
 
     public function changeRule(ExecutionContext $context, string $key, int $version, array|string $input, string $operation, bool $stop = false): array
     {
+        $context->validateTenant();
         $this->authorize($context);
         $rule = RecurrenceRule::parse($input);
         if ($rule['calendar_ref'] !== null) {
@@ -224,19 +230,19 @@ final class RecurrenceService
             if ($series['version'] !== $version) {
                 throw new DomainError('version_conflict');
             }
-            $future = $this->db->table('tm_recurrence_occurrences')->where('recurrence_id', $series['id'])->where('state', 'active')->where('scheduled_at', '>=', LocalTime::stamp($this->clock->now()))
+            $future = $this->db->table(Tables::name('recurrence_occurrences'))->where('recurrence_id', $series['id'])->where('state', 'active')->where('scheduled_at', '>=', LocalTime::stamp($this->clock->now()))
                 ->whereNotIn('task_id', StateIndex::currentTaskIds($this->db, $context->scope, ['done', 'cancelled']))->orderBy('id')->limit(1001)->get();
             if ($future->count() > 1000) {
                 throw new DomainError('recurrence_update_batch_required');
             }
             foreach ($future as $item) {
-                $taskKey = $this->db->table('tm_tasks')->where('id', $item->task_id)->value('public_key');
+                $taskKey = $this->db->table(Tables::name('tasks'))->where('id', $item->task_id)->value('public_key');
                 $task = $this->tasks->get($context, $taskKey);
                 $this->tasks->mutate($context, $taskKey, $task['version'], 'series-invalidate:'.hash('sha256', $operation.':'.$item->id), 'delete');
-                $this->db->table('tm_recurrence_occurrences')->where('id', $item->id)->update(['state' => 'invalidated']);
+                $this->db->table(Tables::name('recurrence_occurrences'))->where('id', $item->id)->update(['state' => 'invalidated']);
             }
-            $this->db->table('tm_recurrences')->where('id', $series['id'])->update(['rule' => json_encode($rule, JSON_THROW_ON_ERROR), 'version' => $version + 1, 'state' => $stop ? 'stopped' : 'active']);
-            $taskKey = $this->db->table('tm_tasks')->where('id', $series['task_id'])->value('public_key');
+            $this->db->table(Tables::name('recurrences'))->where('id', $series['id'])->update(['rule' => json_encode($rule, JSON_THROW_ON_ERROR), 'version' => $version + 1, 'state' => $stop ? 'stopped' : 'active']);
+            $taskKey = $this->db->table(Tables::name('tasks'))->where('id', $series['task_id'])->value('public_key');
             (new EventRecorder($this->db, $this->clock))->append($context, 'task', $taskKey, 'recurrence_rule_changed', $operation, ['series_key' => $key, 'version' => $version + 1, 'stopped' => $stop], $series['task_id']);
 
             return $this->get($context, $key);
@@ -245,6 +251,7 @@ final class RecurrenceService
 
     public function exception(ExecutionContext $context, string $key, int $version, string $occurrenceKey, int $taskVersion, ?\DateTimeImmutable $override, bool $cancel, string $operation): array
     {
+        $context->validateTenant();
         $this->authorize($context);
 
         return (new CommandExecutor($this->db))->execute($context, $operation, ['action' => 'recurrence_exception', 'key' => $key, 'version' => $version, 'occurrence' => $occurrenceKey, 'task_version' => $taskVersion, 'override' => LocalTime::stamp($override), 'cancel' => $cancel], function () use ($context, $key, $version, $occurrenceKey, $taskVersion, $override, $cancel, $operation) {
@@ -253,14 +260,14 @@ final class RecurrenceService
             if ($series['version'] !== $version) {
                 throw new DomainError('version_conflict');
             }
-            $row = $this->db->table('tm_recurrence_occurrences')->where('recurrence_id', $series['id'])->where('occurrence_key', $occurrenceKey)->where('state', 'active')->first();
+            $row = $this->db->table(Tables::name('recurrence_occurrences'))->where('recurrence_id', $series['id'])->where('occurrence_key', $occurrenceKey)->where('state', 'active')->first();
             if (! $row) {
                 throw new DomainError('not_found');
             }
             if (StateIndex::currentTaskIds($this->db, $context->scope, ['done', 'cancelled'])->where('task_id', $row->task_id)->exists()) {
                 throw new DomainError('occurrence_completed');
             }
-            $taskKey = $this->db->table('tm_tasks')->where('id', $row->task_id)->value('public_key');
+            $taskKey = $this->db->table(Tables::name('tasks'))->where('id', $row->task_id)->value('public_key');
             $task = $this->tasks->get($context, $taskKey);
             if ($task['version'] !== $taskVersion) {
                 throw new DomainError('version_conflict');
@@ -272,10 +279,10 @@ final class RecurrenceService
             } else {
                 throw new DomainError('exception_invalid');
             }
-            $prior = $this->db->table('tm_recurrence_exceptions')->where('recurrence_id', $series['id'])->where('occurrence_key', $occurrenceKey)->first();
+            $prior = $this->db->table(Tables::name('recurrence_exceptions'))->where('recurrence_id', $series['id'])->where('occurrence_key', $occurrenceKey)->first();
             $data = ['cancelled' => $cancel, 'override_at' => LocalTime::stamp($override), 'version' => ($prior->version ?? 0) + 1];
-            $this->db->table('tm_recurrence_exceptions')->updateOrInsert(['recurrence_id' => $series['id'], 'occurrence_key' => $occurrenceKey], $data);
-            $this->db->table('tm_recurrences')->where('id', $series['id'])->increment('version');
+            $this->db->table(Tables::name('recurrence_exceptions'))->updateOrInsert(['recurrence_id' => $series['id'], 'occurrence_key' => $occurrenceKey], $data);
+            $this->db->table(Tables::name('recurrences'))->where('id', $series['id'])->increment('version');
 
             return ['series_key' => $key, 'version' => $version + 1, 'occurrence_key' => $occurrenceKey, 'cancelled' => $cancel];
         }, fn ($result) => $this->get($context, $result['series_key'], true));

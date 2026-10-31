@@ -9,6 +9,7 @@ use Karnoweb\TaskManager\Contracts\AuthorizationProvider;
 use Karnoweb\TaskManager\Contracts\Clock;
 use Karnoweb\TaskManager\EventRecorder;
 use Karnoweb\TaskManager\Exceptions\DomainError;
+use Karnoweb\TaskManager\Schema\Tables;
 use Karnoweb\TaskManager\TaskGraph\ScopeGraphLock;
 use Karnoweb\TaskManager\TaskService;
 
@@ -16,11 +17,13 @@ final class DateService
 {
     public function __construct(private readonly Connection $db, private readonly Clock $clock, private readonly AuthorizationProvider $authorization, private readonly TaskService $tasks)
     {
+        Tables::assertConnection($db);
     }
 
     /** Local wall times are YYYY-MM-DD HH:MM:SS; all-day dates are YYYY-MM-DD, end exclusive. */
     public function change(ExecutionContext $context, string $key, int $version, ?string $start, ?string $end, ?string $due, string $timezone, bool $allDay, string $policy, string $operation): array
     {
+        $context->validateTenant();
         $context->require('schedule.update');
         $this->authorization->authorize($context, 'schedule.update');
         LocalTime::zone($timezone);
@@ -51,7 +54,7 @@ final class DateService
             } if ($task->version !== $version) {
                 throw new DomainError('version_conflict');
             }
-            $this->db->table('tm_tasks')->where('id', $task->id)->update([...$data, 'planned_start_at' => $data['starts_at'], 'planned_finish_at' => $data['ends_at'], 'version' => $version + 1, 'date_revision' => $task->date_revision + 1]);
+            $this->db->table(Tables::name('tasks'))->where('id', $task->id)->update([...$data, 'planned_start_at' => $data['starts_at'], 'planned_finish_at' => $data['ends_at'], 'version' => $version + 1, 'date_revision' => $task->date_revision + 1]);
             ReminderSchedule::refresh($this->db, $task, $data);
             (new EventRecorder($this->db, $this->clock))->append($context, 'task', $key, 'task_dates_changed', $operation, $data, $task->id);
 
@@ -61,6 +64,7 @@ final class DateService
 
     public function calendar(ExecutionContext $context, \DateTimeImmutable $from, \DateTimeImmutable $until, int $afterId = 0, int $limit = 100): array
     {
+        $context->validateTenant();
         if ($until <= $from || $until > $from->modify('+366 days') || $afterId < 0 || $limit < 1 || $limit > 100) {
             throw new DomainError('calendar_range_invalid');
         }

@@ -10,5 +10,9 @@ if (! in_array($profile, ['task-only', 'kanban-only', 'calendar-only', 'all'], t
 $autoload = $root.'/.runtime/phase6-hosts/'.$profile.'/vendor/autoload.php';
 require $autoload;
 putenv('TM_PHASE6_INSTALL_PROFILE='.$profile);
-$arguments = ['phpunit', '--no-configuration', '--bootstrap', $autoload, '--log-junit', $root.'/docs/phase6-install-'.$profile.'.xml', $root.'/tests/HostProfiles/InstallationProbe.php'];
+$reports = $root.'/.runtime/test-results';
+if (! is_dir($reports)) {
+    mkdir($reports, 0777, true);
+}
+$arguments = ['phpunit', '--no-configuration', '--bootstrap', $autoload, '--log-junit', $reports.'/phase6-install-'.$profile.'.xml', $root.'/tests/HostProfiles/InstallationProbe.php'];
 exit((new Application)->run($arguments));

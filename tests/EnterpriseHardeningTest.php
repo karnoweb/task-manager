@@ -62,8 +62,8 @@ final class EnterpriseHardeningTest extends PhaseFiveTestCase
         $row = DB::table('tm_recurrence_occurrences')->first();
         $this->recurrence()->exception($this->manager(), $series['series_key'], 1, $row->occurrence_key, $child['version'], new \DateTimeImmutable('2026-10-25T09:00:00Z'), false, 'move');
         self::assertSame([], $this->recurrence()->preview($this->manager(), $series['series_key'], $from, $until));
-        $moved = $this->recurrence()->preview($this->manager(),$series['series_key'],new \DateTimeImmutable('2026-10-25'),new \DateTimeImmutable('2026-10-26'));
-        self::assertCount(1,$moved);
-        self::assertSame($row->occurrence_key,$moved[0]['occurrence_key']);
+        $moved = $this->recurrence()->preview($this->manager(), $series['series_key'], new \DateTimeImmutable('2026-10-25'), new \DateTimeImmutable('2026-10-26'));
+        self::assertCount(1, $moved);
+        self::assertSame($row->occurrence_key, $moved[0]['occurrence_key']);
     }
 }

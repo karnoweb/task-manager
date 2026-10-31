@@ -16,6 +16,8 @@ final class TaskSubjectHandler implements SubjectHandler
 
     public function query(ExecutionContext $context, string $capability): Builder
     {
+        $context->validateTenant();
+
         return $this->tasks->authorizedQuery($context, $capability);
     }
 
@@ -31,6 +33,7 @@ final class TaskSubjectHandler implements SubjectHandler
 
     public function guard(ExecutionContext $context, string $subjectId, array $instance, string $action, array $payload): void
     {
+        $context->validateTenant();
         $task = $this->tasks->get($context, $subjectId);
         if ($task['deleted_at'] !== null || $task['archived_at'] !== null) {
             throw new DomainError('task_inactive');

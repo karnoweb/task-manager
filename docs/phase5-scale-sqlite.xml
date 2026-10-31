@@ -1,7 +1,0 @@
-<?xml version="1.0" encoding="UTF-8"?>
-<testsuites>
-  <testsuite name="Karnoweb\TaskManager\Tests\EnterpriseScaleTest" file="D:\my-packages\task-manager\tests\EnterpriseScaleTest.php" tests="2" assertions="819" errors="0" failures="0" skipped="0" time="11.946786">
-    <testcase name="test_ten_thousand_tasks_are_paged_in_sql_with_authorized_counts_and_bounded_queries" file="D:\my-packages\task-manager\tests\EnterpriseScaleTest.php" line="7" class="Karnoweb\TaskManager\Tests\EnterpriseScaleTest" classname="Karnoweb.TaskManager.Tests.EnterpriseScaleTest" assertions="408" time="1.136328"/>
-    <testcase name="test_hundred_thousand_task_instance_visit_rows_stay_bounded_and_permission_filtered" file="D:\my-packages\task-manager\tests\EnterpriseScaleTest.php" line="8" class="Karnoweb\TaskManager\Tests\EnterpriseScaleTest" classname="Karnoweb.TaskManager.Tests.EnterpriseScaleTest" assertions="411" time="10.810458"/>
-  </testsuite>
-</testsuites>

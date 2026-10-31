@@ -25,6 +25,7 @@ use Karnoweb\TaskManager\Scheduling\DateService;
 use Karnoweb\TaskManager\Scheduling\LocalTime;
 use Karnoweb\TaskManager\Scheduling\PersianCalendar;
 use Karnoweb\TaskManager\Scheduling\RecurrenceService;
+use Karnoweb\TaskManager\Schema\Tables;
 use Karnoweb\TaskManager\TaskService;
 use Karnoweb\TaskManager\UI\BoundCursor;
 use Karnoweb\TaskManager\UI\ContextBridge;
@@ -110,8 +111,8 @@ final class TaskCalendar implements ActionHandler, EventProvider
 
     private function taskEvent(ExecutionContext $c, array $task, string $kind): CalendarEventData
     {
-        $occurrence = $this->db->table('tm_recurrence_occurrences')->where('task_id', $task['id'])->where('state', 'active')->first();
-        $series = $occurrence ? $this->db->table('tm_recurrences')->where('id', $occurrence->recurrence_id)->first() : null;
+        $occurrence = $this->db->table(Tables::name('recurrence_occurrences'))->where('task_id', $task['id'])->where('state', 'active')->first();
+        $series = $occurrence ? $this->db->table(Tables::name('recurrences'))->where('id', $occurrence->recurrence_id)->first() : null;
         $ref = $occurrence ? new EventReference('tm.recurrence', $series->series_key, $occurrence->occurrence_key) : new EventReference('tm.'.$kind, $task['public_key']);
         $write = ! $occurrence && $this->writable($c, $task);
         if ($kind === 'due') {
@@ -129,7 +130,7 @@ final class TaskCalendar implements ActionHandler, EventProvider
 
     private function recurring(ExecutionContext $c, EventQuery $query, ?string $onlySeries = null): array
     {
-        $seriesQuery = $this->db->table('tm_recurrences')->where('scope_key', $c->scope)->where('owner_ref', $c->actor)->where('state', 'active')->whereIn('task_id', $this->base($c, $query->search)->select('id'));
+        $seriesQuery = $this->db->table(Tables::name('recurrences'))->where('scope_key', $c->scope)->where('owner_ref', $c->actor)->where('state', 'active')->whereIn('task_id', $this->base($c, $query->search)->select('id'));
         if ($onlySeries !== null) {
             $seriesQuery->where('series_key', $onlySeries);
         }
@@ -150,7 +151,7 @@ final class TaskCalendar implements ActionHandler, EventProvider
                 throw new DomainError('calendar_recurrence_range_limit');
             }
             foreach ($rows as $row) {
-                $materialized = $this->db->table('tm_recurrence_occurrences')->where('recurrence_id', $s->id)->where('occurrence_key', $row['occurrence_key'])->where('state', 'active')->first();
+                $materialized = $this->db->table(Tables::name('recurrence_occurrences'))->where('recurrence_id', $s->id)->where('occurrence_key', $row['occurrence_key'])->where('state', 'active')->first();
                 if ($materialized !== null) {
                     $task = $this->base($c, $query->search)->where('id', $materialized->task_id)->first();
                     if (! $task) {
@@ -189,7 +190,7 @@ final class TaskCalendar implements ActionHandler, EventProvider
             throw new DomainError('calendar_range_invalid');
         }
         // Bind offset to the complete current projection so an intervening edit fails explicitly.
-        $revision = $this->db->table('tm_outbox')->where('scope_key', $c->scope)->selectRaw('COUNT(*) AS n, MAX(id) AS last_id')->first();
+        $revision = $this->db->table(Tables::name('outbox'))->where('scope_key', $c->scope)->selectRaw('COUNT(*) AS n, MAX(id) AS last_id')->first();
         $binding = [$c->scope, $c->actor, $c->capabilities, $this->surface, $sources, $query->range->signature(), $query->search, $query->limit, (array) $revision];
         $position = $this->cursors->decode($query->cursor, $binding);
         $sourceIndex = $position['source'] ?? 0;
@@ -221,7 +222,7 @@ final class TaskCalendar implements ActionHandler, EventProvider
             }
             if (in_array($source, ['tm.schedule', 'tm.due'], true)) {
                 $kind = substr($source, 3);
-                $q = $this->base($c, $query->search)->whereNotIn('id', $this->db->table('tm_recurrence_occurrences')->select('task_id'))->whereNotIn('id', $this->db->table('tm_recurrences')->select('task_id'));
+                $q = $this->base($c, $query->search)->whereNotIn('id', $this->db->table(Tables::name('recurrence_occurrences'))->select('task_id'))->whereNotIn('id', $this->db->table(Tables::name('recurrences'))->select('task_id'));
                 if ($kind === 'schedule') {
                     $q->where('starts_at', '<', $until)->where('ends_at', '>', $from);
                 } else {
@@ -236,7 +237,7 @@ final class TaskCalendar implements ActionHandler, EventProvider
                 }
             } elseif ($source === 'tm.sla') {
                 $ids = $this->instances->authorizedQuery($c)->select('id');
-                $rows = $this->db->table('tm_stage_visits')->where('scope_key', $c->scope)->whereIn('instance_id', $ids)->whereNull('exited_at')->whereNull('paused_at')->where('deadline_at', '>=', $from)->where('deadline_at', '<', $until)->where('id', '>', $after)->orderBy('id')->limit($needed + 1)->get();
+                $rows = $this->db->table(Tables::name('stage_visits'))->where('scope_key', $c->scope)->whereIn('instance_id', $ids)->whereNull('exited_at')->whereNull('paused_at')->where('deadline_at', '>=', $from)->where('deadline_at', '<', $until)->where('id', '>', $after)->orderBy('id')->limit($needed + 1)->get();
                 foreach ($rows as $r) {
                     if (count($items) === $query->limit) {
                         return new EventPage($items, true, $this->cursors->encode($binding, ['source' => $sourceIndex, 'after' => $after]), null, $query->requestKey);
@@ -245,7 +246,7 @@ final class TaskCalendar implements ActionHandler, EventProvider
                 }
             } elseif ($source === 'tm.milestones') {
                 $projects = $this->projects->authorizedQuery($c)->select('id');
-                $rows = $this->db->table('tm_project_markers')->where('scope_key', $c->scope)->whereIn('project_id', $projects)->where('due_at', '>=', $from)->where('due_at', '<', $until)->where('id', '>', $after)->orderBy('id')->limit($needed + 1)->get();
+                $rows = $this->db->table(Tables::name('project_markers'))->where('scope_key', $c->scope)->whereIn('project_id', $projects)->where('due_at', '>=', $from)->where('due_at', '<', $until)->where('id', '>', $after)->orderBy('id')->limit($needed + 1)->get();
                 foreach ($rows as $r) {
                     if (count($items) === $query->limit) {
                         return new EventPage($items, true, $this->cursors->encode($binding, ['source' => $sourceIndex, 'after' => $after]), null, $query->requestKey);
@@ -270,7 +271,7 @@ final class TaskCalendar implements ActionHandler, EventProvider
                 if ($task['deleted_at'] !== null || $task['archived_at'] !== null || $task[$reference->sourceKey === 'tm.due' ? 'due_at' : 'starts_at'] === null) {
                     return null;
                 }
-                if ($this->db->table('tm_recurrence_occurrences')->where('task_id', $task['id'])->exists() || $this->db->table('tm_recurrences')->where('task_id', $task['id'])->exists()) {
+                if ($this->db->table(Tables::name('recurrence_occurrences'))->where('task_id', $task['id'])->exists() || $this->db->table(Tables::name('recurrences'))->where('task_id', $task['id'])->exists()) {
                     return null;
                 }
 
@@ -278,7 +279,7 @@ final class TaskCalendar implements ActionHandler, EventProvider
             }
             if ($reference->sourceKey === 'tm.recurrence' && $reference->occurrenceKey !== null) {
                 $s = $this->recurrences->get($c, $reference->eventId);
-                $o = $this->db->table('tm_recurrence_occurrences')->where('recurrence_id', $s['id'])->where('occurrence_key', $reference->occurrenceKey)->where('state', 'active')->first();
+                $o = $this->db->table(Tables::name('recurrence_occurrences'))->where('recurrence_id', $s['id'])->where('occurrence_key', $reference->occurrenceKey)->where('state', 'active')->first();
                 if (! $o) {
                     if (! preg_match('/^(gregorian|jalali):(\d{4})-(\d{2})-(\d{2})T(\d{2}:\d{2}:\d{2})$/D', $reference->occurrenceKey, $parts) || $parts[1] !== $s['calendar_system']) {
                         return null;
@@ -292,19 +293,19 @@ final class TaskCalendar implements ActionHandler, EventProvider
                         }
                     }
 
-return null;
+                    return null;
                 }
                 $task = $this->base($c, '')->where('id', $o->task_id)->first();
 
                 return $task ? $this->taskEvent($c, (array) $task, $task->starts_at === null ? 'due' : 'schedule') : null;
             }
             if ($reference->sourceKey === 'tm.sla' && ctype_digit($reference->eventId)) {
-                $r = $this->db->table('tm_stage_visits')->where('scope_key', $c->scope)->where('id', (int) $reference->eventId)->whereIn('instance_id', $this->instances->authorizedQuery($c)->select('id'))->whereNull('exited_at')->whereNull('paused_at')->first();
+                $r = $this->db->table(Tables::name('stage_visits'))->where('scope_key', $c->scope)->where('id', (int) $reference->eventId)->whereIn('instance_id', $this->instances->authorizedQuery($c)->select('id'))->whereNull('exited_at')->whereNull('paused_at')->first();
 
                 return $r && $r->deadline_at ? new CalendarEventData($reference, 'SLA '.$r->stage_key, $this->utc($r->deadline_at), $this->utc($r->deadline_at)->modify('+1 second'), version: (string) $r->sla_version, category: 'sla') : null;
             }
             if ($reference->sourceKey === 'tm.milestones') {
-                $r = $this->db->table('tm_project_markers')->where('scope_key', $c->scope)->where('marker_key', $reference->eventId)->whereIn('project_id', $this->projects->authorizedQuery($c)->select('id'))->first();
+                $r = $this->db->table(Tables::name('project_markers'))->where('scope_key', $c->scope)->where('marker_key', $reference->eventId)->whereIn('project_id', $this->projects->authorizedQuery($c)->select('id'))->first();
 
                 return $r && $r->due_at ? new CalendarEventData($reference, $r->name, $this->utc($r->due_at), $this->utc($r->due_at)->modify('+1 second'), version: (string) $r->version, category: $r->kind) : null;
             }
@@ -370,15 +371,15 @@ return null;
                 $end = $this->wall($end, $zone, $allDay);
                 $due = $task['due_at'] === null ? null : $this->utc($task['due_at'])->setTimezone(LocalTime::zone($zone))->format('Y-m-d H:i:s');
             }
-            $result = $this->dates->change($c,$task['public_key'],(int) $command->expectedVersion,$start,$end,$due,$zone,$allDay,$p['dst_policy'] ?? 'reject',$command->operationId);
+            $result = $this->dates->change($c, $task['public_key'], (int) $command->expectedVersion, $start, $end, $due, $zone, $allDay, $p['dst_policy'] ?? 'reject', $command->operationId);
 
-            return ActionResult::success([$ref],newVersion: (string) $result['version']);
+            return ActionResult::success([$ref], newVersion: (string) $result['version']);
         } catch (DomainError $e) {
             $status = match ($e->getMessage()) {
                 'not_found' => ActionStatus::NotFound, 'capability_denied','access_denied' => ActionStatus::Forbidden, 'version_conflict','idempotency_key_conflict' => ActionStatus::Conflict, default => ActionStatus::DomainRejected
             };
 
-            return ActionResult::failure($status,preg_match('/^[a-z][a-z0-9_]{0,79}$/D',$e->getMessage()) ? $e->getMessage() : 'domain_rejected');
+            return ActionResult::failure($status, preg_match('/^[a-z][a-z0-9_]{0,79}$/D', $e->getMessage()) ? $e->getMessage() : 'domain_rejected');
         }
     }
 }

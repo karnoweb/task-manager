@@ -5,16 +5,19 @@ namespace Karnoweb\TaskManager\Approval;
 use Illuminate\Database\Connection;
 use Illuminate\Support\Str;
 use Karnoweb\TaskManager\Context\ExecutionContext;
+use Karnoweb\TaskManager\Context\TenantBoundary;
 use Karnoweb\TaskManager\Contracts\Clock;
 use Karnoweb\TaskManager\Contracts\ResponsibilityResolver;
 use Karnoweb\TaskManager\Contracts\StageLifecycle;
 use Karnoweb\TaskManager\EventRecorder;
 use Karnoweb\TaskManager\Exceptions\DomainError;
+use Karnoweb\TaskManager\Schema\Tables;
 
 final class ApprovalEngine implements StageLifecycle
 {
     public function __construct(private readonly Connection $db, private readonly Clock $clock, private readonly ResponsibilityResolver $resolver)
     {
+        Tables::assertConnection($db);
     }
 
     public function validate(array $policy, array $workflow, string $state): array
@@ -65,7 +68,8 @@ final class ApprovalEngine implements StageLifecycle
 
     public function create(ExecutionContext $context, array $instance, int $policyId, string $operation, ?int $visitId = null): array
     {
-        $row = $this->db->table('tm_approval_policies')->where('scope_key', $context->scope)->where('id', $policyId)->first();
+        $context->validateTenant();
+        $row = $this->db->table(Tables::name('approval_policies'))->where('scope_key', $context->scope)->where('id', $policyId)->first();
         if (! $row) {
             throw new DomainError('approval_policy_missing');
         } $policy = json_decode($row->definition, true, flags: JSON_THROW_ON_ERROR);
@@ -73,13 +77,16 @@ final class ApprovalEngine implements StageLifecycle
         if (count($eligible) < $policy['quorum']) {
             throw new DomainError('approval_unresolvable');
         }
-        if ($this->db->table('tm_active_approval_steps')->where('instance_id', $instance['id'])->exists()) {
+        foreach ($eligible as $actor) {
+            TenantBoundary::validateActor($context, $actor);
+        }
+        if ($this->db->table(Tables::name('active_approval_steps'))->where('instance_id', $instance['id'])->exists()) {
             throw new DomainError('approval_already_active');
         }
         $key = (string) Str::uuid();
-        $id = $this->db->table('tm_approval_steps')->insertGetId(['step_key' => $key, 'scope_key' => $context->scope, 'instance_id' => $instance['id'], 'policy_id' => $policyId,
+        $id = $this->db->table(Tables::name('approval_steps'))->insertGetId(['step_key' => $key, 'scope_key' => $context->scope, 'instance_id' => $instance['id'], 'policy_id' => $policyId,
             'visit_id' => $visitId, 'requested_by' => $context->actor, 'created_at' => $this->now()]);
-        $this->db->table('tm_active_approval_steps')->insert(['instance_id' => $instance['id'], 'step_id' => $id]);
+        $this->db->table(Tables::name('active_approval_steps'))->insert(['instance_id' => $instance['id'], 'step_id' => $id]);
         (new EventRecorder($this->db, $this->clock))->append($context, 'instance', $instance['instance_key'], 'approval_started', $operation, ['step_key' => $key, 'mode' => $policy['mode'], 'quorum' => $policy['quorum']], $instance['task_id']);
 
         return ['id' => $id, 'step_key' => $key, 'instance_key' => $instance['instance_key']];
@@ -87,16 +94,17 @@ final class ApprovalEngine implements StageLifecycle
 
     public function policy(object $step): array
     {
-        $row = $this->db->table('tm_approval_policies')->where('scope_key', $step->scope_key)->where('id', $step->policy_id)->first();
+        $row = $this->db->table(Tables::name('approval_policies'))->where('scope_key', $step->scope_key)->where('id', $step->policy_id)->first();
         if (! $row) {
             throw new DomainError('approval_policy_missing');
         }
 
-return json_decode($row->definition, true, flags: JSON_THROW_ON_ERROR);
+        return json_decode($row->definition, true, flags: JSON_THROW_ON_ERROR);
     }
 
     public function assertVoter(ExecutionContext $context, object $step, array $policy): void
     {
+        $context->validateTenant();
         if (! in_array($context->actor, $policy['approvers'], true) || ($policy['forbid_self'] && $context->actor === $step->requested_by)
             || ! $this->resolver->eligible($context, $context->actor, 'approval')) {
             throw new DomainError('approval_vote_denied');
@@ -105,14 +113,15 @@ return json_decode($row->definition, true, flags: JSON_THROW_ON_ERROR);
 
     public function beforeTransition(ExecutionContext $context, array $instance, array $edge, array $payload): void
     {
-        $active = $this->db->table('tm_active_approval_steps')->where('instance_id', $instance['id'])->first();
+        $context->validateTenant();
+        $active = $this->db->table(Tables::name('active_approval_steps'))->where('instance_id', $instance['id'])->first();
         if (! $active) {
             return;
         }
         if (($edge['from'] ?? null) === ($edge['to'] ?? null) && ! ($edge['force_exit'] ?? false)) {
             return;
         }
-        $step = $this->db->table('tm_approval_steps')->where('id', $active->step_id)->where('scope_key', $context->scope)->first();
+        $step = $this->db->table(Tables::name('approval_steps'))->where('id', $active->step_id)->where('scope_key', $context->scope)->first();
         if (! $step || $step->state === 'pending') {
             throw new DomainError('approval_pending');
         }
@@ -134,32 +143,36 @@ return json_decode($row->definition, true, flags: JSON_THROW_ON_ERROR);
 
     public function entered(ExecutionContext $context, int $instanceId, int $visitId, object $stage, string $operationId): void
     {
+        $context->validateTenant();
         if ($stage->approval_policy_id === null) {
             return;
         }
-        $instance = (array) $this->db->table('tm_workflow_instances')->where('scope_key', $context->scope)->where('id', $instanceId)->first();
+        $instance = (array) $this->db->table(Tables::name('workflow_instances'))->where('scope_key', $context->scope)->where('id', $instanceId)->first();
         $this->create($context, $instance, $stage->approval_policy_id, $operationId, $visitId);
     }
 
     public function leaving(ExecutionContext $context, int $instanceId): void
     {
-        $active = $this->db->table('tm_active_approval_steps')->where('instance_id', $instanceId)->first();
+        $context->validateTenant();
+        $active = $this->db->table(Tables::name('active_approval_steps'))->where('instance_id', $instanceId)->first();
         if ($active) {
-            $step = $this->db->table('tm_approval_steps')->where('id', $active->step_id)->first();
+            $step = $this->db->table(Tables::name('approval_steps'))->where('id', $active->step_id)->first();
             if ($step->state === 'pending') {
                 throw new DomainError('approval_pending');
             }
-            $this->db->table('tm_approval_steps')->where('id', $step->id)->update(['execution_state' => 'executed']);
-            $this->db->table('tm_active_approval_steps')->where('step_id', $step->id)->delete();
+            $this->db->table(Tables::name('approval_steps'))->where('id', $step->id)->update(['execution_state' => 'executed']);
+            $this->db->table(Tables::name('active_approval_steps'))->where('step_id', $step->id)->delete();
         }
     }
 
     public function activated(ExecutionContext $context, int $instanceId, string $operationId): void
     {
+        $context->validateTenant();
     }
 
     public function activity(ExecutionContext $context, int $instanceId): void
     {
+        $context->validateTenant();
     }
 
     private function now(): string

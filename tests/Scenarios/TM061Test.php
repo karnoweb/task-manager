@@ -30,6 +30,6 @@ final class TM061Test extends PhaseFiveTestCase
         self::assertSame(5, DB::table('tm_recurrence_occurrences')->count());
         self::assertSame(5, DB::table('tm_recurrence_occurrences')->where('state', 'active')->count());
         $this->recurrence()->changeRule($this->manager(), $series['series_key'], 3, ['frequency' => 'daily', 'count' => 5], 'stop', true);
-        self::assertSame([],$this->recurrence()->generate($this->manager(),$series['series_key'],4,$from,$until,'stopped')['created']);
+        self::assertSame([], $this->recurrence()->generate($this->manager(), $series['series_key'], 4, $from, $until, 'stopped')['created']);
     }
 }

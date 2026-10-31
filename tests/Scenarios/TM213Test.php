@@ -31,7 +31,7 @@ final class TM213Test extends PhaseSixTestCase
         $this->error('legacy_writer_disabled', fn () => $this->app->make(DealService::class)->moveStage($deal, $stages[0], 1));
         $current = $this->instances()->get($c, $i['instance_key']);
         $this->instances()->transition($c, $i['instance_key'], $current['version'], 'approve', 'approve', ['reason_code' => 'approved']);
-        self::assertSame('won', $this->instances()->get($c,$i['instance_key'])['current_state_key']);
-        self::assertSame($stages[1]->id,$deal->fresh()->pipeline_stage_id);
+        self::assertSame('won', $this->instances()->get($c, $i['instance_key'])['current_state_key']);
+        self::assertSame($stages[1]->id, $deal->fresh()->pipeline_stage_id);
     }
 }

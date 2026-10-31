@@ -26,6 +26,7 @@ final readonly class DailyQuietHours implements NotificationPreferences
 
     public function nextAllowed(ExecutionContext $context, string $channel, \DateTimeImmutable $at): ?\DateTimeImmutable
     {
+        $context->validateTenant();
         if (! in_array($channel, $this->channels, true)) {
             return null;
         } if ($this->start === null) {

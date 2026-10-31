@@ -1,31 +1,43 @@
 # Karnoweb Task Manager
 
-موتور مستقل Todo، پروژه و گردش‌کار برای Laravel 13 و PHP ‎^8.3. نصب Kanban، Calendar، CRM یا Ticket Chat برای هسته الزامی نیست.
+پکیج مستقل Laravel برای کار شخصی، پروژه و موتور گردش‌کار. Todo به Project، Pipeline، Kanban، Calendar یا CRM نیاز ندارد.
 
-## نصب و شروع
+## نصب
 
-[نصب](docs/installation.md) را کامل کنید. فایل کامل [فرمان نمونه](examples/Console/TaskManagerExample.php) را در `app/Console/Commands/TaskManagerExample.php` کپی کنید:
+وابستگی پکیج: PHP `^8.3` و Illuminate `^13.0`؛ الزامات Laravel 13 میزبان نیز برقرار باشند. در رجیستری تنظیم‌شده سازمان:
 
-```shell
-php artisan task-manager:example todo
-php artisan task-manager:example workflow
-php artisan task-manager:example reminder
+```bash
+composer require karnoweb/task-manager
+php artisan migrate
 ```
 
-این فرمان برای محیط توسعه است؛ قابلیت‌های ثابت آن را در درخواست HTTP استفاده نکنید. در برنامهٔ واقعی، هویت، محدوده و قابلیت‌ها باید از سیاست معتبر میزبان ساخته شوند.
+برای مخزن محلی و تنظیمات، [راهنمای نصب](docs/installation.md) را ببینید. انتشار config برای شروع لازم نیست.
 
-Facade (نمای دسترسی ساده): `Karnoweb\TaskManager\Facades\TaskManager`. مدیر قابل تزریق: `Karnoweb\TaskManager\TaskManager`.
+## نخستین Todo
 
-## مستندات توسعه‌دهنده
+پس از ثبت UserResolver (حل‌کننده هویت) در میزبان طبق [راهنمای اتصال](docs/01-getting-started/resolvers.md):
 
-- [شروع سریع](docs/quickstart.md)، [پیکربندی](docs/configuration.md)، [فهرست راهنماها](docs/guides/index.md)
-- [مرجع امضاهای واقعی سرویس‌ها](docs/api/reference.md)، [قراردادها و داده‌ها](docs/api/contracts.md)
-- [Ticketing](docs/guides/ticketing-integration.md)، [CRM](docs/guides/crm-integration.md)، [Kanban](docs/guides/kanban-integration.md)، [Calendar](docs/guides/calendar-integration.md)
-- [معماری](docs/advanced/architecture.md)، [امنیت](docs/advanced/security.md)، [کارگرها](docs/advanced/workers.md)، [کارایی](docs/advanced/performance.md)
-- [آزمون](docs/testing.md)، [رفع اشکال](docs/troubleshooting.md)، [ارتقا](docs/upgrade.md)
+<!-- example: readme-todo -->
+```php
+<?php
+use Illuminate\Support\Str;
+use Karnoweb\TaskManager\Facades\TaskManager;
 
-## وضعیت راستی‌آزمایی
+$operation = (string) Str::uuid(); // برای تلاش مجدد همین فرمان، همین مقدار را نگه دارید.
 
-گزارش جاری در [گزارش اصلاحات](docs/maintenance/corrections-report.md) ثبت می‌شود. گزارش‌های فازهای قبلی، شواهد تاریخی همان نسخه‌ها هستند؛ نامزد قدیمی فاز ۷ نتیجهٔ NO-GO (عدم تأیید انتشار) داشت. اصلاحات حاضر به معنی تأیید خودکار تمام ۳۶۲ سناریوی انتشار نیست.
+return TaskManager::tasks()->inContext()->create('تماس با مشتری', $operation);
+```
 
-[تغییرات](CHANGELOG.md) · [تحلیل شکاف‌ها](docs/maintenance/gap-analysis.md) · [تطبیق معیارهای تیکتینگ](docs/maintenance/ticketing-acceptance.md) · [گزارش پاک‌سازی](docs/maintenance/cleanup-report.md)
+خروجی TaskResult (شیء داده نتیجه) شامل publicKey، state و version است. هویت فقط از حل‌کننده ثبت‌شده میزبان خوانده می‌شود؛ نبود حل‌کننده یا کاربر خطا دارد. با شعبه غیرفعال، Scope (قلمرو جداسازی) پیش‌فرض default است؛ با شعبه فعال branch:<شناسه> اعمال می‌شود؛ برای داده‌های موجود نگاشت قبلی را در [تنظیم Resolverها](docs/01-getting-started/resolvers.md) حفظ کنید. [شروع سریع و مثال کامل](docs/01-getting-started/quick-start.md).
+
+## راهنما
+
+- [مسیر مطالعه پایه، پیشرفته و داخلی](docs/README.md)
+- [ساخت مستقیم Task پروژه](docs/03-basic-usage/tasks-projects.md)
+- [گردش‌کار مستقل](docs/04-advanced/workflow.md) و [محافظ سفارشی](docs/04-advanced/custom-guards.md)
+- [آزمون، محدودیت محیط و رفع خطا](docs/testing.md)
+- [۱۵ سناریوی اجرایی جامع فارسی](tests/Scenarios/README.md)
+
+آزمون در ریشه مخزن پکیج: `php vendor/phpunit/phpunit/phpunit --do-not-cache-result`. پایگاه آزمایش باید اختصاصی باشد؛ آزمون‌ها ساختار آن را بازسازی می‌کنند.
+
+پیشوند جداول نصب تازه با `task-manager.table_prefix` تنظیم می‌شود؛ پیش‌فرض `tm_` است. [راهنمای پایگاه داده](docs/advanced/database.md).

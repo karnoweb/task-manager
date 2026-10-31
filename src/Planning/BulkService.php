@@ -9,6 +9,7 @@ use Karnoweb\TaskManager\Contracts\AuthorizationProvider;
 use Karnoweb\TaskManager\Contracts\Clock;
 use Karnoweb\TaskManager\EventRecorder;
 use Karnoweb\TaskManager\Exceptions\DomainError;
+use Karnoweb\TaskManager\Schema\Tables;
 use Karnoweb\TaskManager\TaskGraph\ScopeGraphLock;
 use Karnoweb\TaskManager\TaskService;
 
@@ -16,10 +17,12 @@ final class BulkService
 {
     public function __construct(private readonly Connection $db, private readonly Clock $clock, private readonly AuthorizationProvider $authorization, private readonly TaskService $tasks)
     {
+        Tables::assertConnection($db);
     }
 
     public function execute(ExecutionContext $context, array $items, string $mode, string $operation): array
     {
+        $context->validateTenant();
         $context->require('bulk.manage');
         $this->authorization->authorize($context, 'bulk.manage');
         if (! in_array($mode, ['atomic', 'partial'], true) || ! array_is_list($items) || count($items) < 1 || count($items) > 100) {

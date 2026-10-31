@@ -23,6 +23,6 @@ final class TM217Test extends EnterpriseProcessTestCase
         self::assertSame('one', $body['scope_key']);
         self::assertSame($handoff['handoff_key'], $body['data']['handoff_key']);
         self::assertStringNotContainsString('PRIVATE-HOST-TEXT', $request['body']);
-        self::assertStringContainsString('X-TaskManager-Signature: sha256=',implode('\n',$request['headers']));
+        self::assertStringContainsString('X-TaskManager-Signature: sha256=', implode('\n', $request['headers']));
     }
 }

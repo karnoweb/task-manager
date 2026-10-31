@@ -7,11 +7,13 @@ use Karnoweb\TaskManager\Context\ExecutionContext;
 use Karnoweb\TaskManager\Contracts\Clock;
 use Karnoweb\TaskManager\Contracts\StageLifecycle;
 use Karnoweb\TaskManager\Exceptions\DomainError;
+use Karnoweb\TaskManager\Schema\Tables;
 
 final class SlaEngine implements StageLifecycle
 {
     public function __construct(private readonly Connection $db, private readonly Clock $clock, private readonly CalendarRegistry $calendars)
     {
+        Tables::assertConnection($db);
     }
 
     public function now(): \DateTimeImmutable
@@ -21,6 +23,7 @@ final class SlaEngine implements StageLifecycle
 
     public function activated(ExecutionContext $context, int $instanceId, string $operationId): void
     {
+        $context->validateTenant();
     }
 
     public function date(string $value): \DateTimeImmutable
@@ -35,7 +38,7 @@ final class SlaEngine implements StageLifecycle
 
     public function policy(object $visit): array
     {
-        $row = $this->db->table('tm_stage_policies')->where('id', $visit->policy_id)->where('scope_key', $visit->scope_key)->first();
+        $row = $this->db->table(Tables::name('stage_policies'))->where('id', $visit->policy_id)->where('scope_key', $visit->scope_key)->first();
         if (! $row) {
             throw new DomainError('sla_policy_missing');
         }
@@ -62,7 +65,7 @@ final class SlaEngine implements StageLifecycle
         $until ??= $this->now();
         $start = $this->date($sinceAnchor ? ($visit->anchor_at ?? $visit->entered_at) : $visit->entered_at);
         $seconds = $this->seconds($start, $until, $policy);
-        foreach ($this->db->table('tm_sla_pauses')->where('visit_id', $visit->id)->get() as $pause) {
+        foreach ($this->db->table(Tables::name('sla_pauses'))->where('visit_id', $visit->id)->get() as $pause) {
             $from = $this->date($pause->started_at);
             $to = $pause->ended_at === null ? $until : min($until, $this->date($pause->ended_at));
             if ($from < $until && $to > $start) {
@@ -75,17 +78,18 @@ final class SlaEngine implements StageLifecycle
 
     public function entered(ExecutionContext $context, int $instanceId, int $visitId, object $stage, string $operationId): void
     {
+        $context->validateTenant();
         if ($stage->policy_id === null) {
             return;
         }
-        $row = $this->db->table('tm_stage_policies')->where('id', $stage->policy_id)->where('scope_key', $context->scope)->first();
+        $row = $this->db->table(Tables::name('stage_policies'))->where('id', $stage->policy_id)->where('scope_key', $context->scope)->first();
         if (! $row) {
             throw new DomainError('sla_policy_missing');
         } $policy = json_decode($row->sla, true, flags: JSON_THROW_ON_ERROR);
-        $consumed = $policy['reentry'] === 'cumulative' ? (int) $this->db->table('tm_stage_visits')->where('instance_id', $instanceId)->where('pipeline_id', $stage->pipeline_id)->where('stage_key', $stage->stage_key)->whereNotNull('exited_at')->sum($policy['clock_kind'] === 'business' ? 'business_seconds' : 'elapsed_seconds') : 0;
+        $consumed = $policy['reentry'] === 'cumulative' ? (int) $this->db->table(Tables::name('stage_visits'))->where('instance_id', $instanceId)->where('pipeline_id', $stage->pipeline_id)->where('stage_key', $stage->stage_key)->whereNotNull('exited_at')->sum($policy['clock_kind'] === 'business' ? 'business_seconds' : 'elapsed_seconds') : 0;
         $remaining = max(0, $policy['duration_seconds'] - $consumed);
         $now = $this->now();
-        $this->db->table('tm_stage_visits')->where('id', $visitId)->update(['policy_id' => $row->id, 'deadline_at' => $this->format($this->add($now, $remaining, $policy)),
+        $this->db->table(Tables::name('stage_visits'))->where('id', $visitId)->update(['policy_id' => $row->id, 'deadline_at' => $this->format($this->add($now, $remaining, $policy)),
             'warning_at' => $policy['warning_before_seconds'] > 0 ? $this->format($this->add($now, max(0, $remaining - $policy['warning_before_seconds']), $policy)) : null,
             'stale_at' => $policy['stale_after_seconds'] !== null ? $this->format($now->modify('+'.$policy['stale_after_seconds'].' seconds')) : null,
             'last_activity_at' => $this->format($now), 'anchor_at' => $this->format($now), 'remaining_seconds' => $remaining, 'budget_seconds' => $remaining]);
@@ -93,7 +97,8 @@ final class SlaEngine implements StageLifecycle
 
     public function leaving(ExecutionContext $context, int $instanceId): void
     {
-        $visit = $this->db->table('tm_stage_visits')->where('scope_key', $context->scope)->where('instance_id', $instanceId)->whereNull('exited_at')->first();
+        $context->validateTenant();
+        $visit = $this->db->table(Tables::name('stage_visits'))->where('scope_key', $context->scope)->where('instance_id', $instanceId)->whereNull('exited_at')->first();
         if (! $visit || $visit->policy_id === null) {
             return;
         }
@@ -109,19 +114,20 @@ final class SlaEngine implements StageLifecycle
             }
             $changes['paused_seconds'] = $visit->paused_seconds + $pauseSeconds;
             $changes['paused_at'] = null;
-            $this->db->table('tm_sla_pauses')->where('visit_id', $visit->id)->whereNull('ended_at')->update(['ended_at' => $this->format($now)]);
+            $this->db->table(Tables::name('sla_pauses'))->where('visit_id', $visit->id)->whereNull('ended_at')->update(['ended_at' => $this->format($now)]);
         }
-        $this->db->table('tm_stage_visits')->where('id', $visit->id)->update($changes);
+        $this->db->table(Tables::name('stage_visits'))->where('id', $visit->id)->update($changes);
     }
 
     public function activity(ExecutionContext $context, int $instanceId): void
     {
-        $visit = $this->db->table('tm_stage_visits')->where('scope_key', $context->scope)->where('instance_id', $instanceId)->whereNull('exited_at')->first();
+        $context->validateTenant();
+        $visit = $this->db->table(Tables::name('stage_visits'))->where('scope_key', $context->scope)->where('instance_id', $instanceId)->whereNull('exited_at')->first();
         if (! $visit || $visit->policy_id === null || $visit->paused_at !== null) {
             return;
         }
         $policy = $this->policy($visit);
-        $this->db->table('tm_stage_visits')->where('id', $visit->id)->update(['last_activity_at' => $this->format($this->now()),
+        $this->db->table(Tables::name('stage_visits'))->where('id', $visit->id)->update(['last_activity_at' => $this->format($this->now()),
             'stale_at' => $policy['stale_after_seconds'] !== null ? $this->format($this->now()->modify('+'.$policy['stale_after_seconds'].' seconds')) : null,
             'stale_detected_at' => null, 'dead_candidate_at' => null, 'stale_generation' => $visit->stale_generation + 1,
             'sla_version' => $visit->sla_version + 1,
@@ -130,5 +136,6 @@ final class SlaEngine implements StageLifecycle
 
     public function beforeTransition(ExecutionContext $context, array $instance, array $edge, array $payload): void
     {
+        $context->validateTenant();
     }
 }

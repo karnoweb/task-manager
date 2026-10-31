@@ -49,6 +49,6 @@ final class ExportCoreTest extends PhaseFiveTestCase
         $this->error('export_permission_revoked', fn () => $this->exports()->download($this->manager('b'), $job['export_key']));
         $this->error('not_found', fn () => $this->exports()->download($this->manager(), $job['export_key']));
         $reference = DB::table('tm_exports')->where('id', $job['id'])->value('file_ref');
-        $this->app->make(ExportStorage::class)->delete($this->manager('b'),$reference);
+        $this->app->make(ExportStorage::class)->delete($this->manager('b'), $reference);
     }
 }

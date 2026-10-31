@@ -9,6 +9,7 @@ use Karnoweb\TaskManager\Contracts\AuthorizationProvider;
 use Karnoweb\TaskManager\Contracts\Clock;
 use Karnoweb\TaskManager\EventRecorder;
 use Karnoweb\TaskManager\Exceptions\DomainError;
+use Karnoweb\TaskManager\Schema\Tables;
 use Karnoweb\TaskManager\Workflow\InstanceService;
 
 final class SlaService
@@ -26,12 +27,13 @@ final class SlaService
 
     public function get(ExecutionContext $context, int $visitId): array
     {
+        $context->validateTenant();
         $ids = $this->instances->authorizedQuery($context)->select('id');
-        $visit = $this->db->table('tm_stage_visits')->where('scope_key', $context->scope)->where('id', $visitId)->whereIn('instance_id', $ids)->first();
+        $visit = $this->db->table(Tables::name('stage_visits'))->where('scope_key', $context->scope)->where('id', $visitId)->whereIn('instance_id', $ids)->first();
         if (! $visit) {
             throw new DomainError('not_found');
         }
-        $key = $this->db->table('tm_workflow_instances')->where('id', $visit->instance_id)->value('instance_key');
+        $key = $this->db->table(Tables::name('workflow_instances'))->where('id', $visit->instance_id)->value('instance_key');
 
         return [...(array) $visit, 'instance_key' => $key];
     }
@@ -41,7 +43,7 @@ final class SlaService
         $visible = $this->get($context, $visitId);
         $current = $this->instances->get($context, $visible['instance_key']);
         [$instance] = $this->instances->lockForCommand($context, $visible['instance_key'], $current['version']);
-        $visit = $this->db->table('tm_stage_visits')->where('scope_key', $context->scope)->where('id', $visitId)->lockForUpdate()->first();
+        $visit = $this->db->table(Tables::name('stage_visits'))->where('scope_key', $context->scope)->where('id', $visitId)->lockForUpdate()->first();
         if ($visit->policy_id === null) {
             throw new DomainError('sla_unconfigured');
         }
@@ -51,6 +53,7 @@ final class SlaService
 
     public function pause(ExecutionContext $context, int $visitId, int $slaVersion, string $operation, string $reason): array
     {
+        $context->validateTenant();
         $this->authorize($context, 'sla.pause');
 
         return $this->command($context, $operation, ['action' => 'sla_pause', 'visit' => $visitId, 'version' => $slaVersion, 'reason' => $reason], function () use ($context, $visitId, $slaVersion, $operation, $reason) {
@@ -72,8 +75,8 @@ final class SlaService
             if ($remaining === 0 && $visit->breached_at === null) {
                 throw new DomainError('sla_due_requires_detection');
             }
-            $this->db->table('tm_sla_pauses')->insert(['visit_id' => $visitId, 'started_at' => $now, 'reason_code' => $reason, 'actor_ref' => $context->actor]);
-            $this->db->table('tm_stage_visits')->where('id', $visitId)->update(['paused_at' => $now, 'remaining_seconds' => $remaining, 'sla_state' => 'paused', 'sla_version' => $slaVersion + 1]);
+            $this->db->table(Tables::name('sla_pauses'))->insert(['visit_id' => $visitId, 'started_at' => $now, 'reason_code' => $reason, 'actor_ref' => $context->actor]);
+            $this->db->table(Tables::name('stage_visits'))->where('id', $visitId)->update(['paused_at' => $now, 'remaining_seconds' => $remaining, 'sla_state' => 'paused', 'sla_version' => $slaVersion + 1]);
             $this->event($context, $instance, 'sla_paused', $operation, ['visit_id' => $visitId, 'reason_code' => $reason, 'remaining_seconds' => $remaining]);
 
             return $this->get($context, $visitId);
@@ -82,6 +85,7 @@ final class SlaService
 
     public function resume(ExecutionContext $context, int $visitId, int $slaVersion, string $operation): array
     {
+        $context->validateTenant();
         $this->authorize($context, 'sla.pause');
 
         return $this->command($context, $operation, ['action' => 'sla_resume', 'visit' => $visitId, 'version' => $slaVersion], function () use ($context, $visitId, $slaVersion, $operation) {
@@ -103,13 +107,13 @@ final class SlaService
             if ($visit->paused_seconds + $paused > $policy['max_pause_seconds']) {
                 throw new DomainError('sla_pause_limit_exceeded');
             }
-            $this->db->table('tm_sla_pauses')->where('visit_id', $visitId)->whereNull('ended_at')->update(['ended_at' => $this->engine->format($now)]);
+            $this->db->table(Tables::name('sla_pauses'))->where('visit_id', $visitId)->whereNull('ended_at')->update(['ended_at' => $this->engine->format($now)]);
             $changes = ['paused_at' => null, 'paused_seconds' => $visit->paused_seconds + $paused, 'sla_version' => $slaVersion + 1,
                 'deadline_at' => $this->engine->format($this->engine->add($now, $visit->remaining_seconds, $policy)),
                 'warning_at' => $policy['warning_before_seconds'] > 0 ? $this->engine->format($this->engine->add($now, max(0, $visit->remaining_seconds - $policy['warning_before_seconds']), $policy)) : null,
                 'stale_at' => $visit->stale_at === null ? null : $this->engine->format($this->engine->date($visit->stale_at)->modify('+'.$paused.' seconds')),
                 'sla_state' => $visit->dead_candidate_at !== null ? 'dead_candidate' : ($visit->stale_detected_at !== null ? 'stale' : ($visit->breached_at !== null ? 'breached' : ($visit->warned_at !== null ? 'warning' : 'healthy')))];
-            $this->db->table('tm_stage_visits')->where('id', $visitId)->update($changes);
+            $this->db->table(Tables::name('stage_visits'))->where('id', $visitId)->update($changes);
             $this->event($context, $instance, 'sla_resumed', $operation, ['visit_id' => $visitId, 'paused_seconds' => $paused]);
 
             return $this->get($context, $visitId);
@@ -118,6 +122,7 @@ final class SlaService
 
     public function reset(ExecutionContext $context, int $visitId, int $slaVersion, string $operation): array
     {
+        $context->validateTenant();
         $this->authorize($context, 'sla.manage');
 
         return $this->command($context, $operation, ['action' => 'sla_reset', 'visit' => $visitId, 'version' => $slaVersion], function () use ($context, $visitId, $slaVersion, $operation) {
@@ -130,7 +135,7 @@ final class SlaService
             }
             $now = $this->engine->now();
             $duration = $policy['duration_seconds'];
-            $this->db->table('tm_stage_visits')->where('id', $visitId)->update(['anchor_at' => $this->engine->format($now), 'last_activity_at' => $this->engine->format($now),
+            $this->db->table(Tables::name('stage_visits'))->where('id', $visitId)->update(['anchor_at' => $this->engine->format($now), 'last_activity_at' => $this->engine->format($now),
                 'budget_seconds' => $duration, 'remaining_seconds' => $duration, 'deadline_at' => $this->engine->format($this->engine->add($now, $duration, $policy)),
                 'warning_at' => $policy['warning_before_seconds'] > 0 ? $this->engine->format($this->engine->add($now, $duration - $policy['warning_before_seconds'], $policy)) : null,
                 'stale_at' => $policy['stale_after_seconds'] !== null ? $this->engine->format($now->modify('+'.$policy['stale_after_seconds'].' seconds')) : null,
@@ -144,9 +149,10 @@ final class SlaService
 
     public function markDeadCandidate(ExecutionContext $context, string $instanceKey, int $visitId): array
     {
+        $context->validateTenant();
         $this->authorize($context, 'sla.run');
         $instance = $this->instances->get($context, $instanceKey);
-        if (! $this->db->table('tm_stage_visits')->where('id', $visitId)->where('instance_id', $instance['id'])->where('scope_key', $context->scope)->exists()) {
+        if (! $this->db->table(Tables::name('stage_visits'))->where('id', $visitId)->where('instance_id', $instance['id'])->where('scope_key', $context->scope)->exists()) {
             throw new DomainError('not_found');
         }
 
@@ -155,18 +161,19 @@ final class SlaService
 
     public function run(ExecutionContext $context, int $limit = 100): array
     {
+        $context->validateTenant();
         $this->authorize($context, 'sla.run');
         if ($limit < 1 || $limit > 1000) {
             throw new DomainError('batch_size_invalid');
         }
         $now = $this->engine->format($this->engine->now());
-        $visits = $this->db->table('tm_stage_visits')->where('scope_key', $context->scope)->whereNotNull('policy_id')->whereNull('exited_at')->whereNull('paused_at')
-            ->whereIn('instance_id', $this->instances->authorizedQuery($context)->where(fn ($q) => $q->whereNull('task_id')->orWhereIn('task_id', $this->db->table('tm_tasks')->whereNull('archived_at')->whereNull('deleted_at')->select('id')))->select('id'))->where(function ($q) use ($now) {
+        $visits = $this->db->table(Tables::name('stage_visits'))->where('scope_key', $context->scope)->whereNotNull('policy_id')->whereNull('exited_at')->whereNull('paused_at')
+            ->whereIn('instance_id', $this->instances->authorizedQuery($context)->where(fn ($q) => $q->whereNull('task_id')->orWhereIn('task_id', $this->db->table(Tables::name('tasks'))->whereNull('archived_at')->whereNull('deleted_at')->select('id')))->select('id'))->where(function ($q) use ($now) {
                 $q->where(fn ($x) => $x->where('deadline_at', '<=', $now)->whereNull('breached_at'))
                     ->orWhere(fn ($x) => $x->where('warning_at', '<=', $now)->whereNull('warned_at'))
                     ->orWhere(fn ($x) => $x->where('stale_at', '<=', $now)->whereNull('stale_detected_at'))
                     ->orWhere(fn ($x) => $x->whereNotNull('breached_at')->whereNotNull('stale_detected_at')->whereNull('dead_candidate_at')
-                        ->whereIn('policy_id', $this->db->table('tm_stage_policies')->where('dead_candidate', true)->select('id')));
+                        ->whereIn('policy_id', $this->db->table(Tables::name('stage_policies'))->where('dead_candidate', true)->select('id')));
             })->orderBy('id')->limit($limit)->get();
         $processed = 0;
         $skipped = 0;
@@ -218,7 +225,7 @@ final class SlaService
         $result = $this->command($context, $operation, ['action' => 'sla_'.$key, 'visit' => $visitId, 'policy' => $initial->policy_id, 'generation' => $generation], function () use ($context, $visitId, $initial, $generation, $key, $operation, &$executed) {
             $executed = true;
             [$visit, $instance, $policy] = $this->locked($context, $visitId);
-            if ($instance['task_id'] !== null && ! $this->db->table('tm_tasks')->where('id', $instance['task_id'])->whereNull('archived_at')->whereNull('deleted_at')->exists()) {
+            if ($instance['task_id'] !== null && ! $this->db->table(Tables::name('tasks'))->where('id', $instance['task_id'])->whereNull('archived_at')->whereNull('deleted_at')->exists()) {
                 throw new DomainError('sla_inactive');
             }
             $currentGeneration = in_array($key, ['stale', 'dead_candidate'], true) ? $visit->stale_generation : $visit->sla_generation;
@@ -227,7 +234,7 @@ final class SlaService
                 return ['id' => $visitId, 'processed' => false];
             }
             $now = $this->engine->format($this->engine->now());
-            $inserted = $this->db->table('tm_sla_events')->insertOrIgnore(['scope_key' => $context->scope, 'visit_id' => $visitId, 'policy_id' => $visit->policy_id, 'generation' => $generation,
+            $inserted = $this->db->table(Tables::name('sla_events'))->insertOrIgnore(['scope_key' => $context->scope, 'visit_id' => $visitId, 'policy_id' => $visit->policy_id, 'generation' => $generation,
                 'event_key' => $key, 'threshold_at' => $threshold, 'detected_at' => $now]);
             if (! $inserted) {
                 return ['id' => $visitId, 'processed' => false];
@@ -237,7 +244,7 @@ final class SlaService
             };
             $flags = [...(array) $visit, $flag => $now];
             $state = $flags['dead_candidate_at'] !== null ? 'dead_candidate' : ($flags['stale_detected_at'] !== null ? 'stale' : ($flags['breached_at'] !== null ? 'breached' : 'warning'));
-            $this->db->table('tm_stage_visits')->where('id', $visitId)->update([$flag => $now, 'sla_state' => $state, 'sla_version' => $visit->sla_version + 1]);
+            $this->db->table(Tables::name('stage_visits'))->where('id', $visitId)->update([$flag => $now, 'sla_state' => $state, 'sla_version' => $visit->sla_version + 1]);
             $action = 'marked';
             if ($key === 'breach' && isset($policy['breach_transition'])) {
                 try {
@@ -245,10 +252,10 @@ final class SlaService
                     $action = 'transitioned';
                 } catch (DomainError $e) {
                     $action = 'manual_review';
-                    $this->db->table('tm_sla_events')->where('visit_id', $visitId)->where('policy_id', $visit->policy_id)->where('generation', $generation)->where('event_key', $key)->update(['reason' => 'transition_denied']);
+                    $this->db->table(Tables::name('sla_events'))->where('visit_id', $visitId)->where('policy_id', $visit->policy_id)->where('generation', $generation)->where('event_key', $key)->update(['reason' => 'transition_denied']);
                 }
             }
-            $this->db->table('tm_sla_events')->where('visit_id', $visitId)->where('policy_id', $visit->policy_id)->where('generation', $generation)->where('event_key', $key)->update(['action_state' => $action]);
+            $this->db->table(Tables::name('sla_events'))->where('visit_id', $visitId)->where('policy_id', $visit->policy_id)->where('generation', $generation)->where('event_key', $key)->update(['action_state' => $action]);
             $this->event($context, $instance, 'sla_'.$key, $operation, ['visit_id' => $visitId, 'policy_id' => $visit->policy_id, 'generation' => $generation, 'threshold_at' => $threshold, 'action_state' => $action, 'notification_requested' => true]);
 
             return ['id' => $visitId, 'processed' => true];

@@ -1,7 +1,0 @@
-# Phase 1 implementation checkpoint
-
-Implemented: independent Composer package/provider/facade/config, explicit actor/scope/correlation context, bounded service-actor capabilities, owner Inbox and lists, native task workflow instance, create/edit/complete/reopen/archive/restore/soft-delete/clone, view/edit shares with immediate revocation, list moves preserving rank, scoped query/count/facets/activity, UUID public identifiers, scope sequences/display aliases, optimistic writes, command reservation/idempotency, transition history, audit and transactional outbox.
-
-The phase-one gate now passes on SQLite and PostgreSQL: all 25 owned scenarios plus supplemental security, transaction and concurrency checks. Typed mutation/query/result entry points, immutable fluent sessions, list versioning/name/rank/archive/restore with Inbox protection, and scenario-specific prose complete the previously recorded checkpoint items. Query results use one SQL statement rather than per-task fetches. PostgreSQL concurrency uses separate processes and a barrier. This approves the foundation gate only; it does not establish release readiness or compatibility with untested database/version combinations. Phase two follows without a human approval pause as authorized by the user.
-
-Product source: src/, config/, database/migrations/. Test source: tests/FoundationTest.php and 25 independent scenario classes under tests/Scenarios/.

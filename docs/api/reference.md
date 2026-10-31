@@ -4,11 +4,17 @@ Generated from PHP reflection by `php tools/build_api_reference.php`. No service
 
 Facade: `Karnoweb\TaskManager\Facades\TaskManager`; injectable manager: `Karnoweb\TaskManager\TaskManager`.
 
+## context()
+
+```text
+public function context(?Karnoweb\TaskManager\Context\ExecutionContext $context = NULL, string|int|null $branch = NULL): Karnoweb\TaskManager\Context\ExecutionContext;
+```
+
 ## approvals()
 
 `Karnoweb\TaskManager\Approval\ApprovalService`
 
-```php
+```text
 public function get(Karnoweb\TaskManager\Context\ExecutionContext $context, string $key): array;
 public function active(Karnoweb\TaskManager\Context\ExecutionContext $context, string $instanceKey): ?array;
 public function begin(Karnoweb\TaskManager\Context\ExecutionContext $context, string $key, int $version, string $operation, array $policy): array;
@@ -22,7 +28,7 @@ public function cancel(Karnoweb\TaskManager\Context\ExecutionContext $context, s
 
 `Karnoweb\TaskManager\Responsibility\AssignmentService`
 
-```php
+```text
 public function get(Karnoweb\TaskManager\Context\ExecutionContext $context, string $key): array;
 public function assign(Karnoweb\TaskManager\Context\ExecutionContext $context, string $key, int $version, string $operation, ?string $primary, array $secondary = []): array;
 public function configureInstance(Karnoweb\TaskManager\Context\ExecutionContext $context, string $key, int $version, string $operation, array $policy): array;
@@ -34,7 +40,7 @@ public function depart(Karnoweb\TaskManager\Context\ExecutionContext $context, s
 
 `Karnoweb\TaskManager\Collaboration\AttachmentService`
 
-```php
+```text
 public function attach(Karnoweb\TaskManager\Context\ExecutionContext $context, string $taskKey, string $reference, string $operation): array;
 public function issueTicket(Karnoweb\TaskManager\Context\ExecutionContext $context, string $taskKey, string $attachmentKey, int $lifetimeSeconds = 120): array;
 public function download(Karnoweb\TaskManager\Context\ExecutionContext $context, string $taskKey, string $attachmentKey, string $token): mixed;
@@ -44,7 +50,7 @@ public function download(Karnoweb\TaskManager\Context\ExecutionContext $context,
 
 `Karnoweb\TaskManager\Integration\AutomationService`
 
-```php
+```text
 public function get(Karnoweb\TaskManager\Context\ExecutionContext $context, string $key): array;
 public function publish(Karnoweb\TaskManager\Context\ExecutionContext $context, ?string $key, int $version, string $trigger, array $definition, string $operation): array;
 public function toggle(Karnoweb\TaskManager\Context\ExecutionContext $context, string $key, int $version, bool $active, string $operation): array;
@@ -55,7 +61,7 @@ public function run(Karnoweb\TaskManager\Context\ExecutionContext $context, stri
 
 `Karnoweb\TaskManager\Planning\BulkService`
 
-```php
+```text
 public function execute(Karnoweb\TaskManager\Context\ExecutionContext $context, array $items, string $mode, string $operation): array;
 ```
 
@@ -63,7 +69,7 @@ public function execute(Karnoweb\TaskManager\Context\ExecutionContext $context, 
 
 `Karnoweb\TaskManager\Workflow\CaseService`
 
-```php
+```text
 public function create(Karnoweb\TaskManager\Context\ExecutionContext $context, string $title, string $operation): array;
 public function timeline(Karnoweb\TaskManager\Context\ExecutionContext $context, string $caseKey, int $limit = 100): array;
 ```
@@ -72,7 +78,7 @@ public function timeline(Karnoweb\TaskManager\Context\ExecutionContext $context,
 
 `Karnoweb\TaskManager\Collaboration\ChecklistService`
 
-```php
+```text
 public function create(Karnoweb\TaskManager\Context\ExecutionContext $context, string $taskKey, string $title, string $operation): array;
 public function get(Karnoweb\TaskManager\Context\ExecutionContext $context, string $key): array;
 public function change(Karnoweb\TaskManager\Context\ExecutionContext $context, string $key, int $version, string $title, bool $deleted, string $operation): array;
@@ -88,7 +94,7 @@ public function progress(Karnoweb\TaskManager\Context\ExecutionContext $context,
 
 `Karnoweb\TaskManager\Collaboration\CollaborationService`
 
-```php
+```text
 public function comment(Karnoweb\TaskManager\Context\ExecutionContext $context, string $taskKey, string $body, array $mentions, ?string $parentKey, string $operation): array;
 public function editComment(Karnoweb\TaskManager\Context\ExecutionContext $context, string $key, int $version, ?string $body, string $operation): array;
 public function history(Karnoweb\TaskManager\Context\ExecutionContext $context, string $key, int $afterVersion = 0, int $limit = 100): array;
@@ -101,7 +107,7 @@ public function restore(Karnoweb\TaskManager\Context\ExecutionContext $context, 
 
 `Karnoweb\TaskManager\Scheduling\DateService`
 
-```php
+```text
 public function change(Karnoweb\TaskManager\Context\ExecutionContext $context, string $key, int $version, ?string $start, ?string $end, ?string $due, string $timezone, bool $allDay, string $policy, string $operation): array;
 public function calendar(Karnoweb\TaskManager\Context\ExecutionContext $context, DateTimeImmutable $from, DateTimeImmutable $until, int $afterId = 0, int $limit = 100): array;
 ```
@@ -110,7 +116,7 @@ public function calendar(Karnoweb\TaskManager\Context\ExecutionContext $context,
 
 `Karnoweb\TaskManager\TaskGraph\DependencyService`
 
-```php
+```text
 public function add(Karnoweb\TaskManager\Context\ExecutionContext $context, string $predecessor, int $predecessorVersion, string $successor, int $successorVersion, string $type, array $policy, string $operation): array;
 public function addBatch(Karnoweb\TaskManager\Context\ExecutionContext $context, array $items, string $operation): array;
 public function get(Karnoweb\TaskManager\Context\ExecutionContext $context, string $key, string $capability = 'view'): array;
@@ -122,7 +128,7 @@ public function remove(Karnoweb\TaskManager\Context\ExecutionContext $context, s
 
 `Karnoweb\TaskManager\Enterprise\ReportService`
 
-```php
+```text
 public function read(Karnoweb\TaskManager\Context\ExecutionContext $context, array $input = [], bool $truthFallback = true): array;
 public function rebuild(Karnoweb\TaskManager\Context\ExecutionContext $context, array $input, string $operation): array;
 ```
@@ -131,7 +137,7 @@ public function rebuild(Karnoweb\TaskManager\Context\ExecutionContext $context, 
 
 `Karnoweb\TaskManager\Workflow\EntryRoutingService`
 
-```php
+```text
 public function getDefault(Karnoweb\TaskManager\Context\ExecutionContext $context, string $routingKey): array;
 public function setDefault(Karnoweb\TaskManager\Context\ExecutionContext $context, string $routingKey, ?string $pipelineKey, int $version, string $operation): array;
 public function resolve(Karnoweb\TaskManager\Context\ExecutionContext $context, string $routingKey, bool $parentFallback = true): array;
@@ -144,7 +150,7 @@ public function detachRetired(Karnoweb\TaskManager\Context\ExecutionContext $con
 
 `Karnoweb\TaskManager\Integration\EventPump`
 
-```php
+```text
 public function subscribe(Karnoweb\TaskManager\Context\ExecutionContext $context, string $eventType, string $consumer, string $operation): array;
 public function toggle(Karnoweb\TaskManager\Context\ExecutionContext $context, string $key, int $version, bool $active, string $operation): array;
 public function enqueue(Karnoweb\TaskManager\Context\ExecutionContext $context, int $limit = 100, ?int $replayAfter = NULL): array;
@@ -156,7 +162,7 @@ public function run(Karnoweb\TaskManager\Context\ExecutionContext $context, int 
 
 `Karnoweb\TaskManager\Enterprise\ExportService`
 
-```php
+```text
 public function enqueue(Karnoweb\TaskManager\Context\ExecutionContext $context, array $input, string $operation, int $lifetimeSeconds = 3600): array;
 public function get(Karnoweb\TaskManager\Context\ExecutionContext $context, string $key): array;
 public function stream(Karnoweb\TaskManager\Context\ExecutionContext $context, array $input): Generator;
@@ -168,7 +174,7 @@ public function download(Karnoweb\TaskManager\Context\ExecutionContext $context,
 
 `Karnoweb\TaskManager\Enterprise\CustomFieldService`
 
-```php
+```text
 public function create(Karnoweb\TaskManager\Context\ExecutionContext $context, string $name, string $type, array $options, ?string $readCapability, string $operation): array;
 public function get(Karnoweb\TaskManager\Context\ExecutionContext $context, string $key): array;
 public function archive(Karnoweb\TaskManager\Context\ExecutionContext $context, string $key, int $version, bool $archived, string $operation): array;
@@ -183,7 +189,7 @@ public function sortQuery(Karnoweb\TaskManager\Context\ExecutionContext $context
 
 `Karnoweb\TaskManager\Group\GroupService`
 
-```php
+```text
 public function get(Karnoweb\TaskManager\Context\ExecutionContext $context, string $key): array;
 public function register(Karnoweb\TaskManager\Context\ExecutionContext $context, string $sourceType, string $sourceId, array $policy, string $operation): array;
 public function publishPolicy(Karnoweb\TaskManager\Context\ExecutionContext $context, string $key, int $version, array $policy, string $operation): array;
@@ -200,7 +206,7 @@ public function report(Karnoweb\TaskManager\Context\ExecutionContext $context, s
 
 `Karnoweb\TaskManager\Handoff\HandoffService`
 
-```php
+```text
 public function get(Karnoweb\TaskManager\Context\ExecutionContext $context, string $key): array;
 public function delegate(Karnoweb\TaskManager\Context\ExecutionContext $context, string $originKey, int $version, string $pipelineKey, int $revisionId, string $slot, array $policy, string $operation): array;
 public function parallel(Karnoweb\TaskManager\Context\ExecutionContext $context, string $originKey, int $version, array $destinations, array $policy, array $join, string $operation): array;
@@ -217,7 +223,7 @@ public function run(Karnoweb\TaskManager\Context\ExecutionContext $context, int 
 
 `Karnoweb\TaskManager\TaskGraph\HierarchyService`
 
-```php
+```text
 public function reparent(Karnoweb\TaskManager\Context\ExecutionContext $context, string $key, int $version, ?string $parentKey, ?int $parentVersion, string $operation): array;
 public function configureDepth(Karnoweb\TaskManager\Context\ExecutionContext $context, string $projectKey, int $version, int $depth, string $operation): array;
 public function tree(Karnoweb\TaskManager\Context\ExecutionContext $context, string $key, int $limit = 100, int $afterId = 0): array;
@@ -230,7 +236,7 @@ public function executeDelete(Karnoweb\TaskManager\Context\ExecutionContext $con
 
 `Karnoweb\TaskManager\Workflow\InstanceService`
 
-```php
+```text
 public function get(Karnoweb\TaskManager\Context\ExecutionContext $context, string $key): array;
 public function authorizedQuery(Karnoweb\TaskManager\Context\ExecutionContext $context): Illuminate\Database\Query\Builder;
 public function query(Karnoweb\TaskManager\Context\ExecutionContext $context, int $limit = 30, ?string $afterKey = NULL): array;
@@ -253,7 +259,7 @@ public function lockForCommand(Karnoweb\TaskManager\Context\ExecutionContext $co
 
 `Karnoweb\TaskManager\UI\IntegrationFactory`
 
-```php
+```text
 public function board(Karnoweb\TaskManager\UI\Surface $surface, Karnoweb\TaskManager\UI\ContextBridge $bridge, Karnoweb\TaskManager\UI\BoundCursor $cursors, ?Closure $handoff = NULL): Karnoweb\TaskManager\UI\Kanban\TaskBoard;
 public function calendar(Karnoweb\TaskManager\UI\Surface $surface, Karnoweb\TaskManager\UI\ContextBridge $bridge, Karnoweb\TaskManager\UI\BoundCursor $cursors): Karnoweb\TaskManager\UI\Calendar\TaskCalendar;
 public function crm(): Karnoweb\TaskManager\UI\Crm\CutoverService;
@@ -265,7 +271,7 @@ public function followups(): Karnoweb\TaskManager\UI\Crm\FollowupService;
 
 `Karnoweb\TaskManager\Planning\MarkerService`
 
-```php
+```text
 public function create(Karnoweb\TaskManager\Context\ExecutionContext $context, string $projectKey, string $kind, string $name, ?DateTimeImmutable $due, string $operation): array;
 public function get(Karnoweb\TaskManager\Context\ExecutionContext $context, string $key, bool $write = false): array;
 public function link(Karnoweb\TaskManager\Context\ExecutionContext $context, string $key, int $version, string $taskKey, int $taskVersion, bool $enabled, string $operation): array;
@@ -277,7 +283,7 @@ public function change(Karnoweb\TaskManager\Context\ExecutionContext $context, s
 
 `Karnoweb\TaskManager\Group\MilestoneService`
 
-```php
+```text
 public function get(Karnoweb\TaskManager\Context\ExecutionContext $context, string $intentKey): array;
 public function verify(Karnoweb\TaskManager\Context\ExecutionContext $context, string $intentKey, int $instanceVersion, string $operation): array;
 public function run(Karnoweb\TaskManager\Context\ExecutionContext $context, int $limit = 100): array;
@@ -287,7 +293,7 @@ public function run(Karnoweb\TaskManager\Context\ExecutionContext $context, int 
 
 `Karnoweb\TaskManager\Workflow\PipelineService`
 
-```php
+```text
 public function create(Karnoweb\TaskManager\Context\ExecutionContext $context, string $name, int $revisionId, array $stages, string $operation, string $transitionMode = 'custom'): array;
 public function get(Karnoweb\TaskManager\Context\ExecutionContext $context, string $key): array;
 ```
@@ -296,7 +302,7 @@ public function get(Karnoweb\TaskManager\Context\ExecutionContext $context, stri
 
 `Karnoweb\TaskManager\TaskGraph\TaskPlanningService`
 
-```php
+```text
 public function estimate(Karnoweb\TaskManager\Context\ExecutionContext $context, string $key, int $version, ?int $minutes, ?string $points, string $operation): array;
 public function previewSchedule(Karnoweb\TaskManager\Context\ExecutionContext $context, string $key, ?DateTimeImmutable $start, ?DateTimeImmutable $finish): array;
 public function executeSchedule(Karnoweb\TaskManager\Context\ExecutionContext $context, array $preview, string $operation): array;
@@ -307,7 +313,7 @@ public function criticalPath(Karnoweb\TaskManager\Context\ExecutionContext $cont
 
 `Karnoweb\TaskManager\Planning\PositionService`
 
-```php
+```text
 public function create(Karnoweb\TaskManager\Context\ExecutionContext $context, string $kind, string $reference, string $operation): array;
 public function get(Karnoweb\TaskManager\Context\ExecutionContext $context, string $key, bool $write = false): array;
 public function place(Karnoweb\TaskManager\Context\ExecutionContext $context, string $key, int $version, string $taskKey, int $taskVersion, ?string $after, ?string $before, string $operation): array;
@@ -318,7 +324,7 @@ public function listing(Karnoweb\TaskManager\Context\ExecutionContext $context, 
 
 `Karnoweb\TaskManager\Enterprise\PresetService`
 
-```php
+```text
 public function create(Karnoweb\TaskManager\Context\ExecutionContext $context, string $name, array $definition, string $operation): array;
 public function get(Karnoweb\TaskManager\Context\ExecutionContext $context, string $key): array;
 public function instantiate(Karnoweb\TaskManager\Context\ExecutionContext $context, string $key, string $operation): array;
@@ -328,10 +334,11 @@ public function instantiate(Karnoweb\TaskManager\Context\ExecutionContext $conte
 
 `Karnoweb\TaskManager\Workflow\ProjectService`
 
-```php
+```text
 public function authorizedQuery(Karnoweb\TaskManager\Context\ExecutionContext $context): Illuminate\Database\Query\Builder;
 public function get(Karnoweb\TaskManager\Context\ExecutionContext $context, string $key, string $capability = 'view', bool $lock = false): array;
 public function create(Karnoweb\TaskManager\Context\ExecutionContext $context, string $key, string $name, int $revisionId, string $operation): array;
+public function createTask(Karnoweb\TaskManager\Context\ExecutionContext $context, string $projectKey, string $type, string $title, string $operation): array;
 public function change(Karnoweb\TaskManager\Context\ExecutionContext $context, string $key, int $version, string $operation, string $action, array $data): array;
 public function previewTaskMove(Karnoweb\TaskManager\Context\ExecutionContext $context, string $taskKey, string $projectKey, string $type, array $stateMap): array;
 public function moveTask(Karnoweb\TaskManager\Context\ExecutionContext $context, array $preview, string $operation, ?string $parentKey = NULL): array;
@@ -345,7 +352,7 @@ public function migrateWorkflow(Karnoweb\TaskManager\Context\ExecutionContext $c
 
 `Karnoweb\TaskManager\Enterprise\QueryService`
 
-```php
+```text
 public function base(Karnoweb\TaskManager\Context\ExecutionContext $context, array $filters): Illuminate\Database\Query\Builder;
 public function tasks(Karnoweb\TaskManager\Context\ExecutionContext $context, array $filters = [], string $sort = 'id', string $direction = 'asc', int $limit = 30, ?string $cursor = NULL): array;
 public function reindex(Karnoweb\TaskManager\Context\ExecutionContext $context, int $afterId = 0, int $limit = 1000): array;
@@ -355,7 +362,7 @@ public function reindex(Karnoweb\TaskManager\Context\ExecutionContext $context, 
 
 `Karnoweb\TaskManager\Scheduling\RecurrenceService`
 
-```php
+```text
 public function get(Karnoweb\TaskManager\Context\ExecutionContext $context, string $key, bool $write = false): array;
 public function create(Karnoweb\TaskManager\Context\ExecutionContext $context, string $taskKey, int $taskVersion, string $system, string $anchor, string $timezone, array|string $input, string $operation): array;
 public function preview(Karnoweb\TaskManager\Context\ExecutionContext $context, string $key, DateTimeImmutable $from, DateTimeImmutable $until, int $limit = 100): array;
@@ -368,7 +375,7 @@ public function exception(Karnoweb\TaskManager\Context\ExecutionContext $context
 
 `Karnoweb\TaskManager\Scheduling\ReminderService`
 
-```php
+```text
 public function parseTime(string $wall, string $timezone, string $calendar = 'gregorian', string $dstPolicy = 'reject'): DateTimeImmutable;
 public function suggestedRecipient(Karnoweb\TaskManager\Context\ExecutionContext $context, ?string $type = NULL, ?string $id = NULL): string;
 public function createGeneral(Karnoweb\TaskManager\Context\ExecutionContext $context, string $body, DateTimeImmutable $when, string $timezone, string $operation, ?string $subjectType = NULL, ?string $subjectId = NULL, ?string $recipient = NULL, bool $allowPast = false): array;
@@ -387,7 +394,7 @@ public function dispatch(Karnoweb\TaskManager\Context\ExecutionContext $context,
 
 `Karnoweb\TaskManager\Planning\ReportingService`
 
-```php
+```text
 public function totals(Karnoweb\TaskManager\Context\ExecutionContext $context, ?string $projectKey = NULL): array;
 public function subtreeTime(Karnoweb\TaskManager\Context\ExecutionContext $context, string $taskKey): array;
 public function flow(Karnoweb\TaskManager\Context\ExecutionContext $context, string $taskKey, ?DateTimeImmutable $asOf = NULL): array;
@@ -397,7 +404,7 @@ public function flow(Karnoweb\TaskManager\Context\ExecutionContext $context, str
 
 `Karnoweb\TaskManager\Handoff\LocalRouteService`
 
-```php
+```text
 public function move(Karnoweb\TaskManager\Context\ExecutionContext $context, string $route, array $preview, string $reason, string $operation): array;
 public function spawn(Karnoweb\TaskManager\Context\ExecutionContext $context, string $route, string $originKey, int $version, string $pipelineKey, int $revisionId, string $slot, string $sourceTransition, string $reason, string $operation): array;
 ```
@@ -406,7 +413,7 @@ public function spawn(Karnoweb\TaskManager\Context\ExecutionContext $context, st
 
 `Karnoweb\TaskManager\Handoff\ExternalSagaService`
 
-```php
+```text
 public function get(Karnoweb\TaskManager\Context\ExecutionContext $context, string $key): array;
 public function begin(Karnoweb\TaskManager\Context\ExecutionContext $context, string $originKey, int $version, string $route, string $transition, string $reason, string $operation): array;
 public function execute(Karnoweb\TaskManager\Context\ExecutionContext $context, string $key): array;
@@ -418,7 +425,7 @@ public function run(Karnoweb\TaskManager\Context\ExecutionContext $context, int 
 
 `Karnoweb\TaskManager\SLA\SlaService`
 
-```php
+```text
 public function get(Karnoweb\TaskManager\Context\ExecutionContext $context, int $visitId): array;
 public function pause(Karnoweb\TaskManager\Context\ExecutionContext $context, int $visitId, int $slaVersion, string $operation, string $reason): array;
 public function resume(Karnoweb\TaskManager\Context\ExecutionContext $context, int $visitId, int $slaVersion, string $operation): array;
@@ -431,7 +438,7 @@ public function run(Karnoweb\TaskManager\Context\ExecutionContext $context, int 
 
 `Karnoweb\TaskManager\Planning\SprintService`
 
-```php
+```text
 public function get(Karnoweb\TaskManager\Context\ExecutionContext $context, string $key, bool $write = false, bool $lock = false): array;
 public function create(Karnoweb\TaskManager\Context\ExecutionContext $context, string $projectKey, string $name, ?DateTimeImmutable $start, ?DateTimeImmutable $end, string $operation): array;
 public function enroll(Karnoweb\TaskManager\Context\ExecutionContext $context, string $key, int $version, array $references, string $operation): array;
@@ -447,7 +454,7 @@ public function backlog(Karnoweb\TaskManager\Context\ExecutionContext $context, 
 
 `Karnoweb\TaskManager\SLA\StagePolicyService`
 
-```php
+```text
 public function publishSla(Karnoweb\TaskManager\Context\ExecutionContext $context, string $pipelineKey, string $stageKey, int $pipelineVersion, string $operation, array $policy): array;
 ```
 
@@ -455,9 +462,9 @@ public function publishSla(Karnoweb\TaskManager\Context\ExecutionContext $contex
 
 `Karnoweb\TaskManager\TaskService`
 
-```php
+```text
 public function createTodo(Karnoweb\TaskManager\DTO\CreateTodo $command): Karnoweb\TaskManager\DTO\TaskResult;
-public function inContext(Karnoweb\TaskManager\Context\ExecutionContext $context): Karnoweb\TaskManager\TaskSession;
+public function inContext(?Karnoweb\TaskManager\Context\ExecutionContext $context = NULL): Karnoweb\TaskManager\TaskSession;
 public function change(Karnoweb\TaskManager\DTO\MutateTask $command): Karnoweb\TaskManager\DTO\TaskResult;
 public function findTasks(Karnoweb\TaskManager\DTO\TaskQuery $query): array;
 public function authorizedQuery(Karnoweb\TaskManager\Context\ExecutionContext $context, string $capability = 'view'): Illuminate\Database\Query\Builder;
@@ -480,7 +487,7 @@ public function mutate(Karnoweb\TaskManager\Context\ExecutionContext $context, s
 
 `Karnoweb\TaskManager\Planning\TemplateService`
 
-```php
+```text
 public function get(Karnoweb\TaskManager\Context\ExecutionContext $context, string $key, ?int $revision = NULL): array;
 public function publish(Karnoweb\TaskManager\Context\ExecutionContext $context, ?string $key, int $version, string $name, array $definition, string $operation): array;
 public function instantiate(Karnoweb\TaskManager\Context\ExecutionContext $context, string $key, int $revision, string $projectCode, string $name, string $operation): array;
@@ -490,7 +497,7 @@ public function instantiate(Karnoweb\TaskManager\Context\ExecutionContext $conte
 
 `Karnoweb\TaskManager\Planning\TimeTrackingService`
 
-```php
+```text
 public function start(Karnoweb\TaskManager\Context\ExecutionContext $context, string $taskKey, string $operation): array;
 public function timer(Karnoweb\TaskManager\Context\ExecutionContext $context, string $key): array;
 public function cancelOwn(Karnoweb\TaskManager\Context\ExecutionContext $context, string $key, int $version, string $operation): array;
@@ -506,7 +513,7 @@ public function rebuild(Karnoweb\TaskManager\Context\ExecutionContext $context, 
 
 `Karnoweb\TaskManager\Integration\WebhookService`
 
-```php
+```text
 public function get(Karnoweb\TaskManager\Context\ExecutionContext $context, string $key): array;
 public function create(Karnoweb\TaskManager\Context\ExecutionContext $context, string $url, string $secretRef, array $types, string $operation): array;
 public function change(Karnoweb\TaskManager\Context\ExecutionContext $context, string $key, int $version, string $url, string $secretRef, array $types, bool $active, string $operation): array;
@@ -521,8 +528,61 @@ public function verifyIncoming(Karnoweb\TaskManager\Context\ExecutionContext $co
 
 `Karnoweb\TaskManager\Workflow\WorkflowService`
 
-```php
+```text
 public function publish(Karnoweb\TaskManager\Context\ExecutionContext $context, string $key, int $expectedRevision, string $operation, array $definition): array;
 public function revision(Karnoweb\TaskManager\Context\ExecutionContext $context, int $id): array;
+```
+
+## Karnoweb\TaskManager\TaskSession
+
+```text
+public function __construct(Karnoweb\TaskManager\TaskService $service, Karnoweb\TaskManager\Context\ExecutionContext $context);
+public function create(string $title, string $operation): Karnoweb\TaskManager\DTO\TaskResult;
+public function complete(string $id, int $version, string $operation): Karnoweb\TaskManager\DTO\TaskResult;
+public function get(string $id): Karnoweb\TaskManager\DTO\TaskResult;
+public function update(string $id, int $version, string $operation, array $values): Karnoweb\TaskManager\DTO\TaskResult;
+public function reopen(string $id, int $version, string $operation): Karnoweb\TaskManager\DTO\TaskResult;
+public function archive(string $id, int $version, string $operation): Karnoweb\TaskManager\DTO\TaskResult;
+public function restore(string $id, int $version, string $operation): Karnoweb\TaskManager\DTO\TaskResult;
+public function query(int $page = 1, ?int $limit = NULL): array;
+```
+
+## Karnoweb\TaskManager\Workflow\TransitionGuards
+
+```text
+public function __construct(array $guards = []);
+public function get(string $name): ?callable;
+```
+
+## Karnoweb\TaskManager\Context\ContextFactory
+
+```text
+public function __construct(Illuminate\Contracts\Container\Container $container, Illuminate\Contracts\Config\Repository $config, Illuminate\Contracts\Auth\Factory $auth);
+public function make(?Karnoweb\TaskManager\Context\ExecutionContext $context = NULL, string|int|null $branch = NULL): Karnoweb\TaskManager\Context\ExecutionContext;
+```
+
+## Karnoweb\TaskManager\Context\ExecutionContext
+
+```text
+public function __construct(string $scope, string $actor, string $correlationId, bool $serviceActor = false, ?array $capabilities = NULL, ?string $originEventId = NULL, int $automationDepth = 0);
+public function require(string $capability): void;
+```
+
+## Karnoweb\TaskManager\Contracts\UserResolver
+
+```text
+public function resolve(): ?object;
+```
+
+## Karnoweb\TaskManager\Contracts\BranchResolver
+
+```text
+public function resolve(object $user, string|int|null $requested): object|string|int|null;
+```
+
+## Karnoweb\TaskManager\Contracts\ScopeResolver
+
+```text
+public function resolve(object $user, ?string $branch): string|int|null;
 ```
 

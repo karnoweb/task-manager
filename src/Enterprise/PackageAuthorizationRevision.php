@@ -10,6 +10,8 @@ final class PackageAuthorizationRevision implements AuthorizationRevision
 {
     public function revision(ExecutionContext $context): string
     {
+        $context->validateTenant();
+
         return 'package';
     }
 }

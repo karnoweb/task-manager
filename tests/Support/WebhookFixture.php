@@ -27,7 +27,7 @@ final class WebhookFixture implements DnsResolver, SecretVault, WebhookTransport
             $hook();
         }
 
-return $this->addresses;
+        return $this->addresses;
     }
 
     public function resolve(ExecutionContext $context, string $reference): string
@@ -36,7 +36,7 @@ return $this->addresses;
             throw new DomainError('webhook_secret_unavailable');
         }
 
-return str_repeat('s', 32);
+        return str_repeat('s', 32);
     }
 
     public function post(WebhookTarget $target, string $body, array $headers): array
@@ -47,6 +47,6 @@ return str_repeat('s', 32);
             throw $response;
         }
 
-return $response;
+        return $response;
     }
 }

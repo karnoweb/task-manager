@@ -10,6 +10,7 @@ use Karnoweb\TaskManager\Contracts\AuthorizationProvider;
 use Karnoweb\TaskManager\Contracts\Clock;
 use Karnoweb\TaskManager\EventRecorder;
 use Karnoweb\TaskManager\Exceptions\DomainError;
+use Karnoweb\TaskManager\Schema\Tables;
 use Karnoweb\TaskManager\TaskGraph\HierarchyService;
 use Karnoweb\TaskManager\TaskGraph\ScopeGraphLock;
 use Karnoweb\TaskManager\TaskGraph\TaskPlanningService;
@@ -34,15 +35,16 @@ final class TemplateService
 
     public function get(ExecutionContext $context, string $key, ?int $revision = null): array
     {
+        $context->validateTenant();
         $this->authorize($context);
         if (! Str::isUuid($key)) {
             throw new DomainError('not_found');
         }
-        $head = $this->db->table('tm_project_templates')->where('scope_key', $context->scope)->where('owner_ref', $context->actor)->where('template_key', $key)->first();
+        $head = $this->db->table(Tables::name('project_templates'))->where('scope_key', $context->scope)->where('owner_ref', $context->actor)->where('template_key', $key)->first();
         if (! $head) {
             throw new DomainError('not_found');
         }
-        $row = $this->db->table('tm_project_template_revisions')->where('template_id', $head->id)->where('revision', $revision ?? $head->version)->first();
+        $row = $this->db->table(Tables::name('project_template_revisions'))->where('template_id', $head->id)->where('revision', $revision ?? $head->version)->first();
         if (! $row) {
             throw new DomainError('not_found');
         }
@@ -52,6 +54,7 @@ final class TemplateService
 
     public function publish(ExecutionContext $context, ?string $key, int $version, string $name, array $definition, string $operation): array
     {
+        $context->validateTenant();
         $this->authorize($context);
         if (trim($name) === '' || mb_strlen($name) > 255 || ($key === null && $version !== 0)) {
             throw new DomainError('template_invalid');
@@ -62,16 +65,16 @@ final class TemplateService
             ScopeGraphLock::acquire($this->db, $context);
             $public = $key ?? (string) Str::uuid();
             if ($key === null) {
-                $id = $this->db->table('tm_project_templates')->insertGetId(['template_key' => $public, 'scope_key' => $context->scope, 'owner_ref' => $context->actor, 'name' => $name]);
+                $id = $this->db->table(Tables::name('project_templates'))->insertGetId(['template_key' => $public, 'scope_key' => $context->scope, 'owner_ref' => $context->actor, 'name' => $name]);
             } else {
                 $head = $this->get($context, $key);
                 if ($head['version'] !== $version) {
                     throw new DomainError('version_conflict');
                 } $id = $head['id'];
-                $this->db->table('tm_project_templates')->where('id', $id)->update(['version' => $version + 1, 'name' => $name]);
+                $this->db->table(Tables::name('project_templates'))->where('id', $id)->update(['version' => $version + 1, 'name' => $name]);
             }
             $encoded = json_encode($definition, JSON_THROW_ON_ERROR | JSON_UNESCAPED_UNICODE);
-            $this->db->table('tm_project_template_revisions')->insert(['template_id' => $id, 'revision' => $version + 1, 'definition' => $encoded, 'definition_hash' => hash('sha256', $encoded), 'created_at' => $this->clock->now()->format('Y-m-d H:i:s.u')]);
+            $this->db->table(Tables::name('project_template_revisions'))->insert(['template_id' => $id, 'revision' => $version + 1, 'definition' => $encoded, 'definition_hash' => hash('sha256', $encoded), 'created_at' => $this->clock->now()->format('Y-m-d H:i:s.u')]);
             (new EventRecorder($this->db, $this->clock))->append($context, 'project_template', $public, 'template_published', $operation, ['revision' => $version + 1]);
 
             return $this->get($context, $public);
@@ -137,6 +140,7 @@ final class TemplateService
 
     public function instantiate(ExecutionContext $context, string $key, int $revision, string $projectCode, string $name, string $operation): array
     {
+        $context->validateTenant();
         $template = $this->get($context, $key, $revision);
 
         return (new CommandExecutor($this->db))->execute($context, $operation, ['action' => 'template_instantiate', 'key' => $key, 'revision' => $revision, 'project_code' => $projectCode, 'name' => $name], function () use ($context, $template, $projectCode, $name, $operation) {
@@ -178,7 +182,7 @@ final class TemplateService
                     unset($pending[$index]);
                 }
             }
-            $this->db->table('tm_project_template_instances')->insert(['project_id' => $project['id'], 'template_revision_id' => $template['revision_id']]);
+            $this->db->table(Tables::name('project_template_instances'))->insert(['project_id' => $project['id'], 'template_revision_id' => $template['revision_id']]);
             (new EventRecorder($this->db, $this->clock))->append($context, 'project', $project['project_key'], 'project_template_instantiated', $operation, ['template_key' => $template['template_key'], 'revision' => $template['revision']]);
 
             return ['project' => $this->projects->get($context, $project['project_key']), 'tasks' => array_map(fn ($task) => $task['public_key'], $created), 'template_revision' => $template['revision']];

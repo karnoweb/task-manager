@@ -22,6 +22,6 @@ final class TM193Test extends ApprovalTestCase
         self::assertSame('executed', $done['execution_state']);
         self::assertSame('won', $this->instances()->get($c, $i['instance_key'])['current_state_key']);
         self::assertSame(2, DB::table('tm_approval_votes')->count());
-        self::assertSame(1,DB::table('tm_outbox')->where('action','approval_decided')->count());
+        self::assertSame(1, DB::table('tm_outbox')->where('action', 'approval_decided')->count());
     }
 }

@@ -32,6 +32,6 @@ final class DatePlanningBridgeTest extends PhaseFiveTestCase
         $this->error('recurrence_rule_invalid', fn () => RecurrenceRule::parse('FREQ=DAILY;INTERVAL=wrong'));
         $this->error('recurrence_part_unsupported', fn () => RecurrenceRule::parse('FREQ=DAILY;BYSETPOS=1'));
         $this->error('recurrence_rule_invalid', fn () => RecurrenceRule::parse(['frequency' => 'weekly', 'weekdays' => [['MO']]]));
-        $this->error('date_invalid',fn () => RecurrenceRule::parse(['frequency' => 'daily', 'until' => '2026-02-30T09:00:00Z']));
+        $this->error('date_invalid', fn () => RecurrenceRule::parse(['frequency' => 'daily', 'until' => '2026-02-30T09:00:00Z']));
     }
 }

@@ -75,7 +75,7 @@ final class EventDeliveryTest extends PhaseFiveTestCase
         $this->todo('Committed before dispatch');
         self::assertCount(0, $received);
         self::assertSame(1, $pump->run($this->worker())['sent']);
-        self::assertCount(1,$received);
-        self::assertSame(0,$pump->run($this->worker())['sent']);
+        self::assertCount(1, $received);
+        self::assertSame(0, $pump->run($this->worker())['sent']);
     }
 }

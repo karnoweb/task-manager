@@ -60,7 +60,7 @@ final class AutomationCoreTest extends PhaseFiveTestCase
         $task = $this->service()->create($this->manager('b'), 'Hidden', 'hidden');
         $event = DB::table('tm_outbox')->where('task_id', $task['id'])->first();
         $this->automation()->publish($this->manager(), null, 0, 'created', ['actions' => [['type' => 'notify']]], 'rule');
-        $this->error('not_found',fn () => $this->automation()->run($this->worker(),$event->event_id));
-        self::assertSame(0,DB::table('tm_automation_runs')->count());
+        $this->error('not_found', fn () => $this->automation()->run($this->worker(), $event->event_id));
+        self::assertSame(0, DB::table('tm_automation_runs')->count());
     }
 }

@@ -85,9 +85,9 @@ final class WebhookCoreTest extends WebhookTestCase
         $event = DB::table('tm_outbox')->where('task_id', $task['id'])->where('action', 'created')->first();
         $this->webhooks()->queue($this->manager(), $event->event_id);
         $this->network->onResolve = function () use ($task) {
-            $this->service()->share($this->manager('b'),$task['public_key'],$task['version'],'revoke','a',revoke: true);
+            $this->service()->share($this->manager('b'), $task['public_key'], $task['version'], 'revoke', 'a', revoke: true);
         };
-        self::assertSame(1,$this->webhooks()->run($this->webhookWorker())['cancelled']);
-        self::assertCount(0,$this->network->requests);
+        self::assertSame(1, $this->webhooks()->run($this->webhookWorker())['cancelled']);
+        self::assertCount(0, $this->network->requests);
     }
 }

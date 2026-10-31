@@ -13,6 +13,7 @@ use Karnoweb\TaskManager\EventRecorder;
 use Karnoweb\TaskManager\Exceptions\DomainError;
 use Karnoweb\TaskManager\Handoff\HandoffService;
 use Karnoweb\TaskManager\Responsibility\AssignmentService;
+use Karnoweb\TaskManager\Schema\Tables;
 use Karnoweb\TaskManager\SLA\SlaService;
 use Karnoweb\TaskManager\TaskGraph\HierarchyService;
 use Karnoweb\TaskManager\TaskService;
@@ -27,6 +28,7 @@ final class AutomationActions
 
     public function __construct(private readonly Connection $db, private readonly Clock $clock, private readonly AuthorizationProvider $authorization, private readonly TaskService $tasks, private readonly InstanceService $instances, private readonly AssignmentService $assignments, private readonly ApprovalService $approvals, private readonly HandoffService $handoffs, private readonly HierarchyService $hierarchy, private readonly ProjectService $projects, private readonly WorkflowService $workflows, private readonly ExportService $exports, private readonly SlaService $sla)
     {
+        Tables::assertConnection($db);
     }
 
     public function validate(array $action): void
@@ -74,16 +76,17 @@ final class AutomationActions
         $key = $source['instance_key'];
         if ($key === null && $source['task_key'] !== null) {
             $task = $this->tasks->get($context, $source['task_key']);
-            $key = $this->db->table('tm_workflow_instances')->where('task_id', $task['id'])->where('slot_key', 'main')->orderByDesc('id')->value('instance_key');
+            $key = $this->db->table(Tables::name('workflow_instances'))->where('task_id', $task['id'])->where('slot_key', 'main')->orderByDesc('id')->value('instance_key');
         }if ($key === null) {
             throw new DomainError('automation_instance_required');
         }
 
-return $this->instances->get($context, $key);
+        return $this->instances->get($context, $key);
     }
 
     public function execute(ExecutionContext $context, array $event, array $source, array $action, string $operation): array
     {
+        $context->validateTenant();
         $this->validate($action);
         $args = $action['args'] ?? [];
         $type = $action['type'];
@@ -101,7 +104,7 @@ return $this->instances->get($context, $key);
             }$parent = $this->tasks->get($context, $source['task_key']);
             $task = $this->tasks->create($context, $args['title'], 'create:'.$operation);
             if ($parent['project_id'] !== null) {
-                $projectKey = $this->db->table('tm_projects')->where('id', $parent['project_id'])->value('project_key');
+                $projectKey = $this->db->table(Tables::name('projects'))->where('id', $parent['project_id'])->value('project_key');
                 $project = $this->projects->get($context, $projectKey, 'edit');
                 $revision = $this->workflows->revision($context, $project['workflow_revision_id']);
                 $preview = $this->projects->previewTaskMove($context, $task['public_key'], $projectKey, 'task', [$task['state'] => $revision['definition']['initial']]);
@@ -120,8 +123,8 @@ return $this->instances->get($context, $key);
                 $task = $this->tasks->authorizedQuery($context, 'edit')->where('public_key', $source['task_key'])->whereNull('deleted_at')->whereNull('archived_at')->lockForUpdate()->first();
                 if (! $task) {
                     throw new DomainError('not_found');
-                }$this->db->table('tm_task_label_keys')->insertOrIgnore(['task_id' => $task->id, 'label_key' => $args['label']]);
-                $this->db->table('tm_tasks')->where('id', $task->id)->increment('version');
+                }$this->db->table(Tables::name('task_label_keys'))->insertOrIgnore(['task_id' => $task->id, 'label_key' => $args['label']]);
+                $this->db->table(Tables::name('tasks'))->where('id', $task->id)->increment('version');
                 (new EventRecorder($this->db, $this->clock))->append($context, 'task', $task->public_key, 'label_added', $operation, ['label' => $args['label']], $task->id);
 
                 return ['task_key' => $task->public_key];
@@ -133,8 +136,8 @@ return $this->instances->get($context, $key);
             'assign' => $this->assignments->assign($context, $instance['instance_key'], $instance['version'], $operation, $args['primary'] ?? null, $args['secondary'] ?? []),
             'request_approval' => $this->approvals->begin($context, $instance['instance_key'], $instance['version'], $operation, $args['policy']),
             'transition' => $this->instances->transition($context, $instance['instance_key'], $instance['version'], $operation, $args['edge'], $args['payload'] ?? []),
-            'handoff' => $this->handoffs->delegate($context,$instance['instance_key'],$instance['version'],$args['pipeline_key'],$args['revision_id'],$args['slot'],$args['policy'],$operation),
-            'mark_dead_candidate' => $this->sla->markDeadCandidate($context,$instance['instance_key'],$args['visit_id']),
+            'handoff' => $this->handoffs->delegate($context, $instance['instance_key'], $instance['version'], $args['pipeline_key'], $args['revision_id'], $args['slot'], $args['policy'], $operation),
+            'mark_dead_candidate' => $this->sla->markDeadCandidate($context, $instance['instance_key'], $args['visit_id']),
             default => throw new DomainError('automation_action_not_allowed')
         };
     }

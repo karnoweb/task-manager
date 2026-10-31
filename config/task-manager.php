@@ -1,6 +1,16 @@
 <?php
 
 return [
+    // Fresh installations only. Changing an installed prefix requires an explicit migration.
+    'table_prefix' => 'tm_',
+    'user' => ['model' => null, 'resolver' => null, 'identifier' => null],
+    'branch' => ['enabled' => false, 'model' => null, 'resolver' => null, 'identifier' => null, 'default_id' => null],
+    // Branch-enabled contexts use branch:<identifier>. Persisted scopes are never remapped.
+    'scope' => ['resolver' => null, 'default' => 'default'],
+    'context' => [
+        'capabilities' => ['task.create', 'task.view', 'task.edit', 'task.share', 'list.create', 'list.view', 'activity.view'],
+        'capabilities_resolver' => null,
+    ],
     'page_size' => 30,
     'max_page_size' => 100,
     // Private application storage; never point this at a public uploads directory.

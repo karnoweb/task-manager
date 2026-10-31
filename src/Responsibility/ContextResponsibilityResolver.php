@@ -10,11 +10,15 @@ final class ContextResponsibilityResolver implements ResponsibilityResolver
 {
     public function candidates(ExecutionContext $context, string $reference, string $purpose): array
     {
+        $context->validateTenant();
+
         return $reference === 'self' ? [$context->actor] : [];
     }
 
     public function eligible(ExecutionContext $context, string $actor, string $purpose): bool
     {
+        $context->validateTenant();
+
         return $actor === $context->actor;
     }
 }

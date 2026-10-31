@@ -32,6 +32,6 @@ final class TM202Test extends SlaTestCase
         self::assertSame(2, DB::table('tm_sla_events')->where('action_state', 'manual_review')->count());
         self::assertSame('new', $this->instances()->get($c, $i['instance_key'])['current_state_key']);
         self::assertSame(0, DB::table('tm_instance_transitions')->count());
-        self::assertSame(0,DB::table('host_subjects')->value('guard_touches'));
+        self::assertSame(0, DB::table('host_subjects')->value('guard_touches'));
     }
 }

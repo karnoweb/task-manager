@@ -8,6 +8,7 @@ use Karnoweb\TaskManager\Exceptions\DomainError;
 use Karnoweb\TaskManager\Group\GroupService;
 use Karnoweb\TaskManager\Handoff\HandoffService;
 use Karnoweb\TaskManager\Scheduling\ReminderService;
+use Karnoweb\TaskManager\Schema\Tables;
 use Karnoweb\TaskManager\TaskService;
 use Karnoweb\TaskManager\Workflow\InstanceService;
 
@@ -15,10 +16,12 @@ final class EventAccess
 {
     public function __construct(private readonly Connection $db, private readonly TaskService $tasks, private readonly InstanceService $instances, private readonly GroupService $groups, private readonly HandoffService $handoffs, private readonly ?ReminderService $reminders = null)
     {
+        Tables::assertConnection($db);
     }
 
     public function source(ExecutionContext $context, array $event): array
     {
+        $context->validateTenant();
         if ($event['scope_key'] !== $context->scope) {
             throw new DomainError('event_scope_invalid');
         }
@@ -37,14 +40,14 @@ final class EventAccess
             $instance = $this->instances->get($context, $event['aggregate_key']);
             $source['instance_key'] = $instance['instance_key'];
             if ($instance['task_id'] !== null) {
-                $source['task_key'] = $this->db->table('tm_tasks')->where('id', $instance['task_id'])->value('public_key');
+                $source['task_key'] = $this->db->table(Tables::name('tasks'))->where('id', $instance['task_id'])->value('public_key');
             }
         } elseif (in_array($event['aggregate_type'], ['group', 'process_group'], true)) {
             $group = $this->groups->get($context, $event['aggregate_key']);
             $source['group_key'] = $group['group_key'];
         } elseif ($event['aggregate_type'] === 'handoff') {
             $handoff = $this->handoffs->get($context, $event['aggregate_key']);
-            $source['instance_key'] = $this->db->table('tm_workflow_instances')->where('id', $handoff['origin_id'])->value('instance_key');
+            $source['instance_key'] = $this->db->table(Tables::name('workflow_instances'))->where('id', $handoff['origin_id'])->value('instance_key');
         } elseif ($event['aggregate_type'] === 'reminder') {
             if ($this->reminders === null) {
                 throw new DomainError('event_source_not_subscribable');
@@ -73,6 +76,6 @@ final class EventAccess
             }
         }
 
-        return ['scope_key' => $event['scope_key'], 'schema_version' => 1, 'event_id' => $event['event_id'], 'event_type' => $event['action'], 'aggregate_type' => $event['aggregate_type'], 'aggregate_key' => $event['aggregate_key'] ?? ($event['aggregate_type'] === 'task' ? $this->db->table('tm_tasks')->where('scope_key', $event['scope_key'])->where('id', $event['task_id'])->value('public_key') : null), 'occurred_at' => $event['occurred_at'], 'data' => $allowed];
+        return ['scope_key' => $event['scope_key'], 'schema_version' => 1, 'event_id' => $event['event_id'], 'event_type' => $event['action'], 'aggregate_type' => $event['aggregate_type'], 'aggregate_key' => $event['aggregate_key'] ?? ($event['aggregate_type'] === 'task' ? $this->db->table(Tables::name('tasks'))->where('scope_key', $event['scope_key'])->where('id', $event['task_id'])->value('public_key') : null), 'occurred_at' => $event['occurred_at'], 'data' => $allowed];
     }
 }

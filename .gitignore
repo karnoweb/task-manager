@@ -2,3 +2,6 @@
 /.phpunit.cache/
 /.env
 /.runtime/
+/task-manager.zip
+/tools/.phpunit.result.cache
+/docs/*.xml

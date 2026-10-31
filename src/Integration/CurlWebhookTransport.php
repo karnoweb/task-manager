@@ -33,7 +33,7 @@ final class CurlWebhookTransport implements WebhookTransport
                 throw new DomainError($count > 65536 ? 'webhook_response_limit' : 'webhook_transport_failed');
             }
 
-return ['status' => $status, 'redirect' => $status >= 300 && $status < 400, 'bytes' => $count];
+            return ['status' => $status, 'redirect' => $status >= 300 && $status < 400, 'bytes' => $count];
         } finally {
             curl_close($handle);
         }

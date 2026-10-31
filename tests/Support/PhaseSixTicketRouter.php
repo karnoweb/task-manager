@@ -32,7 +32,7 @@ final class PhaseSixTicketRouter implements LocalSubjectRouter
             throw new DomainError('not_found');
         }
 
-return $t;
+        return $t;
     }
 
     public function spawn(ExecutionContext $c, array $origin, string $operation): array
@@ -44,7 +44,7 @@ return $t;
             throw new DomainError('host_crm_failure');
         }
 
-return ['subject_type' => 'crm.deal', 'subject_id' => (string) $deal->id];
+        return ['subject_type' => 'crm.deal', 'subject_id' => (string) $deal->id];
     }
 
     public function move(ExecutionContext $c, array $origin, string $targetPipeline, string $operation): void

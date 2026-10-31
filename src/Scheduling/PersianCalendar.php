@@ -43,7 +43,7 @@ final class PersianCalendar
             throw new DomainError('jalali_date_invalid');
         }
 
-return (new \DateTimeImmutable('@'.(int) ($millis / 1000)))->setTimezone(new \DateTimeZone('UTC'))->format('Y-m-d');
+        return (new \DateTimeImmutable('@'.(int) ($millis / 1000)))->setTimezone(new \DateTimeZone('UTC'))->format('Y-m-d');
     }
 
     public static function days(int $year, int $month): int
@@ -54,6 +54,6 @@ return (new \DateTimeImmutable('@'.(int) ($millis / 1000)))->setTimezone(new \Da
             throw new DomainError('jalali_date_invalid');
         }
 
-return $cal->getActualMaximum(\IntlCalendar::FIELD_DAY_OF_MONTH);
+        return $cal->getActualMaximum(\IntlCalendar::FIELD_DAY_OF_MONTH);
     }
 }

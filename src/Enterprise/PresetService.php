@@ -11,12 +11,14 @@ use Karnoweb\TaskManager\Contracts\AuthorizationProvider;
 use Karnoweb\TaskManager\Contracts\Clock;
 use Karnoweb\TaskManager\EventRecorder;
 use Karnoweb\TaskManager\Exceptions\DomainError;
+use Karnoweb\TaskManager\Schema\Tables;
 use Karnoweb\TaskManager\TaskService;
 
 final class PresetService
 {
     public function __construct(private readonly Connection $db, private readonly Clock $clock, private readonly AuthorizationProvider $authorization, private readonly TaskService $tasks, private readonly ChecklistService $checklists)
     {
+        Tables::assertConnection($db);
     }
 
     private function authorize(ExecutionContext $context): void
@@ -27,6 +29,7 @@ final class PresetService
 
     public function create(ExecutionContext $context, string $name, array $definition, string $operation): array
     {
+        $context->validateTenant();
         $this->authorize($context);
         if (trim($name) === '' || mb_strlen($name) > 255 || array_diff(array_keys($definition), ['title', 'description', 'priority', 'checklists']) || ! is_string($definition['title'] ?? null) || trim($definition['title']) === '' || mb_strlen($definition['title']) > 255 || (isset($definition['description']) && (! is_string($definition['description']) || mb_strlen($definition['description']) > 16000)) || ! in_array($definition['priority'] ?? 'normal', ['low', 'normal', 'high', 'urgent'], true)) {
             throw new DomainError('preset_invalid');
@@ -50,7 +53,7 @@ final class PresetService
 
         return (new CommandExecutor($this->db))->execute($context, $operation, ['action' => 'preset_create', 'name' => $name, 'definition' => $definition], function () use ($context, $name, $definition, $operation) {
             $key = (string) Str::uuid();
-            $this->db->table('tm_task_presets')->insert(['preset_key' => $key, 'scope_key' => $context->scope, 'owner_ref' => $context->actor, 'name' => $name, 'definition' => json_encode($definition, JSON_THROW_ON_ERROR)]);
+            $this->db->table(Tables::name('task_presets'))->insert(['preset_key' => $key, 'scope_key' => $context->scope, 'owner_ref' => $context->actor, 'name' => $name, 'definition' => json_encode($definition, JSON_THROW_ON_ERROR)]);
             (new EventRecorder($this->db, $this->clock))->append($context, 'task_preset', $key, 'preset_created', $operation, []);
 
             return $this->get($context, $key);
@@ -59,19 +62,21 @@ final class PresetService
 
     public function get(ExecutionContext $context, string $key): array
     {
+        $context->validateTenant();
         $this->authorize($context);
         if (! Str::isUuid($key)) {
             throw new DomainError('not_found');
-        }$row = $this->db->table('tm_task_presets')->where('scope_key', $context->scope)->where('owner_ref', $context->actor)->where('preset_key', $key)->first();
+        }$row = $this->db->table(Tables::name('task_presets'))->where('scope_key', $context->scope)->where('owner_ref', $context->actor)->where('preset_key', $key)->first();
         if (! $row) {
             throw new DomainError('not_found');
         }
 
-return [...(array) $row, 'definition' => json_decode($row->definition, true, flags: JSON_THROW_ON_ERROR)];
+        return [...(array) $row, 'definition' => json_decode($row->definition, true, flags: JSON_THROW_ON_ERROR)];
     }
 
     public function instantiate(ExecutionContext $context, string $key, string $operation): array
     {
+        $context->validateTenant();
         $preset = $this->get($context, $key);
 
         return (new CommandExecutor($this->db))->execute($context, $operation, ['action' => 'preset_instantiate', 'key' => $key, 'version' => $preset['version']], function () use ($context, $preset, $operation) {
@@ -86,10 +91,10 @@ return [...(array) $row, 'definition' => json_decode($row->definition, true, fla
                 }
             }
 
-return $task;
-        }, function ($result) use ($context,$key) {
-            $this->get($context,$key);
-            $this->tasks->get($context,$result['public_key']);
+            return $task;
+        }, function ($result) use ($context, $key) {
+            $this->get($context, $key);
+            $this->tasks->get($context, $result['public_key']);
         });
     }
 }

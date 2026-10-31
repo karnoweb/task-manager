@@ -6,12 +6,13 @@ use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Schema;
 use Karnoweb\TaskManager\Enterprise\TextNormalizer;
 use Karnoweb\TaskManager\Schema\IdentifierCollation;
+use Karnoweb\TaskManager\Schema\Tables;
 
 return new class extends Migration
 {
     public function up(): void
     {
-        Schema::create('tm_custom_fields', function (Blueprint $t) {
+        Schema::create(Tables::name('custom_fields'), function (Blueprint $t) {
             $t->collation = IdentifierCollation::forConnection(Schema::getConnection());
             $t->bigIncrements('id');
             $t->uuid('field_key')->unique();
@@ -24,11 +25,11 @@ return new class extends Migration
             $t->unsignedInteger('version')->default(1);
             $t->index(['scope_key', 'archived', 'id']);
         });
-        Schema::create('tm_custom_values', function (Blueprint $t) {
+        Schema::create(Tables::name('custom_values'), function (Blueprint $t) {
             $t->collation = IdentifierCollation::forConnection(Schema::getConnection());
             $t->bigIncrements('id');
-            $t->foreignId('field_id')->constrained('tm_custom_fields')->restrictOnDelete();
-            $t->foreignId('task_id')->constrained('tm_tasks')->restrictOnDelete();
+            $t->foreignId('field_id')->constrained(Tables::name('custom_fields'))->restrictOnDelete();
+            $t->foreignId('task_id')->constrained(Tables::name('tasks'))->restrictOnDelete();
             $t->text('text_value')->nullable();
             $t->bigInteger('number_scaled')->nullable();
             $t->boolean('bool_value')->nullable();
@@ -38,18 +39,18 @@ return new class extends Migration
             $t->unsignedInteger('version')->default(1);
             $t->unique(['field_id', 'task_id']);
             foreach (['number_scaled', 'date_value', 'datetime_value', 'key_value', 'bool_value'] as $column) {
-                $t->index(['field_id', $column, 'task_id'], 'tm_cf_'.$column);
+                $t->index(['field_id', $column, 'task_id'], Tables::name('cf_').$column);
             }
         });
-        Schema::create('tm_custom_selections', function (Blueprint $t) {
+        Schema::create(Tables::name('custom_selections'), function (Blueprint $t) {
             $t->collation = IdentifierCollation::forConnection(Schema::getConnection());
-            $t->foreignId('field_id')->constrained('tm_custom_fields')->restrictOnDelete();
-            $t->foreignId('task_id')->constrained('tm_tasks')->restrictOnDelete();
+            $t->foreignId('field_id')->constrained(Tables::name('custom_fields'))->restrictOnDelete();
+            $t->foreignId('task_id')->constrained(Tables::name('tasks'))->restrictOnDelete();
             $t->string('option_key', 100);
             $t->primary(['field_id', 'task_id', 'option_key']);
-            $t->index(['field_id', 'option_key', 'task_id'], 'tm_custom_option_query');
+            $t->index(['field_id', 'option_key', 'task_id'], Tables::name('custom_option_query'));
         });
-        Schema::create('tm_task_presets', function (Blueprint $t) {
+        Schema::create(Tables::name('task_presets'), function (Blueprint $t) {
             $t->collation = IdentifierCollation::forConnection(Schema::getConnection());
             $t->bigIncrements('id');
             $t->uuid('preset_key')->unique();
@@ -60,12 +61,12 @@ return new class extends Migration
             $t->unsignedInteger('version')->default(1);
             $t->index(['scope_key', 'owner_ref', 'id']);
         });
-        Schema::create('tm_visibility_epochs', function (Blueprint $t) {
+        Schema::create(Tables::name('visibility_epochs'), function (Blueprint $t) {
             $t->collation = IdentifierCollation::forConnection(Schema::getConnection());
             $t->string('scope_key', 120)->primary();
             $t->unsignedBigInteger('version')->default(1);
         });
-        Schema::create('tm_query_cursors', function (Blueprint $t) {
+        Schema::create(Tables::name('query_cursors'), function (Blueprint $t) {
             $t->collation = IdentifierCollation::forConnection(Schema::getConnection());
             $t->string('token_hash', 64)->primary();
             $t->string('scope_key', 120);
@@ -74,22 +75,22 @@ return new class extends Migration
             $t->string('permission_hash', 64);
             $t->text('position');
             $t->timestamp('expires_at', 6);
-            $t->index(['scope_key', 'actor_ref', 'expires_at'], 'tm_query_cursor_expiry');
+            $t->index(['scope_key', 'actor_ref', 'expires_at'], Tables::name('query_cursor_expiry'));
         });
-        Schema::table('tm_tasks', function (Blueprint $t) {
+        Schema::table(Tables::name('tasks'), function (Blueprint $t) {
             $t->unsignedSmallInteger('search_revision')->default(1);
         });
-        DB::table('tm_tasks')->orderBy('id')->chunkById(500, function ($rows) {
+        DB::table(Tables::name('tasks'))->orderBy('id')->chunkById(500, function ($rows) {
             foreach ($rows as $row) {
-                DB::table('tm_tasks')->where('id', $row->id)->update(['title_search_normalized' => TextNormalizer::normalize($row->title), 'search_revision' => 2]);
+                DB::table(Tables::name('tasks'))->where('id', $row->id)->update(['title_search_normalized' => TextNormalizer::normalize($row->title), 'search_revision' => 2]);
             }
         });
     }
 
     public function down(): void
     {
-        foreach (['tm_query_cursors', 'tm_visibility_epochs', 'tm_task_presets', 'tm_custom_selections', 'tm_custom_values', 'tm_custom_fields'] as $table) {
+        foreach ([Tables::name('query_cursors'), Tables::name('visibility_epochs'), Tables::name('task_presets'), Tables::name('custom_selections'), Tables::name('custom_values'), Tables::name('custom_fields')] as $table) {
             Schema::dropIfExists($table);
-        } Schema::table('tm_tasks', fn (Blueprint $t) => $t->dropColumn('search_revision'));
+        } Schema::table(Tables::name('tasks'), fn (Blueprint $t) => $t->dropColumn('search_revision'));
     }
 };

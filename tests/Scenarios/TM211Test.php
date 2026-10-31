@@ -36,6 +36,6 @@ final class TM211Test extends PhaseSixTestCase
         self::assertSame(1, $calls);
         self::assertSame('waiting', $this->instances()->get($this->manager(), $i['instance_key'])['lifecycle']);
         self::assertSame(1, DB::table('tm_handoffs')->count());
-        self::assertSame(0,DealStageHistory::query()->count());
+        self::assertSame(0, DealStageHistory::query()->count());
     }
 }

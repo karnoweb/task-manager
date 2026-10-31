@@ -32,6 +32,6 @@ final class TM138Test extends WebhookTestCase
         $this->error('webhook_signature_invalid', fn () => $this->webhooks()->verifyIncoming($this->manager(), $endpoint['endpoint_key'], $headers['X-TaskManager-Timestamp'], $event->event_id, $request['body'].' ', $signature));
         $this->clock->advance('+301 seconds');
         $this->error('webhook_signature_invalid', fn () => $this->webhooks()->verifyIncoming($this->manager(), $endpoint['endpoint_key'], $headers['X-TaskManager-Timestamp'], $event->event_id, $request['body'], $signature));
-        self::assertStringNotContainsString(str_repeat('s',32),json_encode(DB::table('tm_command_journal')->get()->all()));
+        self::assertStringNotContainsString(str_repeat('s', 32), json_encode(DB::table('tm_command_journal')->get()->all()));
     }
 }

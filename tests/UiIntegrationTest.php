@@ -114,12 +114,12 @@ final class UiIntegrationTest extends PhaseSixTestCase
         $t = $this->service()->create($this->manager(), 'Private', 'create');
         $b = $this->board();
         $c = $b->card($this->uiBoard(), 'tasks:'.$t['public_key']);
-        self::assertCount(3,$b->sections($this->uiBoard(),$c));
+        self::assertCount(3, $b->sections($this->uiBoard(), $c));
         foreach (['activity', 'sla', 'handoffs'] as $section) {
-            $page = $b->loadSection($this->uiBoard(),$c,$section,null,10);
+            $page = $b->loadSection($this->uiBoard(), $c, $section, null, 10);
             self::assertTrue($page->canView());
             self::assertIsArray($page->items);
         }
-        $this->error('not_found',fn () => $b->loadSection($this->uiBoard('2'),$c,'activity',null,10));
+        $this->error('not_found', fn () => $b->loadSection($this->uiBoard('2'), $c, 'activity', null, 10));
     }
 }

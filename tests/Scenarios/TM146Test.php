@@ -20,6 +20,6 @@ final class TM146Test extends AssignmentTestCase
         self::assertSame('a', $state['owner_ref']);
         self::assertNotNull($state['history'][1]['active_to']);
         self::assertSame('member_departed', $state['history'][0]['reason_code']);
-        self::assertSame(1, DB::table('tm_audit_events')->where('action','assignment_member_departed')->count());
+        self::assertSame(1, DB::table('tm_audit_events')->where('action', 'assignment_member_departed')->count());
     }
 }

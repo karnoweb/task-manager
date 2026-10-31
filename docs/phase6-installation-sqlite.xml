@@ -1,9 +1,0 @@
-<?xml version="1.0" encoding="UTF-8"?>
-<testsuites>
-  <testsuite name="Karnoweb\TaskManager\Tests\PhaseSixInstallationTest" file="D:\my-packages\task-manager\tests\PhaseSixInstallationTest.php" tests="4" assertions="12" errors="0" failures="0" skipped="0" time="7.055793">
-    <testcase name="test_kanban_only_host_runs_with_task_manager_absent" file="D:\my-packages\task-manager\tests\PhaseSixInstallationTest.php" line="9" class="Karnoweb\TaskManager\Tests\PhaseSixInstallationTest" classname="Karnoweb.TaskManager.Tests.PhaseSixInstallationTest" assertions="2" time="1.423045"/>
-    <testcase name="test_calendar_only_host_runs_with_task_manager_absent" file="D:\my-packages\task-manager\tests\PhaseSixInstallationTest.php" line="13" class="Karnoweb\TaskManager\Tests\PhaseSixInstallationTest" classname="Karnoweb.TaskManager.Tests.PhaseSixInstallationTest" assertions="2" time="0.955804"/>
-    <testcase name="test_task_only_host_runs_todo_project_facade_and_reporting_without_ui" file="D:\my-packages\task-manager\tests\PhaseSixInstallationTest.php" line="17" class="Karnoweb\TaskManager\Tests\PhaseSixInstallationTest" classname="Karnoweb.TaskManager.Tests.PhaseSixInstallationTest" assertions="2" time="1.373155"/>
-    <testcase name="test_orders_work_in_both_independent_ui_hosts_and_the_combined_host" file="D:\my-packages\task-manager\tests\PhaseSixInstallationTest.php" line="21" class="Karnoweb\TaskManager\Tests\PhaseSixInstallationTest" classname="Karnoweb.TaskManager.Tests.PhaseSixInstallationTest" assertions="6" time="3.303790"/>
-  </testsuite>
-</testsuites>

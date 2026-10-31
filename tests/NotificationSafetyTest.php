@@ -72,9 +72,9 @@ final class NotificationSafetyTest extends PhaseFiveTestCase
         DB::table('tm_outbox')->where('task_id', $task['id'])->where('action', 'created')->update(['schema_version' => 2]);
         $pump->enqueue($this->worker());
         $delivery = $pump->deliveries($this->manager())[0];
-        self::assertSame('dead',$delivery['state']);
-        self::assertSame('event_schema_unsupported',$delivery['reason_code']);
-        self::assertCount(0,$transport->events);
-        self::assertSame(1,DB::table('tm_outbox')->where('schema_version',2)->count());
+        self::assertSame('dead', $delivery['state']);
+        self::assertSame('event_schema_unsupported', $delivery['reason_code']);
+        self::assertCount(0, $transport->events);
+        self::assertSame(1, DB::table('tm_outbox')->where('schema_version', 2)->count());
     }
 }

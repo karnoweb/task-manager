@@ -39,7 +39,7 @@ final class EnterpriseReportTest extends PhaseFiveTestCase
         }$this->app->instance(CalendarRegistry::class, new CalendarRegistry(['advanced-v1' => new WeeklyWorkingCalendar('Asia/Tehran', $shifts, ['2026-10-24'])]));
         $this->link($a, $b, 'FS', ['lag_minutes' => 120, 'clock' => 'business', 'calendar' => 'advanced-v1']);
         $path = $this->planning()->criticalPath($this->manager(), $project['project_key'], new \DateTimeImmutable('2026-10-22T11:30:00Z'));
-        self::assertSame('2026-10-25 07:00:00.000000',$path['finish']);
-        self::assertSame([$a['public_key'], $b['public_key']],$path['path']);
+        self::assertSame('2026-10-25 07:00:00.000000', $path['finish']);
+        self::assertSame([$a['public_key'], $b['public_key']], $path['path']);
     }
 }

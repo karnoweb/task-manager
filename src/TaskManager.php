@@ -6,6 +6,8 @@ use Karnoweb\TaskManager\Approval\ApprovalService;
 use Karnoweb\TaskManager\Collaboration\AttachmentService;
 use Karnoweb\TaskManager\Collaboration\ChecklistService;
 use Karnoweb\TaskManager\Collaboration\CollaborationService;
+use Karnoweb\TaskManager\Context\ContextFactory;
+use Karnoweb\TaskManager\Context\ExecutionContext;
 use Karnoweb\TaskManager\Enterprise\CustomFieldService;
 use Karnoweb\TaskManager\Enterprise\ExportService;
 use Karnoweb\TaskManager\Enterprise\PresetService;
@@ -46,6 +48,11 @@ use Karnoweb\TaskManager\Workflow\WorkflowService;
 
 final class TaskManager
 {
+    public function context(?ExecutionContext $context = null, int|string|null $branch = null): ExecutionContext
+    {
+        return app(ContextFactory::class)->make($context, $branch);
+    }
+
     public function __construct(private readonly TaskService $tasks, private readonly WorkflowService $workflows, private readonly PipelineService $pipelines,
         private readonly InstanceService $instances, private readonly ProjectService $projects, private readonly CaseService $cases,
         private readonly SlaService $sla, private readonly StagePolicyService $stagePolicies,

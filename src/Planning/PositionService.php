@@ -11,6 +11,7 @@ use Karnoweb\TaskManager\Contracts\AuthorizationProvider;
 use Karnoweb\TaskManager\Contracts\Clock;
 use Karnoweb\TaskManager\EventRecorder;
 use Karnoweb\TaskManager\Exceptions\DomainError;
+use Karnoweb\TaskManager\Schema\Tables;
 use Karnoweb\TaskManager\TaskGraph\ScopeGraphLock;
 use Karnoweb\TaskManager\TaskService;
 use Karnoweb\TaskManager\Workflow\ProjectService;
@@ -22,6 +23,7 @@ final class PositionService
 
     public function __construct(private readonly Connection $db, private readonly Clock $clock, private readonly AuthorizationProvider $authorization, private readonly TaskService $tasks, private readonly ProjectService $projects, private readonly SprintService $sprints)
     {
+        Tables::assertConnection($db);
     }
 
     private function authorize(ExecutionContext $context): void
@@ -32,28 +34,30 @@ final class PositionService
 
     public function create(ExecutionContext $context, string $kind, string $reference, string $operation): array
     {
+        $context->validateTenant();
         $this->authorize($context);
         $this->root($context, $kind, $reference, true);
 
         return (new CommandExecutor($this->db))->execute($context, $operation, ['action' => 'position_context', 'kind' => $kind, 'reference' => $reference], function () use ($context, $kind, $reference, $operation) {
             ScopeGraphLock::acquire($this->db, $context);
             $this->root($context, $kind, $reference, true);
-            $created = $this->db->table('tm_task_position_contexts')->insertOrIgnore(['context_key' => (string) Str::uuid(), 'scope_key' => $context->scope, 'kind' => $kind, 'context_ref' => $reference]);
-            $key = $this->db->table('tm_task_position_contexts')->where('scope_key', $context->scope)->where('kind', $kind)->where('context_ref', $reference)->value('context_key');
+            $created = $this->db->table(Tables::name('task_position_contexts'))->insertOrIgnore(['context_key' => (string) Str::uuid(), 'scope_key' => $context->scope, 'kind' => $kind, 'context_ref' => $reference]);
+            $key = $this->db->table(Tables::name('task_position_contexts'))->where('scope_key', $context->scope)->where('kind', $kind)->where('context_ref', $reference)->value('context_key');
             if ($created) {
                 (new EventRecorder($this->db, $this->clock))->append($context, 'position_context', $key, 'position_context_created', $operation, ['kind' => $kind]);
             }
 
-return $this->get($context, $key);
+            return $this->get($context, $key);
         }, fn ($result) => $this->get($context, $result['context_key']));
     }
 
     public function get(ExecutionContext $context, string $key, bool $write = false): array
     {
+        $context->validateTenant();
         if (! Str::isUuid($key)) {
             throw new DomainError('not_found');
         }
-        $row = $this->db->table('tm_task_position_contexts')->where('scope_key', $context->scope)->where('context_key', $key)->first();
+        $row = $this->db->table(Tables::name('task_position_contexts'))->where('scope_key', $context->scope)->where('context_key', $key)->first();
         if (! $row) {
             throw new DomainError('not_found');
         }
@@ -64,12 +68,13 @@ return $this->get($context, $key);
 
     public function place(ExecutionContext $context, string $key, int $version, string $taskKey, int $taskVersion, ?string $after, ?string $before, string $operation): array
     {
+        $context->validateTenant();
         $this->authorize($context);
 
         return (new CommandExecutor($this->db))->execute($context, $operation, ['action' => 'position_place', 'context' => $key, 'version' => $version, 'task' => $taskKey, 'task_version' => $taskVersion, 'after' => $after, 'before' => $before], function () use ($context, $key, $version, $taskKey, $taskVersion, $after, $before, $operation) {
             ScopeGraphLock::acquire($this->db, $context);
             $position = $this->get($context, $key, true);
-            $current = $this->db->table('tm_task_position_contexts')->where('id', $position['id'])->lockForUpdate()->first();
+            $current = $this->db->table(Tables::name('task_position_contexts'))->where('id', $position['id'])->lockForUpdate()->first();
             if ($current->version !== $version) {
                 throw new DomainError('version_conflict');
             }
@@ -85,11 +90,11 @@ return $this->get($context, $key);
                 throw new DomainError('position_neighbors_invalid');
             }
             // Prune only structural departures, never rows hidden by the current actor's permissions.
-            $eligibleIds = $this->eligible($this->db->table('tm_tasks')->where('scope_key', $context->scope), $position, $root)->select('id');
-            $this->db->table('tm_task_positions')->where('context_id', $position['id'])->whereNotIn('task_id', $eligibleIds)->delete();
+            $eligibleIds = $this->eligible($this->db->table(Tables::name('tasks'))->where('scope_key', $context->scope), $position, $root)->select('id');
+            $this->db->table(Tables::name('task_positions'))->where('context_id', $position['id'])->whereNotIn('task_id', $eligibleIds)->delete();
             [$left, $right] = $this->bounds($context, $position, $root, $task->id, $after, $before);
             if ($right - $left <= 1 || abs($left) > 100000000000000000 || abs($right) > 100000000000000000) {
-                $rows = $this->db->table('tm_task_positions')->where('context_id', $position['id'])->orderBy('rank_units')->orderBy('task_id')->limit(1001)->get();
+                $rows = $this->db->table(Tables::name('task_positions'))->where('context_id', $position['id'])->orderBy('rank_units')->orderBy('task_id')->limit(1001)->get();
                 if ($rows->count() > 1000) {
                     throw new DomainError('position_rebalance_batch_required');
                 }
@@ -97,19 +102,19 @@ return $this->get($context, $key);
                     throw new DomainError('position_rebalance_access_denied');
                 }
                 foreach ($rows as $index => $row) {
-                    $this->db->table('tm_task_positions')->where('id', $row->id)->update(['rank_units' => ($index + 1) * self::STEP, 'version' => $row->version + 1]);
+                    $this->db->table(Tables::name('task_positions'))->where('id', $row->id)->update(['rank_units' => ($index + 1) * self::STEP, 'version' => $row->version + 1]);
                 }
                 [$left, $right] = $this->bounds($context, $position, $root, $task->id, $after, $before);
             }
             $rank = $left + intdiv($right - $left, 2);
-            $existing = $this->db->table('tm_task_positions')->where('context_id', $position['id'])->where('task_id', $task->id)->first();
+            $existing = $this->db->table(Tables::name('task_positions'))->where('context_id', $position['id'])->where('task_id', $task->id)->first();
             if ($existing) {
-                $this->db->table('tm_task_positions')->where('id', $existing->id)->update(['rank_units' => $rank, 'version' => $existing->version + 1]);
+                $this->db->table(Tables::name('task_positions'))->where('id', $existing->id)->update(['rank_units' => $rank, 'version' => $existing->version + 1]);
             } else {
-                $this->db->table('tm_task_positions')->insert(['context_id' => $position['id'], 'task_id' => $task->id, 'rank_units' => $rank]);
+                $this->db->table(Tables::name('task_positions'))->insert(['context_id' => $position['id'], 'task_id' => $task->id, 'rank_units' => $rank]);
             }
-            $this->db->table('tm_tasks')->where('id', $task->id)->increment('version');
-            $this->db->table('tm_task_position_contexts')->where('id', $position['id'])->increment('version');
+            $this->db->table(Tables::name('tasks'))->where('id', $task->id)->increment('version');
+            $this->db->table(Tables::name('task_position_contexts'))->where('id', $position['id'])->increment('version');
             (new EventRecorder($this->db, $this->clock))->append($context, 'task', $taskKey, 'task_reordered', $operation, ['context_key' => $key, 'context_version' => $version + 1, 'rank_value' => $this->rank($rank)], $task->id);
 
             return ['context_key' => $key, 'version' => $version + 1, 'task_key' => $taskKey, 'task_version' => $taskVersion + 1, 'rank_value' => $this->rank($rank)];
@@ -121,6 +126,7 @@ return $this->get($context, $key);
 
     public function listing(ExecutionContext $context, string $key, int $limit = 100, ?array $cursor = null): array
     {
+        $context->validateTenant();
         $position = $this->get($context, $key);
         $root = $this->root($context, $position['kind'], $position['context_ref'], false);
         if ($limit < 1 || $limit > 250) {
@@ -129,13 +135,13 @@ return $this->get($context, $key);
         if ($cursor !== null && (($cursor['context_key'] ?? null) !== $key || ($cursor['version'] ?? null) !== $position['version'] || ($cursor['actor'] ?? null) !== $context->actor || ($cursor['scope'] ?? null) !== $context->scope || ! is_int($cursor['rank_units'] ?? null) || ! is_int($cursor['task_id'] ?? null))) {
             throw new DomainError('cursor_stale');
         }
-        $query = $this->db->table('tm_task_positions')->where('context_id', $position['id'])->whereIn('task_id', $this->eligible($this->tasks->authorizedQuery($context), $position, $root)->select('id'));
+        $query = $this->db->table(Tables::name('task_positions'))->where('context_id', $position['id'])->whereIn('task_id', $this->eligible($this->tasks->authorizedQuery($context), $position, $root)->select('id'));
         $total = (clone $query)->count();
         if ($cursor !== null) {
             $query->where(fn ($q) => $q->where('rank_units', '>', $cursor['rank_units'])->orWhere(fn ($tie) => $tie->where('rank_units', $cursor['rank_units'])->where('task_id', '>', $cursor['task_id'])));
         }
         $rows = $query->orderBy('rank_units')->orderBy('task_id')->limit($limit)->get();
-        $keys = $this->db->table('tm_tasks')->whereIn('id', $rows->pluck('task_id')->all())->pluck('public_key', 'id')->all();
+        $keys = $this->db->table(Tables::name('tasks'))->whereIn('id', $rows->pluck('task_id')->all())->pluck('public_key', 'id')->all();
         $items = $rows->map(fn ($row) => ['task_key' => $keys[$row->task_id], 'rank_value' => $this->rank($row->rank_units), 'version' => $row->version])->all();
         $last = $rows->last();
 
@@ -150,7 +156,7 @@ return $this->get($context, $key);
                 throw new DomainError('project_archived');
             }
 
-return $root;
+            return $root;
         }
         if ($kind === 'sprint') {
             $root = $this->sprints->get($context, $ref, $write);
@@ -158,7 +164,7 @@ return $root;
                 throw new DomainError('sprint_state_invalid');
             }
 
-return $root;
+            return $root;
         }
         if ($kind === 'children') {
             $root = $this->tasks->get($context, $ref);
@@ -166,7 +172,7 @@ return $root;
                 throw new DomainError('not_found');
             }
 
-return $root;
+            return $root;
         }
         throw new DomainError('position_context_invalid');
     }
@@ -175,19 +181,19 @@ return $root;
     {
         $query->whereNull('deleted_at');
         if ($position['kind'] === 'backlog') {
-            $query->where('project_id', $root['id'])->whereNull('archived_at')->whereNotIn('id', $this->db->table('tm_active_sprint_tasks')->select('task_id'))->whereNotIn('id', StateIndex::currentTaskIds($this->db, $root['scope_key'], ['done', 'cancelled']));
+            $query->where('project_id', $root['id'])->whereNull('archived_at')->whereNotIn('id', $this->db->table(Tables::name('active_sprint_tasks'))->select('task_id'))->whereNotIn('id', StateIndex::currentTaskIds($this->db, $root['scope_key'], ['done', 'cancelled']));
         } elseif ($position['kind'] === 'sprint') {
-            $query->where('project_id', $root['project_id'])->whereIn('id', $this->db->table('tm_sprint_memberships')->where('sprint_id', $root['id'])->select('task_id'));
+            $query->where('project_id', $root['project_id'])->whereIn('id', $this->db->table(Tables::name('sprint_memberships'))->where('sprint_id', $root['id'])->select('task_id'));
         } else {
             $query->where('parent_task_id', $root['id']);
         }
 
-return $query;
+        return $query;
     }
 
     private function bounds(ExecutionContext $context, array $position, array $root, int $taskId, ?string $after, ?string $before): array
     {
-        $base = $this->db->table('tm_task_positions')->where('context_id', $position['id'])->where('task_id', '!=', $taskId);
+        $base = $this->db->table(Tables::name('task_positions'))->where('context_id', $position['id'])->where('task_id', '!=', $taskId);
         $left = null;
         $right = null;
         foreach (['after' => $after, 'before' => $before] as $side => $key) {

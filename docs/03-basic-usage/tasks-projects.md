@@ -6,7 +6,7 @@
 
 ## ویرایش، بازگشایی، آرشیو و فهرست Todo
 
-`TaskSession` فقط create، get و complete دارد. برای عملیات دیگر، DTO (شیء انتقال داده) موجود MutateTask و TaskQuery را به TaskService می‌دهیم. مثال در `storage/app/private/task-manager-docs/tasks.php`:
+`TaskSession` اکنون create، get، complete، update، reopen، archive، restore و query دارد؛ همه به TaskService واگذار می‌شوند. نمونه زیر مسیر DTO (شیء انتقال داده) قدیمی را نیز برای سازگاری نشان می‌دهد. مثال در `storage/app/private/task-manager-docs/tasks.php`:
 
 <!-- example: manage-tasks -->
 ```php
@@ -55,7 +55,7 @@ return static function (Authenticatable $user, string $operation): array {
 
 اجرا در Tinker (محیط تعاملی Laravel)، پس از ورود معتبر: `$run = require storage_path('app/private/task-manager-docs/tasks.php');`، `$operation = (string) \Illuminate\Support\Str::uuid();` و `$result = $run(auth()->user(), $operation);`.
 
-خروجی updated تا restored از نوع `Karnoweb\TaskManager\DTO\TaskResult` و rows فهرست همان نوع است. در اجرای تازه نسخه‌ها به ترتیب ۲، ۳، ۴، ۵ و ۶ هستند؛ حالت نهایی pending است. rows ممکن است کارهای مجاز قبلی کاربر را هم داشته باشد؛ در پایگاه خالی یک کار دارد. TaskQuery فقط context، page و limit دارد؛ فیلتر جست‌وجو در این DTO وجود ندارد. حد واقعی صفحه ۱ تا ۱۰۰ است؛ تنظیم page_size/max_page_size فعلاً این امضاها را تغییر نمی‌دهد.
+خروجی updated تا restored از نوع `Karnoweb\TaskManager\DTO\TaskResult` و rows فهرست همان نوع است. در اجرای تازه نسخه‌ها به ترتیب ۲، ۳، ۴، ۵ و ۶ هستند؛ حالت نهایی pending است. rows ممکن است کارهای مجاز قبلی کاربر را هم داشته باشد؛ در پایگاه خالی یک کار دارد. TaskQuery فقط context، page و limit دارد و limit پیش‌فرض صریح آن ۳۰ است. query نشست بدون limit، page_size تنظیم‌شده را می‌گیرد؛ limit صریح از max_page_size بیشتر نباشد و سقف ایمنی ۱۰۰ است. [جزئیات تنظیم و آرگومان نام‌دار](../configuration.md) را ببینید.
 
 update فقط title، description و priority می‌پذیرد. مقادیر واقعی priority عبارت‌اند از low، normal، high و urgent. تغییر عنوان و اولویت در `tm_tasks` نسخه Task را افزایش می‌دهد؛ complete/reopen علاوه بر Task، وضعیت و نسخه نمونه اصلی را نیز تغییر می‌دهند. archive/restore زمان archived_at را تغییر می‌دهند و حذف فیزیکی نیستند. عملیات با رویداد و دفتر ثبت فرمان همراه‌اند؛ آرشیو، کار را از query عادی خارج می‌کند و restore آن را برمی‌گرداند.
 
@@ -79,9 +79,51 @@ Gate::define('task-manager.docs.configure', static function (Authenticatable $us
 
 این Gate (قاعده مجوز Laravel) عمداً فقط کاربر ۱ را برای مثال‌های تنظیم پروژه و Workflow مجاز می‌کند. نام آن متعلق به برنامه نمونه است، نه مجوز داخلی آماده پکیج. پیش از اجرای آن مثال‌ها، یک بار در همان نشست Tinker، `require storage_path('app/private/task-manager-docs/permissions.php');` را اجرا کنید. در محصول، این قاعده را با سیاست واقعی نقش/عضویت خودتان جایگزین و در Provider (ثبت‌کننده سرویس) میزبان تعریف کنید؛ بررسی مجوز نباید از ورودی مرورگر استخراج شود.
 
-## ساخت پروژه و قرار دادن Task در آن
+## ساخت مستقیم Task پروژه
 
-در سورس فعلی، متد ساخت مستقیم Task در Project وجود ندارد. مسیر موجود: انتشار تعریف ← ساخت پروژه ← ساخت Todo ← پیش‌نمایش انتقال ← انتقال. Pipeline و برد برای این زنجیره لازم نیستند. فایل `storage/app/private/task-manager-docs/project.php`:
+متد واقعی `projects()->createTask(context, projectKey, type, title, operation)` کار و نمونه main را مستقیماً در نسخه مناسب پروژه می‌سازد؛ Todo شخصی موقت و تعریف personal ساخته نمی‌شوند. Inbox مالک به علت ساختار فعلی list_id ممکن است ساخته شود. خروجی آرایه و نسخه نخست Task و Instance برابر ۱ است. وضعیت initial غیرنهایی و Workflow اختصاصی type، در صورت ثبت، رعایت می‌شوند. نقش manager و مجوزهای task.create/view/edit، project.edit/manage و workflow.view لازم‌اند؛ سطح دسترسی زنجیره قدیمی گسترش نیافته است.
+
+فایل خصوصی `storage/app/private/task-manager-docs/direct-project.php`؛ بعد از Gate و ورود معتبر، مانند مثال Todo تابع را با user و operation اجرا کنید:
+
+<!-- example: direct-project-task -->
+```php
+<?php
+namespace App\TaskManagerDocs;
+
+use Illuminate\Contracts\Auth\Authenticatable;
+use Illuminate\Support\Facades\Gate;
+use Illuminate\Support\Str;
+use Karnoweb\TaskManager\Context\ExecutionContext;
+use Karnoweb\TaskManager\Facades\TaskManager;
+
+return static function (Authenticatable $user, string $operation): array {
+    Gate::forUser($user)->authorize('task-manager.docs.configure');
+    if (! Str::isUuid($operation)) {
+        throw new \InvalidArgumentException('operation must be a UUID');
+    }
+    $actor = (string) $user->getAuthIdentifier();
+    $context = new ExecutionContext('personal:'.$actor, $actor, (string) Str::uuid(), capabilities: [
+        'task.create', 'task.view', 'task.edit', 'workflow.manage', 'workflow.view',
+        'project.view', 'project.edit', 'project.manage',
+    ]);
+    $suffix = str_replace('-', '', strtolower($operation));
+    $revision = TaskManager::workflows()->publish($context, 'docs.direct.'.$suffix, 0, $operation.':publish', [
+        'initial' => 'open',
+        'states' => ['open' => ['terminal' => 'none'], 'done' => ['terminal' => 'success']],
+        'transitions' => ['finish' => ['from' => 'open', 'to' => 'done']],
+    ]);
+    $project = TaskManager::projects()->create($context, 'D'.strtoupper(substr($suffix, 0, 12)), 'پروژه', $revision['id'], $operation.':project');
+    $task = TaskManager::projects()->createTask($context, $project['project_key'], 'bug', 'رفع خطای ورود', $operation.':task');
+
+    return compact('revision', 'project', 'task');
+};
+```
+
+تلاش مجدد با همان operation، همان داده و مجوز معتبر، همان Task را بازپخش می‌کند. خطای lifecycle یا محدودیت دسترسی میزبان، تمام درج‌های همان فرمان را همراه sequence و journal برمی‌گرداند. برای پروژه موجود، فقط فراخوان آخر لازم است. type باید کلید معتبر مانند task/bug/story/epic باشد؛ کلید معتبر بدون نگاشت اختصاصی از تعریف پیش‌فرض پروژه استفاده می‌کند، نه از فهرست ثابت نوع‌های پکیج.
+
+### مسیر سازگار قدیمی: ساخت Todo و انتقال
+
+مسیر `create → previewTaskMove → moveTask` برای انتقال کار موجود همچنان برقرار است. فایل خصوصی `storage/app/private/task-manager-docs/project.php`:
 
 <!-- example: create-project-task -->
 ```php
@@ -166,4 +208,4 @@ revision.id شناسه عددی نسخه تعریف و revision.revision شما�
 | active_timer_blocks_archive / active_sprint_blocks_archive / active_process_blocks_archive | ابتدا فعالیت مانع را از مسیر مجاز حل کنید؛ کنترل را حذف نکنید. |
 | capability_denied / not_found | مجوز، عضویت، scope و شناسه عمومی را بررسی کنید. |
 
-آزمون [TechnicalDocumentationExamplesTest](../../tests/TechnicalDocumentationExamplesTest.php) هر سه بلوک این صفحه، نسخه‌ها، خروجی فهرست، اثر انتقال، منع دسترسی و بازیابی پس از پیش‌نمایش قدیمی را بررسی می‌کند. [پیشنهادهای اصلاح](../API-IMPROVEMENT-PROPOSALS.md) شکاف ساخت مستقیم Task پروژه و محدودیت نشست را ثبت کرده‌اند.
+آزمون [TechnicalDocumentationExamplesTest](../../tests/TechnicalDocumentationExamplesTest.php) هر چهار بلوک این صفحه، نسخه‌ها، خروجی فهرست، اثر انتقال، منع دسترسی و بازیابی پس از پیش‌نمایش قدیمی را بررسی می‌کند. [وضعیت اصلاحات](../API-IMPROVEMENT-PROPOSALS.md) پیاده‌سازی ساخت مستقیم Task پروژه، تکمیل نشست و محدودیت‌های باقی‌مانده را ثبت کرده است.

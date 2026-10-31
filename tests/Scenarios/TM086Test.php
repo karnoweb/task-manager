@@ -21,6 +21,6 @@ final class TM086Test extends PhaseSixTestCase
         $card = $this->board()->card($this->uiBoard(), 'tasks:'.$t['public_key']);
         self::assertSame($t['public_key'], $card->metadata['task_key']);
         self::assertSame($t['due_at'], $card->dueAt);
-        self::assertSame(1,DB::table('tm_tasks')->count());
+        self::assertSame(1, DB::table('tm_tasks')->count());
     }
 }

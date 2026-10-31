@@ -23,6 +23,6 @@ final class NativeDnsResolver implements DnsResolver
             }
         }
 
-return array_values(array_unique($result));
+        return array_values(array_unique($result));
     }
 }

@@ -8,5 +8,6 @@ final readonly class CreateTodo
 {
     public function __construct(public ExecutionContext $context, public string $title, public string $operationId)
     {
+        $context->validateTenant();
     }
 }

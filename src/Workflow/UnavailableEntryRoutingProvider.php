@@ -10,11 +10,14 @@ final class UnavailableEntryRoutingProvider implements EntryRoutingProvider
 {
     public function authorize(ExecutionContext $context, string $routingKey): void
     {
+        $context->validateTenant();
         throw new DomainError('entry_routing_provider_required');
     }
 
     public function parent(ExecutionContext $context, string $routingKey): ?string
     {
+        $context->validateTenant();
+
         return null;
     }
 }

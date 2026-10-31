@@ -10,6 +10,7 @@ final class RecipientAccess
 {
     public static function permitted(TaskService $tasks, ExecutionContext $context, int $taskId, string $actor): bool
     {
+        $context->validateTenant();
         if (trim($actor) === '' || strlen($actor) > 120) {
             return false;
         }

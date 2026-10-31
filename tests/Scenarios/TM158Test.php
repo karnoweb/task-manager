@@ -19,6 +19,6 @@ final class TM158Test extends WorkflowTestCase
         $new = $this->instances()->start($c, 'crm.lead', 'lead-1', $r['id'], 'new');
         self::assertNotSame($closed['instance_key'], $new['instance_key']);
         self::assertSame('closed', $this->instances()->get($c, $closed['instance_key'])['lifecycle']);
-        self::assertSame(2,DB::table('tm_workflow_instances')->count());
+        self::assertSame(2, DB::table('tm_workflow_instances')->count());
     }
 }

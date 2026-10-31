@@ -68,7 +68,7 @@ final class EnterpriseProcessTest extends EnterpriseProcessTestCase
         self::assertSame('ready', $ready['state']);
         DB::table('host_permissions')->where('subject_id', 'lead-2')->where('actor', 'a')->delete();
         $this->error('export_permission_revoked', fn () => $exports->download($this->manager(), $job['export_key']));
-        $reference = DB::table('tm_exports')->where('id',$job['id'])->value('file_ref');
-        $this->app->make(ExportStorage::class)->delete($this->manager(),$reference);
+        $reference = DB::table('tm_exports')->where('id', $job['id'])->value('file_ref');
+        $this->app->make(ExportStorage::class)->delete($this->manager(), $reference);
     }
 }

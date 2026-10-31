@@ -117,10 +117,10 @@ final class HostUiCompositionTest extends PhaseSixTestCase
         self::assertSame('orders:'.$order->id, $cards->items[0]->id);
         $this->app->make(CalendarModelRegistry::class)->register('orders', PhaseSixOrder::class);
         $provider = $this->app->make(EloquentEventProvider::class, ['sourceKey' => 'orders']);
-        $q = new EventQuery(DateRange::ofLocalDays('2026-10-22','2026-10-23','UTC'));
-        $page = $provider->fetch($q,$this->uiCalendar());
-        self::assertCount(1,$page->events);
+        $q = new EventQuery(DateRange::ofLocalDays('2026-10-22', '2026-10-23', 'UTC'));
+        $page = $provider->fetch($q, $this->uiCalendar());
+        self::assertCount(1, $page->events);
         self::assertTrue($page->events[0]->isReadOnly());
-        self::assertSame(0,DB::table('tm_tasks')->count());
+        self::assertSame(0, DB::table('tm_tasks')->count());
     }
 }

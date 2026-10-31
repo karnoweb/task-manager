@@ -11,6 +11,7 @@ use Karnoweb\TaskManager\EventRecorder;
 use Karnoweb\TaskManager\Exceptions\DomainError;
 use Karnoweb\TaskManager\Planning\PointValue;
 use Karnoweb\TaskManager\Scheduling\ReminderSchedule;
+use Karnoweb\TaskManager\Schema\Tables;
 use Karnoweb\TaskManager\SLA\CalendarRegistry;
 use Karnoweb\TaskManager\TaskService;
 use Karnoweb\TaskManager\Workflow\ProjectService;
@@ -30,6 +31,7 @@ final class TaskPlanningService
 
     public function estimate(ExecutionContext $context, string $key, int $version, ?int $minutes, ?string $points, string $operation): array
     {
+        $context->validateTenant();
         $this->authorize($context, 'schedule.update');
         if (($minutes !== null && ($minutes < 0 || $minutes > 5256000)) || ($points !== null && ! preg_match('/^(?:0|[1-9][0-9]{0,9})(?:\.[0-9]{1,2})?$/D', $points))) {
             throw new DomainError('estimate_invalid');
@@ -44,7 +46,7 @@ final class TaskPlanningService
             if ($task->version !== $version) {
                 throw new DomainError('version_conflict');
             }
-            $this->db->table('tm_tasks')->where('id', $task->id)->update(['estimate_minutes' => $minutes, 'story_points' => $points, 'story_points_minor' => PointValue::minor($points), 'version' => $version + 1]);
+            $this->db->table(Tables::name('tasks'))->where('id', $task->id)->update(['estimate_minutes' => $minutes, 'story_points' => $points, 'story_points_minor' => PointValue::minor($points), 'version' => $version + 1]);
             ScopeGraphLock::changed($this->db, $context);
             $this->event($context, $key, 'task_estimate_changed', $operation, ['estimate_minutes' => $minutes, 'story_points' => $points], $task->id);
 
@@ -54,6 +56,7 @@ final class TaskPlanningService
 
     public function previewSchedule(ExecutionContext $context, string $key, ?\DateTimeImmutable $start, ?\DateTimeImmutable $finish): array
     {
+        $context->validateTenant();
         $this->authorize($context, 'schedule.update');
         $root = $this->tasks->get($context, $key);
         if ($start !== null && $finish !== null && $finish < $start) {
@@ -63,7 +66,7 @@ final class TaskPlanningService
         $seen = [$root['id'] => true];
         $frontier = $ids;
         while ($frontier) {
-            $next = $this->db->table('tm_task_dependencies')->where('scope_key', $context->scope)->where('blocking', true)->whereNull('deleted_at')->whereIn('predecessor_id', $frontier)->distinct()->pluck('successor_id')->all();
+            $next = $this->db->table(Tables::name('task_dependencies'))->where('scope_key', $context->scope)->where('blocking', true)->whereNull('deleted_at')->whereIn('predecessor_id', $frontier)->distinct()->pluck('successor_id')->all();
             $frontier = [];
             foreach ($next as $id) {
                 if (! isset($seen[$id])) {
@@ -80,7 +83,7 @@ final class TaskPlanningService
         if ($rows->count() !== count($ids)) {
             throw new DomainError('dependency_scope_access_denied');
         }
-        $links = $this->db->table('tm_task_dependencies')->where('scope_key', $context->scope)->where('blocking', true)->whereNull('deleted_at')->whereIn('successor_id', $ids)->orderBy('id')->limit(10001)->get();
+        $links = $this->db->table(Tables::name('task_dependencies'))->where('scope_key', $context->scope)->where('blocking', true)->whereNull('deleted_at')->whereIn('successor_id', $ids)->orderBy('id')->limit(10001)->get();
         if ($links->count() > 10000) {
             throw new DomainError('dependency_graph_limit');
         }
@@ -150,6 +153,7 @@ final class TaskPlanningService
 
     public function executeSchedule(ExecutionContext $context, array $preview, string $operation): array
     {
+        $context->validateTenant();
         $this->authorize($context, 'schedule.update');
         if (! is_string($preview['task_key'] ?? null) || ! array_key_exists('start', $preview) || ! array_key_exists('finish', $preview)) {
             throw new DomainError('preview_invalid');
@@ -182,7 +186,7 @@ final class TaskPlanningService
                         $calendar['local_end_date'] = $b->format('Y-m-d');
                     }
                 }
-                $this->db->table('tm_tasks')->where('id', $task->id)->update([...$calendar, 'planned_start_at' => $item['start'], 'planned_finish_at' => $item['finish'], 'version' => $task->version + 1, 'date_revision' => $task->date_revision + 1]);
+                $this->db->table(Tables::name('tasks'))->where('id', $task->id)->update([...$calendar, 'planned_start_at' => $item['start'], 'planned_finish_at' => $item['finish'], 'version' => $task->version + 1, 'date_revision' => $task->date_revision + 1]);
                 ReminderSchedule::refresh($this->db, $task, $calendar);
                 $changed++;
                 $this->event($context, $task->public_key, 'task_schedule_changed', $operation, ['start' => $item['start'], 'finish' => $item['finish']], $task->id);
@@ -199,6 +203,7 @@ final class TaskPlanningService
 
     public function criticalPath(ExecutionContext $context, string $projectKey, ?\DateTimeImmutable $anchor = null): array
     {
+        $context->validateTenant();
         $this->authorize($context, 'report.view');
         $project = $this->projects->get($context, $projectKey);
         $rows = $this->tasks->authorizedQuery($context)->where('project_id', $project['id'])->whereNull('deleted_at')->orderBy('id')->limit(1001)->get()->keyBy('id');
@@ -209,7 +214,7 @@ final class TaskPlanningService
             return ['state' => 'insufficient_data', 'reason' => 'estimates_missing'];
         }
         $ids = $rows->keys()->all();
-        $links = $this->db->table('tm_task_dependencies')->where('scope_key', $context->scope)->where('blocking', true)->whereNull('deleted_at')->where(fn ($q) => $q->whereIn('predecessor_id', $ids)->orWhereIn('successor_id', $ids))->orderBy('id')->limit(10001)->get();
+        $links = $this->db->table(Tables::name('task_dependencies'))->where('scope_key', $context->scope)->where('blocking', true)->whereNull('deleted_at')->where(fn ($q) => $q->whereIn('predecessor_id', $ids)->orWhereIn('successor_id', $ids))->orderBy('id')->limit(10001)->get();
         if ($links->count() > 10000) {
             throw new DomainError('dependency_graph_limit');
         }
@@ -290,7 +295,7 @@ final class TaskPlanningService
             throw new DomainError('dependency_cycle');
         }
 
-return $result;
+        return $result;
     }
 
     private function date(?string $value): ?\DateTimeImmutable

@@ -6,16 +6,19 @@ use Illuminate\Database\Connection;
 use Illuminate\Database\QueryException;
 use Karnoweb\TaskManager\Context\ExecutionContext;
 use Karnoweb\TaskManager\Contracts\CommitEvidenceProvider;
+use Karnoweb\TaskManager\Schema\Tables;
 
 /** Exact PostgreSQL evidence when commit tracking is enabled and still retained. */
 final class PostgresCommitEvidence implements CommitEvidenceProvider
 {
     public function __construct(private readonly Connection $db)
     {
+        Tables::assertConnection($db);
     }
 
     public function committedAt(ExecutionContext $context, array $intent): ?\DateTimeImmutable
     {
+        $context->validateTenant();
         if ($this->db->getDriverName() !== 'pgsql' || ($intent['scope_key'] ?? null) !== $context->scope
             || ! preg_match('/^pgsql:([0-9]{1,20})$/D', $intent['transaction_ref'] ?? '', $match)) {
             return null;

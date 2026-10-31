@@ -4,12 +4,14 @@ use Illuminate\Database\Migrations\Migration;
 use Illuminate\Database\Schema\Blueprint;
 use Illuminate\Support\Facades\Schema;
 use Karnoweb\TaskManager\Schema\IdentifierCollation;
+use Karnoweb\TaskManager\Schema\Tables;
 
 return new class extends Migration
 {
     public function up(): void
     {
-        Schema::create('tm_lists', function (Blueprint $t) {
+        Tables::assertConnection(Schema::getConnection());
+        Schema::create(Tables::name('lists'), function (Blueprint $t) {
             $t->collation = IdentifierCollation::forConnection(Schema::getConnection());
             $t->bigIncrements('id');
             $t->string('scope_key', 120);
@@ -17,7 +19,7 @@ return new class extends Migration
             $t->string('name');
             $t->unique(['scope_key', 'owner_ref', 'name']);
         });
-        Schema::create('tm_tasks', function (Blueprint $t) {
+        Schema::create(Tables::name('tasks'), function (Blueprint $t) {
             $t->collation = IdentifierCollation::forConnection(Schema::getConnection());
             $t->bigIncrements('id');
             $t->uuid('public_key')->unique();
@@ -38,22 +40,22 @@ return new class extends Migration
             $t->index(['scope_key', 'owner_ref']);
             $t->unique(['scope_key', 'display_key']);
             $t->index(['scope_key', 'title_search_normalized']);
-            $t->foreign('list_id')->references('id')->on('tm_lists')->restrictOnDelete();
+            $t->foreign('list_id')->references('id')->on(Tables::name('lists'))->restrictOnDelete();
         });
-        Schema::create('tm_workflow_instances', function (Blueprint $t) {
+        Schema::create(Tables::name('workflow_instances'), function (Blueprint $t) {
             $t->collation = IdentifierCollation::forConnection(Schema::getConnection());
             $t->bigIncrements('id');
             $t->uuid('instance_key')->unique();
             $t->string('scope_key', 120);
             $t->unsignedBigInteger('task_id')->unique();
-            $t->foreign('task_id')->references('id')->on('tm_tasks')->restrictOnDelete();
+            $t->foreign('task_id')->references('id')->on(Tables::name('tasks'))->restrictOnDelete();
             $t->string('workflow_key')->default('personal');
             $t->unsignedBigInteger('workflow_revision_id');
             $t->string('current_state_key')->default('pending');
             $t->timestamp('completed_at')->nullable();
             $t->unsignedInteger('version')->default(1);
         });
-        Schema::create('tm_workflow_definitions', function (Blueprint $t) {
+        Schema::create(Tables::name('workflow_definitions'), function (Blueprint $t) {
             $t->collation = IdentifierCollation::forConnection(Schema::getConnection());
             $t->bigIncrements('id');
             $t->string('scope_key', 120);
@@ -62,23 +64,23 @@ return new class extends Migration
             $t->text('definition');
             $t->unique(['scope_key', 'key', 'revision']);
         });
-        Schema::table('tm_workflow_instances', function (Blueprint $t) {
-            $t->foreign('workflow_revision_id')->references('id')->on('tm_workflow_definitions')->restrictOnDelete();
+        Schema::table(Tables::name('workflow_instances'), function (Blueprint $t) {
+            $t->foreign('workflow_revision_id')->references('id')->on(Tables::name('workflow_definitions'))->restrictOnDelete();
         });
-        Schema::create('tm_task_grants', function (Blueprint $t) {
+        Schema::create(Tables::name('task_grants'), function (Blueprint $t) {
             $t->collation = IdentifierCollation::forConnection(Schema::getConnection());
             $t->unsignedBigInteger('task_id');
-            $t->foreign('task_id')->references('id')->on('tm_tasks')->restrictOnDelete();
+            $t->foreign('task_id')->references('id')->on(Tables::name('tasks'))->restrictOnDelete();
             $t->string('actor_ref', 120);
             $t->string('capability', 30);
             $t->primary(['task_id', 'actor_ref', 'capability']);
         });
-        Schema::create('tm_instance_transitions', function (Blueprint $t) {
+        Schema::create(Tables::name('instance_transitions'), function (Blueprint $t) {
             $t->collation = IdentifierCollation::forConnection(Schema::getConnection());
             $t->bigIncrements('id');
             $t->string('scope_key', 120);
             $t->unsignedBigInteger('instance_id');
-            $t->foreign('instance_id')->references('id')->on('tm_workflow_instances')->restrictOnDelete();
+            $t->foreign('instance_id')->references('id')->on(Tables::name('workflow_instances'))->restrictOnDelete();
             $t->string('from_state');
             $t->string('to_state');
             $t->string('actor_ref', 120);
@@ -86,7 +88,7 @@ return new class extends Migration
             $t->timestamp('occurred_at');
             $t->index(['scope_key', 'instance_id']);
         });
-        Schema::create('tm_command_journal', function (Blueprint $t) {
+        Schema::create(Tables::name('command_journal'), function (Blueprint $t) {
             $t->collation = IdentifierCollation::forConnection(Schema::getConnection());
             $t->string('scope_key', 120);
             $t->string('operation_id', 120);
@@ -96,14 +98,14 @@ return new class extends Migration
             $t->string('status')->default('pending');
             $t->primary(['scope_key', 'operation_id']);
         });
-        Schema::create('tm_sequences', function (Blueprint $t) {
+        Schema::create(Tables::name('sequences'), function (Blueprint $t) {
             $t->collation = IdentifierCollation::forConnection(Schema::getConnection());
             $t->string('scope_key', 120);
             $t->string('sequence_key', 120);
             $t->unsignedBigInteger('current')->default(0);
             $t->primary(['scope_key', 'sequence_key']);
         });
-        Schema::create('tm_task_key_aliases', function (Blueprint $t) {
+        Schema::create(Tables::name('task_key_aliases'), function (Blueprint $t) {
             $t->collation = IdentifierCollation::forConnection(Schema::getConnection());
             $t->bigIncrements('id');
             $t->string('scope_key', 120);
@@ -111,9 +113,9 @@ return new class extends Migration
             $t->string('display_key');
             $t->boolean('is_current')->default(true);
             $t->unique(['scope_key', 'display_key']);
-            $t->foreign('task_id')->references('id')->on('tm_tasks')->restrictOnDelete();
+            $t->foreign('task_id')->references('id')->on(Tables::name('tasks'))->restrictOnDelete();
         });
-        foreach (['tm_audit_events', 'tm_outbox'] as $name) {
+        foreach ([Tables::name('audit_events'), Tables::name('outbox')] as $name) {
             Schema::create($name, function (Blueprint $t) use ($name) {
                 $t->collation = IdentifierCollation::forConnection(Schema::getConnection());
                 $t->bigIncrements('id');
@@ -121,13 +123,13 @@ return new class extends Migration
                 $t->string('scope_key', 120);
                 $t->string('actor_ref', 120);
                 $t->unsignedBigInteger('task_id')->nullable();
-                $t->foreign('task_id')->references('id')->on('tm_tasks')->restrictOnDelete();
+                $t->foreign('task_id')->references('id')->on(Tables::name('tasks'))->restrictOnDelete();
                 $t->string('action');
                 $t->string('operation_id', 120);
                 $t->string('correlation_id', 120);
                 $t->text('payload');
                 $t->timestamp('occurred_at');
-                if ($name === 'tm_outbox') {
+                if ($name === Tables::name('outbox')) {
                     $t->unsignedInteger('attempts')->default(0);
                     $t->timestamp('published_at')->nullable();
                 }
@@ -138,7 +140,7 @@ return new class extends Migration
 
     public function down(): void
     {
-        foreach (['tm_outbox', 'tm_audit_events', 'tm_task_key_aliases', 'tm_sequences', 'tm_command_journal', 'tm_instance_transitions', 'tm_task_grants', 'tm_workflow_instances', 'tm_workflow_definitions', 'tm_tasks', 'tm_lists'] as $table) {
+        foreach ([Tables::name('outbox'), Tables::name('audit_events'), Tables::name('task_key_aliases'), Tables::name('sequences'), Tables::name('command_journal'), Tables::name('instance_transitions'), Tables::name('task_grants'), Tables::name('workflow_instances'), Tables::name('workflow_definitions'), Tables::name('tasks'), Tables::name('lists')] as $table) {
             Schema::dropIfExists($table);
         }
     }

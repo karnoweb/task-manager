@@ -10,6 +10,8 @@ final class UnverifiedCommitEvidence implements CommitEvidenceProvider
 {
     public function committedAt(ExecutionContext $context, array $intent): ?\DateTimeImmutable
     {
+        $context->validateTenant();
+
         return null;
     }
 }

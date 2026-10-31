@@ -21,6 +21,6 @@ final class TM194Test extends ApprovalTestCase
         self::assertSame('approved', $done['state']);
         self::assertSame('executed', $done['execution_state']);
         self::assertCount(3, $done['votes']);
-        self::assertSame('won',$this->instances()->get($c,$i['instance_key'])['current_state_key']);
+        self::assertSame('won', $this->instances()->get($c, $i['instance_key'])['current_state_key']);
     }
 }

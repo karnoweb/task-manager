@@ -46,7 +46,7 @@ abstract class EnterpriseScaleTestCase extends PhaseFiveTestCase
             DB::table('tm_task_closure')->insert($closure);
         }
 
-return $visible;
+        return $visible;
     }
 
     protected function verifyPaging(int $size, bool $verifyInstances = false): void
@@ -76,8 +76,8 @@ return $visible;
             $instances = $this->instances()->query($this->manager(), 100);
             self::assertCount(100, $instances);
             $metrics = $this->app->make(ReportService::class)->read($this->manager())['metrics'];
-            self::assertSame($expected,$metrics['total_instances']);
-            self::assertSame($expected,$metrics['visit_count']);
+            self::assertSame($expected, $metrics['total_instances']);
+            self::assertSame($expected, $metrics['visit_count']);
         }
     }
 }

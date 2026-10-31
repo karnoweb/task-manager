@@ -10,6 +10,7 @@ use Karnoweb\TaskManager\Contracts\AuthorizationProvider;
 use Karnoweb\TaskManager\Contracts\Clock;
 use Karnoweb\TaskManager\EventRecorder;
 use Karnoweb\TaskManager\Exceptions\DomainError;
+use Karnoweb\TaskManager\Schema\Tables;
 use Karnoweb\TaskManager\TaskResourceService;
 use Karnoweb\TaskManager\TaskService;
 
@@ -17,6 +18,7 @@ final class AttachmentService
 {
     public function __construct(private readonly Connection $db, private readonly Clock $clock, private readonly AuthorizationProvider $authorization, private readonly TaskService $tasks, private readonly TaskResourceService $resources, private readonly AttachmentStorage $storage)
     {
+        Tables::assertConnection($db);
     }
 
     private function authorize(ExecutionContext $context, string $capability): void
@@ -27,6 +29,7 @@ final class AttachmentService
 
     public function attach(ExecutionContext $context, string $taskKey, string $reference, string $operation): array
     {
+        $context->validateTenant();
         $this->authorize($context, 'attachment.add');
         $this->tasks->get($context, $taskKey);
         if (trim($reference) === '' || strlen($reference) > 255) {
@@ -39,7 +42,7 @@ final class AttachmentService
                 throw new DomainError('attachment_inspection_invalid');
             }
             $file = $this->resources->create($context, $taskKey, 'attachment', ['file_ref' => $reference, 'media_type' => $data['media_type'], 'size' => $data['size']], 'attachment-content:'.hash('sha256', $operation));
-            $this->db->table('tm_attachments')->where('id', $file['id'])->update(['storage_verified' => true]);
+            $this->db->table(Tables::name('attachments'))->where('id', $file['id'])->update(['storage_verified' => true]);
 
             return $this->resources->get($context, 'attachment', $file['public_key']);
         }, fn ($result) => $this->resources->get($context, 'attachment', $result['public_key']));
@@ -47,6 +50,7 @@ final class AttachmentService
 
     public function issueTicket(ExecutionContext $context, string $taskKey, string $attachmentKey, int $lifetimeSeconds = 120): array
     {
+        $context->validateTenant();
         $this->authorize($context, 'attachment.download');
         if ($lifetimeSeconds < 1 || $lifetimeSeconds > 300) {
             throw new DomainError('ticket_lifetime_invalid');
@@ -58,12 +62,12 @@ final class AttachmentService
                 throw new DomainError('not_found');
             }
             $file = $this->file($context, $taskKey, $attachmentKey);
-            if ($this->db->table('tm_attachment_tickets')->where('scope_key', $context->scope)->where('actor_ref', $context->actor)->where('attachment_id', $file['id'])->whereNull('revoked_at')->where('expires_at', '>', $this->stamp($this->clock->now()))->count() >= 10) {
+            if ($this->db->table(Tables::name('attachment_tickets'))->where('scope_key', $context->scope)->where('actor_ref', $context->actor)->where('attachment_id', $file['id'])->whereNull('revoked_at')->where('expires_at', '>', $this->stamp($this->clock->now()))->count() >= 10) {
                 throw new DomainError('ticket_limit');
             }
             $token = bin2hex(random_bytes(32));
             $expires = $this->clock->now()->modify('+'.$lifetimeSeconds.' seconds');
-            $id = $this->db->table('tm_attachment_tickets')->insertGetId(['token_hash' => hash('sha256', $token), 'scope_key' => $context->scope, 'attachment_id' => $file['id'], 'attachment_version' => $file['version'], 'actor_ref' => $context->actor, 'expires_at' => $this->stamp($expires)]);
+            $id = $this->db->table(Tables::name('attachment_tickets'))->insertGetId(['token_hash' => hash('sha256', $token), 'scope_key' => $context->scope, 'attachment_id' => $file['id'], 'attachment_version' => $file['version'], 'actor_ref' => $context->actor, 'expires_at' => $this->stamp($expires)]);
             (new EventRecorder($this->db, $this->clock))->append($context, 'task', $taskKey, 'attachment_ticket_issued', 'file-ticket:'.$id, ['resource_key' => $attachmentKey, 'expires_at' => $this->stamp($expires)], $task->id);
 
             return ['token' => $token, 'expires_at' => $this->stamp($expires)];
@@ -72,12 +76,13 @@ final class AttachmentService
 
     public function download(ExecutionContext $context, string $taskKey, string $attachmentKey, string $token): mixed
     {
+        $context->validateTenant();
         $this->authorize($context, 'attachment.download');
         if (! preg_match('/^[a-f0-9]{64}$/D', $token)) {
             throw new DomainError('not_found');
         }
         $file = $this->file($context, $taskKey, $attachmentKey);
-        $ticket = $this->db->table('tm_attachment_tickets')->where('token_hash', hash('sha256', $token))->where('scope_key', $context->scope)->where('actor_ref', $context->actor)
+        $ticket = $this->db->table(Tables::name('attachment_tickets'))->where('token_hash', hash('sha256', $token))->where('scope_key', $context->scope)->where('actor_ref', $context->actor)
             ->where('attachment_id', $file['id'])->where('attachment_version', $file['version'])->whereNull('revoked_at')->where('expires_at', '>', $this->stamp($this->clock->now()))->exists();
         if (! $ticket) {
             throw new DomainError('not_found');

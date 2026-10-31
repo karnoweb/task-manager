@@ -24,7 +24,7 @@ final readonly class LocalExportStorage implements ExportStorage
             throw new DomainError('export_storage_unavailable');
         }
 
-return $folder;
+        return $folder;
     }
 
     private function path(ExecutionContext $context, string $reference): string
@@ -33,11 +33,12 @@ return $folder;
             throw new DomainError('not_found');
         }
 
-return $this->folder($context).DIRECTORY_SEPARATOR.$reference;
+        return $this->folder($context).DIRECTORY_SEPARATOR.$reference;
     }
 
     public function store(ExecutionContext $context, iterable $chunks): string
     {
+        $context->validateTenant();
         $reference = bin2hex(random_bytes(32));
         $path = $this->path($context, $reference);
         $stream = fopen($path, 'x+b');
@@ -70,6 +71,7 @@ return $this->folder($context).DIRECTORY_SEPARATOR.$reference;
 
     public function read(ExecutionContext $context, string $reference): mixed
     {
+        $context->validateTenant();
         $path = $this->path($context, $reference);
         if (is_link($path) || ! is_file($path)) {
             throw new DomainError('not_found');
@@ -78,11 +80,12 @@ return $this->folder($context).DIRECTORY_SEPARATOR.$reference;
             throw new DomainError('not_found');
         }
 
-return $stream;
+        return $stream;
     }
 
     public function delete(ExecutionContext $context, string $reference): void
     {
+        $context->validateTenant();
         $path = $this->path($context, $reference);
         if (is_file($path) && ! is_link($path)) {
             unlink($path);

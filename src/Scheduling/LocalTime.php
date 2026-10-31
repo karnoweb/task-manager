@@ -12,7 +12,7 @@ final class LocalTime
             throw new DomainError('timezone_invalid');
         }
 
-return new \DateTimeZone($name);
+        return new \DateTimeZone($name);
     }
 
     public static function date(string $value): void

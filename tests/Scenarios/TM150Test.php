@@ -24,7 +24,7 @@ final class TM150Test extends WorkflowTestCase
         self::assertCount(7, $events);
         $raw = json_encode($events);
         foreach (['PRIVATE-ONE', 'PRIVATE-TWO', 'PRIVATE-FILE'] as $secret) {
-            self::assertStringNotContainsString($secret,$raw);
-        } self::assertSame(7,DB::table('tm_outbox')->count());
+            self::assertStringNotContainsString($secret, $raw);
+        } self::assertSame(7, DB::table('tm_outbox')->count());
     }
 }

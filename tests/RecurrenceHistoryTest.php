@@ -56,8 +56,8 @@ final class RecurrenceHistoryTest extends PhaseFiveTestCase
         $task = $presets->instantiate($this->manager(), $preset['preset_key'], 'instantiate');
         self::assertSame($task, $presets->instantiate($this->manager(), $preset['preset_key'], 'instantiate'));
         self::assertSame(2, DB::table('tm_checklist_items')->count());
-        self::assertSame(0,DB::table('tm_checklist_items')->whereNotNull('assignee_ref')->count());
-        $this->error('preset_invalid',fn () => $presets->create($this->manager(),'Bad',['title' => 'Bad', 'members' => ['other']],'bad'));
-        $this->error('not_found',fn () => $presets->get($this->manager('b'),$preset['preset_key']));
+        self::assertSame(0, DB::table('tm_checklist_items')->whereNotNull('assignee_ref')->count());
+        $this->error('preset_invalid', fn () => $presets->create($this->manager(), 'Bad', ['title' => 'Bad', 'members' => ['other']], 'bad'));
+        $this->error('not_found', fn () => $presets->get($this->manager('b'), $preset['preset_key']));
     }
 }

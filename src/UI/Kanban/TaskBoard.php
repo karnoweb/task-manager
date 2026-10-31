@@ -26,6 +26,7 @@ use Karnoweb\TaskManager\Context\ExecutionContext;
 use Karnoweb\TaskManager\Contracts\AuthorizationProvider;
 use Karnoweb\TaskManager\Enterprise\TextNormalizer;
 use Karnoweb\TaskManager\Exceptions\DomainError;
+use Karnoweb\TaskManager\Schema\Tables;
 use Karnoweb\TaskManager\SubjectRegistry;
 use Karnoweb\TaskManager\TaskService;
 use Karnoweb\TaskManager\UI\BoundCursor;
@@ -85,9 +86,9 @@ final class TaskBoard implements ActionHandler, CardDetailsProvider, DataProvide
         if ($source === 'tasks') {
             $q = $this->tasks->authorizedQuery($c)->whereNull('deleted_at');
             $archived ? $q->whereNotNull('archived_at') : $q->whereNull('archived_at');
-            $main = $this->db->table('tm_workflow_instances')->where('scope_key', $c->scope)->where('slot_key', 'main');
+            $main = $this->db->table(Tables::name('workflow_instances'))->where('scope_key', $c->scope)->where('slot_key', 'main');
             $main->whereNotExists(function (Builder $newer) {
-                $newer->selectRaw('1')->from('tm_workflow_instances as newer')->whereColumn('newer.task_id', 'tm_workflow_instances.task_id')->whereColumn('newer.scope_key', 'tm_workflow_instances.scope_key')->where('newer.slot_key', 'main')->whereColumn('newer.id', '>', 'tm_workflow_instances.id');
+                $newer->selectRaw('1')->from(Tables::sql('tm_workflow_instances as newer'))->whereColumn('newer.task_id', Tables::sql('tm_workflow_instances.task_id'))->whereColumn('newer.scope_key', Tables::sql('tm_workflow_instances.scope_key'))->where('newer.slot_key', 'main')->whereColumn('newer.id', '>', Tables::sql('tm_workflow_instances.id'));
             });
             if (isset($this->surface->pipelines[$source])) {
                 $pipeline = $this->pipelines->get($c, $this->surface->pipelines[$source]);
@@ -101,7 +102,7 @@ final class TaskBoard implements ActionHandler, CardDetailsProvider, DataProvide
                     $main->whereRaw('1=0');
                 } $main->where(isset($pipeline) ? 'active_stage_key' : 'current_state_key', $stage);
             }
-            $q->whereIn('tm_tasks.id', $main->select('task_id'));
+            $q->whereIn(Tables::sql('tm_tasks.id'), $main->select('task_id'));
             if ($query->search !== null && $query->search !== '') {
                 $q->where('title_search_normalized', 'like', '%'.TextNormalizer::normalize($query->search).'%');
             }
@@ -138,7 +139,7 @@ final class TaskBoard implements ActionHandler, CardDetailsProvider, DataProvide
         foreach ($this->sources($query) as $source) {
             if (isset($this->surface->pipelines[$source])) {
                 $p = $this->pipelines->get($c, $this->surface->pipelines[$source]);
-                $rows = $this->db->table('tm_pipeline_stages')->where('pipeline_id', $p['id'])->orderBy('id')->get();
+                $rows = $this->db->table(Tables::name('pipeline_stages'))->where('pipeline_id', $p['id'])->where('is_active', true)->orderBy('position')->orderBy('id')->get();
                 foreach ($rows as $row) {
                     $result[] = new StageData(CardIdentity::make($source, $row->stage_key), $context->boardKey, $row->stage_key, count($result), wipLimit: $row->capacity);
                 }
@@ -158,7 +159,7 @@ final class TaskBoard implements ActionHandler, CardDetailsProvider, DataProvide
     {
         if ($source === 'tasks') {
             $task = $this->tasks->get($c, $row['public_key']);
-            $i = $this->db->table('tm_workflow_instances')->where('scope_key', $c->scope)->where('task_id', $row['id'])->where('slot_key', 'main')->orderByDesc('id')->first();
+            $i = $this->db->table(Tables::name('workflow_instances'))->where('scope_key', $c->scope)->where('task_id', $row['id'])->where('slot_key', 'main')->orderByDesc('id')->first();
             $stage = $i->active_stage_key ?? $i->current_state_key;
             $can = $this->canEdit($c, $task['public_key']);
 
@@ -327,7 +328,7 @@ final class TaskBoard implements ActionHandler, CardDetailsProvider, DataProvide
                 };
                 $result = $this->tasks->mutate($c, $key, $version, $command->operationId, $action);
             } else {
-                $instance = $source === 'tasks' ? (array) $this->db->table('tm_workflow_instances')->where('scope_key', $c->scope)->where('task_id', $this->tasks->get($c, $key)['id'])->where('slot_key', 'main')->orderByDesc('id')->first() : $this->instances->get($c, $key);
+                $instance = $source === 'tasks' ? (array) $this->db->table(Tables::name('workflow_instances'))->where('scope_key', $c->scope)->where('task_id', $this->tasks->get($c, $key)['id'])->where('slot_key', 'main')->orderByDesc('id')->first() : $this->instances->get($c, $key);
                 if ($source === 'tasks') {
                     $locked = $this->tasks->authorizedQuery($c, 'edit')->where('public_key', $key)->lockForUpdate()->first();
                     if (! $locked) {
@@ -337,7 +338,7 @@ final class TaskBoard implements ActionHandler, CardDetailsProvider, DataProvide
                     }
                 }
                 $definition = $this->workflows->revision($c, $instance['workflow_revision_id'])['definition'];
-                $targetState = $this->db->table('tm_pipeline_stages')->where('pipeline_id', $instance['pipeline_id'])->where('stage_key', $stage)->value('state_key');
+                $targetState = $this->db->table(Tables::name('pipeline_stages'))->where('pipeline_id', $instance['pipeline_id'])->where('stage_key', $stage)->value('state_key');
                 $candidates = array_column($this->instances->availableTransitions($c, $instance['instance_key']), 'transition');
                 $edges = array_filter($definition['transitions'], fn ($e, $name) => in_array($name, $candidates, true) && $e['from'] === $instance['current_state_key'] && $e['to'] === $targetState, ARRAY_FILTER_USE_BOTH);
                 $edge = $command->payload['transition'] ?? (count($edges) === 1 ? array_key_first($edges) : null);
@@ -366,7 +367,7 @@ final class TaskBoard implements ActionHandler, CardDetailsProvider, DataProvide
     public function operationStatus(BoardContext $context, string $operationId): ?ActionResult
     {
         $c = $this->context($context);
-        $row = $this->db->table('tm_command_journal')->where('scope_key', $c->scope)->where('actor_ref', $c->actor)->where('operation_id', 'ui-board:'.hash('sha256', $operationId))->first();
+        $row = $this->db->table(Tables::name('command_journal'))->where('scope_key', $c->scope)->where('actor_ref', $c->actor)->where('operation_id', 'ui-board:'.hash('sha256', $operationId))->first();
         if (! $row || $row->status !== 'completed') {
             return null;
         }
@@ -429,24 +430,24 @@ final class TaskBoard implements ActionHandler, CardDetailsProvider, DataProvide
         if ($key === 'activity') {
             $c->require('activity.view');
             $this->authorization->authorize($c, 'activity.view');
-            $q = $this->db->table('tm_instance_transitions')->where('scope_key', $c->scope)->where('instance_id', $instance['id']);
+            $q = $this->db->table(Tables::name('instance_transitions'))->where('scope_key', $c->scope)->where('instance_id', $instance['id']);
             $rows = $q->where('id', '>', $after)->orderBy('id')->limit($limit + 1)->get();
             foreach ($rows->take($limit) as $r) {
                 $items[] = ['id' => (string) $r->id, 'label' => $r->from_state.' â†’ '.$r->to_state, 'value' => $r->occurred_at];
                 $last = $r->id;
             }
         } elseif ($key === 'sla') {
-            $rows = $this->db->table('tm_stage_visits')->where('scope_key', $c->scope)->where('instance_id', $instance['id'])->where('id', '>', $after)->orderBy('id')->limit($limit + 1)->get();
+            $rows = $this->db->table(Tables::name('stage_visits'))->where('scope_key', $c->scope)->where('instance_id', $instance['id'])->where('id', '>', $after)->orderBy('id')->limit($limit + 1)->get();
             foreach ($rows->take($limit) as $r) {
                 $items[] = ['id' => (string) $r->id, 'label' => $r->stage_key, 'value' => $r->entered_at, 'status' => $r->exited_at === null ? 'active' : 'closed'];
                 $last = $r->id;
             }
         } else {
             // Both sides must be currently readable; private host payloads never enter the drawer.
-            $rows = $this->db->table('tm_handoffs')->where('scope_key', $c->scope)->where('origin_id', $instance['id'])->where('id', '>', $after)->orderBy('id')->limit($limit + 1)->get();
+            $rows = $this->db->table(Tables::name('handoffs'))->where('scope_key', $c->scope)->where('origin_id', $instance['id'])->where('id', '>', $after)->orderBy('id')->limit($limit + 1)->get();
             foreach ($rows->take($limit) as $r) {
                 try {
-                    $target = $this->db->table('tm_workflow_instances')->where('id', $r->destination_id)->value('instance_key');
+                    $target = $this->db->table(Tables::name('workflow_instances'))->where('id', $r->destination_id)->value('instance_key');
                     $this->instances->get($c, $target);
                     $items[] = ['id' => (string) $r->id, 'label' => 'Handoff', 'status' => $r->status];
                 } catch (DomainError) {

@@ -10,10 +10,12 @@ final class ContextAuthorization implements AuthorizationProvider
 {
     public function authorize(ExecutionContext $context, string $capability): void
     {
+        $context->validateTenant();
         $context->require($capability);
     }
 
     public function constrain(Builder $query, ExecutionContext $context, string $resource, string $capability): void
     {
+        $context->validateTenant();
     }
 }

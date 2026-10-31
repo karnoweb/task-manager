@@ -160,7 +160,7 @@ if (interface_exists(EventProvider::class)) {
 
         public static function calendarDefinition(): CalendarModelDefinition
         {
-            return new CalendarModelDefinition(sourceKey: 'orders',startField: 'delivery_at',endField: null,scopeField: 'scope_key',ownerField: 'owner_ref',allDayField: null,descriptionField: null,locationField: null,categoryField: null,colorField: null,movableField: null,timezoneField: null,readOnly: true);
+            return new CalendarModelDefinition(sourceKey: 'orders', startField: 'delivery_at', endField: null, scopeField: 'scope_key', ownerField: 'owner_ref', allDayField: null, descriptionField: null, locationField: null, categoryField: null, colorField: null, movableField: null, timezoneField: null, readOnly: true);
         }
     }
 }

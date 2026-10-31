@@ -23,6 +23,6 @@ final class TM084Test extends PhaseSixTestCase
         self::assertSame(1, DB::table('tm_instance_transitions')->count());
         self::assertSame(ActionStatus::CONFLICT, $board->execute(new ActionCommand('stale-move', ActionType::MoveCard, ['cardId' => $id, 'toStageId' => 'tasks:pending'], (string) $t['version']), $ui)->status);
         self::assertNull($board->card($this->uiBoard('2'), $id));
-        self::assertNull($board->operationStatus($this->uiBoard('2'),'move-once'));
+        self::assertNull($board->operationStatus($this->uiBoard('2'), 'move-once'));
     }
 }

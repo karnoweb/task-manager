@@ -37,6 +37,6 @@ final class TM093Test extends PhaseFiveTestCase
     {
         $base = $this->manager();
 
-        return new ExecutionContext($base->scope,$base->actor,'worker',true,$base->capabilities);
+        return new ExecutionContext($base->scope, $base->actor, 'worker', true, $base->capabilities);
     }
 }

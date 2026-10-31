@@ -1,9 +1,0 @@
-# Phase 2 — workflow and process core
-
-Implemented: immutable workflow publication with optimistic head revisions; validation of states/edges/reasons/conditions; host guards; projects with manager/member/viewer membership; immediate revocation; project/type workflow mappings; task conversion and project moves preserving public identity and aliases; basic parent relationships for independent Bug/Epic workflows; previewed workflow migration; pipelines with validated stage maps; stage capacity serialization; external subject registry; generic native/external instances; per-subject active slots; terminal/reopen lifecycle; stage visits; case subject links and authorized timelines; source conflict reconciliation; safe security-decision recording; manager facade service accessors.
-
-Comments/attachment metadata create/edit/delete foundations were brought forward solely to implement phase-two TM-150 audit requirements with real writes. Phase four still owns the complete comment/mention/checklist/file-storage/download/retention features. No UI or commercial host dependency was added. Host fixture tables exist only under tests.
-
-Product changes are in src/Workflow/, src/SubjectRegistry.php, src/Contracts/SubjectHandler.php, src/EventRecorder.php, src/AuditRedactor.php, src/TaskResourceService.php, src/TaskManager.php, provider/facade wiring and migrations 000003/000004. Existing task entry points remain available and phase-one scenarios are rerun.
-
-The 38 owned TM scenarios have independent PHP/Markdown files. Supplemental tests cover real PostgreSQL slot/capacity races, host transaction rollback, input validation, explicit capabilities, condition forgery, revision migration and downgrade refusal. Test outcome is recorded separately; this file alone is not evidence of a passing gate or release readiness.

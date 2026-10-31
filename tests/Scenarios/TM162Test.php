@@ -18,6 +18,6 @@ final class TM162Test extends WorkflowTestCase
         $i = $this->instances()->start($c, 'crm.lead', 'lead-1', $r['id'], 'explicit', pipelineKey: $p['pipeline_key'], stageKey: 'second');
         self::assertSame('second', $i['active_stage_key']);
         self::assertSame('new', $i['current_state_key']);
-        self::assertCount(1, $this->instances()->visits($c,$i['instance_key']));
+        self::assertCount(1, $this->instances()->visits($c, $i['instance_key']));
     }
 }

@@ -30,6 +30,6 @@ final class TM210Test extends PhaseSixTestCase
             self::assertNotNull($found);
             self::assertTrue($found->reference->equals($event->reference));
         }
-        self::assertSame(1,DB::table('tm_tasks')->count());
+        self::assertSame(1, DB::table('tm_tasks')->count());
     }
 }

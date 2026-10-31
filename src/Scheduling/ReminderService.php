@@ -7,12 +7,15 @@ use Illuminate\Database\Query\Builder;
 use Illuminate\Support\Str;
 use Karnoweb\TaskManager\CommandExecutor;
 use Karnoweb\TaskManager\Context\ExecutionContext;
+use Karnoweb\TaskManager\Context\TenantBoundary;
 use Karnoweb\TaskManager\Contracts\AuthorizationProvider;
 use Karnoweb\TaskManager\Contracts\Clock;
 use Karnoweb\TaskManager\Contracts\NotificationPreferences;
 use Karnoweb\TaskManager\Contracts\ReminderRecipients;
 use Karnoweb\TaskManager\EventRecorder;
 use Karnoweb\TaskManager\Exceptions\DomainError;
+use Karnoweb\TaskManager\Pagination;
+use Karnoweb\TaskManager\Schema\Tables;
 use Karnoweb\TaskManager\SubjectRegistry;
 use Karnoweb\TaskManager\TaskGraph\ScopeGraphLock;
 use Karnoweb\TaskManager\TaskService;
@@ -22,6 +25,7 @@ final class ReminderService
 {
     public function __construct(private readonly Connection $db, private readonly Clock $clock, private readonly AuthorizationProvider $authorization, private readonly TaskService $tasks, private readonly NotificationPreferences $preferences, private readonly ?SubjectRegistry $subjects = null, private readonly ?ReminderRecipients $recipients = null)
     {
+        Tables::assertConnection($db);
     }
 
     private function authorize(ExecutionContext $context): void
@@ -48,6 +52,7 @@ final class ReminderService
 
     public function suggestedRecipient(ExecutionContext $context, ?string $type = null, ?string $id = null): string
     {
+        $context->validateTenant();
         $this->authorize($context);
         $this->linkedSubject($context, $type, $id);
         $policy = $this->recipients ?? new SelfReminderRecipients;
@@ -81,6 +86,7 @@ final class ReminderService
 
     public function createGeneral(ExecutionContext $context, string $body, \DateTimeImmutable $when, string $timezone, string $operation, ?string $subjectType = null, ?string $subjectId = null, ?string $recipient = null, bool $allowPast = false): array
     {
+        $context->validateTenant();
         $this->authorize($context);
         $this->body($body, $timezone);
         if ($recipient !== null && (trim($recipient) === '' || strlen($recipient) > 120)) {
@@ -93,6 +99,7 @@ final class ReminderService
             $recipient ??= $this->suggestedRecipient($context, $subjectType, $subjectId);
             $this->linkedSubject($context, $subjectType, $subjectId);
             ($this->recipients ?? new SelfReminderRecipients)->authorize($context, $recipient, $subjectType, $subjectId);
+            TenantBoundary::validateActor($context, $recipient);
             if ($allowPast) {
                 $context->require('reminder.schedule_past');
                 $this->authorization->authorize($context, 'reminder.schedule_past');
@@ -101,7 +108,7 @@ final class ReminderService
             }
             $key = (string) Str::uuid();
             $now = LocalTime::stamp($this->clock->now());
-            $this->db->table('tm_reminders')->insert(['reminder_key' => $key, 'scope_key' => $context->scope, 'task_id' => null, 'actor_ref' => $recipient, 'created_by' => $context->actor,
+            $this->db->table(Tables::name('reminders'))->insert(['reminder_key' => $key, 'scope_key' => $context->scope, 'task_id' => null, 'actor_ref' => $recipient, 'created_by' => $context->actor,
                 'body' => $body, 'timezone' => $timezone, 'subject_type' => $subjectType, 'subject_id' => $subjectId, 'anchor' => 'absolute', 'offset_seconds' => 0, 'source_revision' => 0,
                 'absolute_at' => LocalTime::stamp($when), 'scheduled_at' => LocalTime::stamp($when), 'created_at' => $now, 'updated_at' => $now]);
             (new EventRecorder($this->db, $this->clock))->append($context, 'reminder', $key, 'reminder_created', $operation, ['recipient_ref' => $recipient]);
@@ -112,6 +119,7 @@ final class ReminderService
 
     public function updateGeneral(ExecutionContext $context, string $key, int $version, array $changes, string $operation): array
     {
+        $context->validateTenant();
         $this->authorize($context);
         if (array_diff(array_keys($changes), ['body', 'when', 'timezone', 'recipient', 'subject_type', 'subject_id'])) {
             throw new DomainError('reminder_invalid');
@@ -156,7 +164,7 @@ final class ReminderService
             if ($newDelivery && $row['state'] === 'sent') {
                 $values['state'] = 'pending';
             }
-            $this->db->table('tm_reminders')->where('id', $row['id'])->update($values);
+            $this->db->table(Tables::name('reminders'))->where('id', $row['id'])->update($values);
             (new EventRecorder($this->db, $this->clock))->append($context, 'reminder', $key, 'reminder_updated', $operation, ['version' => $version + 1, 'recipient_ref' => $recipient]);
 
             return $this->get($context, $key);
@@ -166,14 +174,14 @@ final class ReminderService
     private function generalForUpdate(ExecutionContext $context, string $key, int $version): array
     {
         $row = $this->get($context, $key);
-        $locked = $this->db->table('tm_reminders')->where('id', $row['id'])->lockForUpdate()->first();
+        $locked = $this->db->table(Tables::name('reminders'))->where('id', $row['id'])->lockForUpdate()->first();
         if ($locked->version !== $version) {
             throw new DomainError('version_conflict');
         }
         if ($row['task_id'] !== null) {
             throw new DomainError('reminder_anchored');
         }
-        $this->authorization->constrain($q = $this->db->table('tm_reminders')->where('id', $row['id']), $context, 'reminder', 'edit');
+        $this->authorization->constrain($q = $this->db->table(Tables::name('reminders'))->where('id', $row['id']), $context, 'reminder', 'edit');
         if (! $q->exists()) {
             throw new DomainError('not_found');
         }
@@ -183,6 +191,7 @@ final class ReminderService
 
     public function changeState(ExecutionContext $context, string $key, int $version, string $action, string $operation): array
     {
+        $context->validateTenant();
         $this->authorize($context);
         if (! in_array($action, ['complete', 'reopen', 'delete'], true)) {
             throw new DomainError('reminder_action_invalid');
@@ -192,7 +201,7 @@ final class ReminderService
             ScopeGraphLock::acquire($this->db, $context);
             $row = $this->generalForUpdate($context, $key, $version);
             $now = LocalTime::stamp($this->clock->now());
-            $this->db->table('tm_reminders')->where('id', $row['id'])->update(['state' => match ($action) {
+            $this->db->table(Tables::name('reminders'))->where('id', $row['id'])->update(['state' => match ($action) {
                 'complete' => 'completed', 'reopen' => 'pending', 'delete' => 'cancelled'
             },
                 'version' => $version + 1, 'generation' => $row['generation'] + 1, 'completed_at' => $action === 'complete' ? $now : null, 'deleted_at' => $action === 'delete' ? $now : null, 'updated_at' => $now]);
@@ -204,23 +213,28 @@ final class ReminderService
 
     public function query(ExecutionContext $context, int $limit = 30, int $afterId = 0): array
     {
-        if ($limit < 1 || $limit > 100 || $afterId < 0) {
+        $context->validateTenant();
+        $limit = Pagination::limit($limit, func_num_args() < 2);
+        if ($afterId < 0) {
             throw new DomainError('pagination_invalid');
         }
 
-        return $this->visible($context)->where('id', '>', $afterId)->orderBy('id')->limit($limit)->get()->map(fn ($row) => (array) $row)->all();
+        return $this->visible($context)->where('id', '>', $afterId)->orderBy('id')->limit($limit)->get()->map(fn ($row) => $this->result((array) $row))->all();
     }
 
     public function count(ExecutionContext $context): int
     {
+        $context->validateTenant();
+
         return $this->visible($context)->whereIn('state', ['pending', 'sent'])->count();
     }
 
     public function activity(ExecutionContext $context, string $key): array
     {
+        $context->validateTenant();
         $this->read($context, $key, true);
 
-        return $this->db->table('tm_audit_events')->where('scope_key', $context->scope)->where('aggregate_type', 'reminder')->where('aggregate_key', $key)->orderBy('id')->get()->map(fn ($row) => (array) $row)->all();
+        return $this->db->table(Tables::name('audit_events'))->where('scope_key', $context->scope)->where('aggregate_type', 'reminder')->where('aggregate_key', $key)->orderBy('id')->get()->map(fn ($row) => (array) $row)->all();
     }
 
     private function dispatchGeneral(ExecutionContext $context, object $row): string
@@ -231,39 +245,41 @@ final class ReminderService
             if (! in_array($error->getMessage(), ['not_found', 'capability_denied'], true)) {
                 throw $error;
             }
-            $this->db->table('tm_reminders')->where('id', $row->id)->update(['state' => 'cancelled']);
+            $this->db->table(Tables::name('reminders'))->where('id', $row->id)->update(['state' => 'cancelled']);
 
             return 'cancelled';
         }
         $allowed = $this->preferences->nextAllowed($context, $row->channel, $this->clock->now());
         if ($allowed === null) {
-            $this->db->table('tm_reminders')->where('id', $row->id)->update(['state' => 'cancelled']);
+            $this->db->table(Tables::name('reminders'))->where('id', $row->id)->update(['state' => 'cancelled']);
 
             return 'cancelled';
         }
         if ($allowed > $this->clock->now()) {
-            $this->db->table('tm_reminders')->where('id', $row->id)->update(['scheduled_at' => LocalTime::stamp($allowed)]);
+            $this->db->table(Tables::name('reminders'))->where('id', $row->id)->update(['scheduled_at' => LocalTime::stamp($allowed)]);
 
             return 'deferred';
         }
         $operation = 'reminder:'.$row->id.':'.$row->generation;
         (new EventRecorder($this->db, $this->clock))->append($context, 'reminder', $row->reminder_key, 'reminder_due', $operation, ['reminder_key' => $row->reminder_key, 'generation' => $row->generation, 'recipient_ref' => $row->actor_ref, 'channel' => $row->channel]);
-        $event = $this->db->table('tm_outbox')->where('scope_key', $context->scope)->where('operation_id', $operation)->where('action', 'reminder_due')->value('event_id');
-        $this->db->table('tm_reminder_deliveries')->insert(['reminder_id' => $row->id, 'generation' => $row->generation, 'event_id' => $event, 'created_at' => LocalTime::stamp($this->clock->now())]);
-        $this->db->table('tm_reminders')->where('id', $row->id)->update(['state' => 'sent']);
+        $event = $this->db->table(Tables::name('outbox'))->where('scope_key', $context->scope)->where('operation_id', $operation)->where('action', 'reminder_due')->value('event_id');
+        $this->db->table(Tables::name('reminder_deliveries'))->insert(['reminder_id' => $row->id, 'generation' => $row->generation, 'event_id' => $event, 'created_at' => LocalTime::stamp($this->clock->now())]);
+        $this->db->table(Tables::name('reminders'))->where('id', $row->id)->update(['state' => 'sent']);
 
         return 'queued';
     }
 
     public function get(ExecutionContext $context, string $key): array
     {
+        $context->validateTenant();
+
         return $this->read($context, $key);
     }
 
     private function visible(ExecutionContext $context, bool $includeDeleted = false): Builder
     {
         $this->authorize($context);
-        $query = $this->db->table('tm_reminders')->where('scope_key', $context->scope);
+        $query = $this->db->table(Tables::name('reminders'))->where('scope_key', $context->scope);
         if (! in_array('reminder.view_others', $context->capabilities, true)) {
             $query->where(fn ($q) => $q->where('actor_ref', $context->actor)->orWhere('created_by', $context->actor));
         } else {
@@ -316,11 +332,23 @@ final class ReminderService
             throw new DomainError('not_found');
         }
 
-        return (array) $row;
+        return $this->result((array) $row);
+    }
+
+    private function result(array $row): array
+    {
+        foreach (['absolute_at', 'scheduled_at', 'created_at', 'updated_at', 'deleted_at'] as $field) {
+            if (isset($row[$field])) {
+                $row[$field] = LocalTime::stamp(new \DateTimeImmutable($row[$field], new \DateTimeZone('UTC')));
+            }
+        }
+
+        return $row;
     }
 
     public function create(ExecutionContext $context, string $taskKey, string $anchor, int $offsetSeconds, ?\DateTimeImmutable $absolute, string $channel, string $operation): array
     {
+        $context->validateTenant();
         $this->authorize($context);
         if (! in_array($anchor, ['due', 'start', 'absolute'], true) || abs($offsetSeconds) > 31622400 || ! in_array($channel, ['in_app', 'email', 'sms', 'push'], true) || ($anchor === 'absolute') !== ($absolute !== null)) {
             throw new DomainError('reminder_invalid');
@@ -335,7 +363,7 @@ final class ReminderService
             if (StateIndex::currentTaskIds($this->db, $context->scope, ['done', 'cancelled'])->where('task_id', $task->id)->exists()) {
                 throw new DomainError('reminder_task_terminal');
             }
-            if ($this->db->table('tm_reminders')->where('task_id', $task->id)->where('actor_ref', $context->actor)->where('state', 'pending')->count() >= 20) {
+            if ($this->db->table(Tables::name('reminders'))->where('task_id', $task->id)->where('actor_ref', $context->actor)->where('state', 'pending')->count() >= 20) {
                 throw new DomainError('reminder_limit');
             }
             $value = match ($anchor) {
@@ -346,7 +374,7 @@ final class ReminderService
             }
             $scheduled = (new \DateTimeImmutable($value, new \DateTimeZone('UTC')))->modify(($offsetSeconds >= 0 ? '+' : '').$offsetSeconds.' seconds');
             $key = (string) Str::uuid();
-            $this->db->table('tm_reminders')->insert(['reminder_key' => $key, 'scope_key' => $context->scope, 'task_id' => $task->id, 'actor_ref' => $context->actor, 'anchor' => $anchor, 'offset_seconds' => $offsetSeconds, 'absolute_at' => LocalTime::stamp($absolute), 'scheduled_at' => LocalTime::stamp($scheduled), 'source_revision' => $task->date_revision, 'channel' => $channel]);
+            $this->db->table(Tables::name('reminders'))->insert(['reminder_key' => $key, 'scope_key' => $context->scope, 'task_id' => $task->id, 'actor_ref' => $context->actor, 'anchor' => $anchor, 'offset_seconds' => $offsetSeconds, 'absolute_at' => LocalTime::stamp($absolute), 'scheduled_at' => LocalTime::stamp($scheduled), 'source_revision' => $task->date_revision, 'channel' => $channel]);
             (new EventRecorder($this->db, $this->clock))->append($context, 'task', $taskKey, 'reminder_created', $operation, ['reminder_key' => $key], $task->id);
 
             return $this->get($context, $key);
@@ -355,6 +383,7 @@ final class ReminderService
 
     public function snooze(ExecutionContext $context, string $key, int $version, \DateTimeImmutable $until, string $operation): array
     {
+        $context->validateTenant();
         $this->authorize($context);
         if ($until <= $this->clock->now() || $until > $this->clock->now()->modify('+366 days')) {
             throw new DomainError('snooze_invalid');
@@ -368,8 +397,8 @@ final class ReminderService
             } if ($reminder['state'] === 'cancelled') {
                 throw new DomainError('reminder_cancelled');
             }
-            $this->db->table('tm_reminders')->where('id', $reminder['id'])->update(['scheduled_at' => LocalTime::stamp($until), 'state' => 'pending', 'version' => $version + 1, 'generation' => $reminder['generation'] + 1]);
-            $taskKey = $this->db->table('tm_tasks')->where('id', $reminder['task_id'])->value('public_key');
+            $this->db->table(Tables::name('reminders'))->where('id', $reminder['id'])->update(['scheduled_at' => LocalTime::stamp($until), 'state' => 'pending', 'version' => $version + 1, 'generation' => $reminder['generation'] + 1]);
+            $taskKey = $this->db->table(Tables::name('tasks'))->where('id', $reminder['task_id'])->value('public_key');
             (new EventRecorder($this->db, $this->clock))->append($context, 'task', $taskKey, 'reminder_snoozed', $operation, ['reminder_key' => $key], $reminder['task_id']);
 
             return $this->get($context, $key);
@@ -378,16 +407,17 @@ final class ReminderService
 
     public function dispatch(ExecutionContext $context, int $limit = 100): array
     {
+        $context->validateTenant();
         $this->authorize($context);
         if (! $context->serviceActor || $this->db->transactionLevel() !== 0 || $limit < 1 || $limit > 1000) {
             throw new DomainError('scheduler_context_invalid');
         }
-        $ids = $this->db->table('tm_reminders')->where('scope_key', $context->scope)->where('actor_ref', $context->actor)->where('state', 'pending')->where('scheduled_at', '<=', LocalTime::stamp($this->clock->now()))->orderBy('scheduled_at')->orderBy('id')->limit($limit)->pluck('id');
+        $ids = $this->db->table(Tables::name('reminders'))->where('scope_key', $context->scope)->where('actor_ref', $context->actor)->where('state', 'pending')->where('scheduled_at', '<=', LocalTime::stamp($this->clock->now()))->orderBy('scheduled_at')->orderBy('id')->limit($limit)->pluck('id');
         $result = ['queued' => 0, 'deferred' => 0, 'cancelled' => 0];
         foreach ($ids as $id) {
             $outcome = $this->db->transaction(function () use ($context, $id) {
                 ScopeGraphLock::acquire($this->db, $context);
-                $row = $this->db->table('tm_reminders')->where('id', $id)->where('state', 'pending')->lockForUpdate()->first();
+                $row = $this->db->table(Tables::name('reminders'))->where('id', $id)->where('state', 'pending')->lockForUpdate()->first();
                 if (! $row || $row->scheduled_at > LocalTime::stamp($this->clock->now())) {
                     return null;
                 }
@@ -396,26 +426,26 @@ final class ReminderService
                 }
                 $task = $this->tasks->authorizedQuery($context)->where('id', $row->task_id)->whereNull('deleted_at')->whereNull('archived_at')->lockForUpdate()->first();
                 if (! $task || StateIndex::currentTaskIds($this->db, $context->scope, ['done', 'cancelled'])->where('task_id', $row->task_id)->exists() || $row->source_revision !== $task->date_revision) {
-                    $this->db->table('tm_reminders')->where('id', $id)->update(['state' => 'cancelled']);
+                    $this->db->table(Tables::name('reminders'))->where('id', $id)->update(['state' => 'cancelled']);
 
                     return 'cancelled';
                 }
                 $allowed = $this->preferences->nextAllowed($context, $row->channel, $this->clock->now());
                 if ($allowed === null) {
-                    $this->db->table('tm_reminders')->where('id', $id)->update(['state' => 'cancelled']);
+                    $this->db->table(Tables::name('reminders'))->where('id', $id)->update(['state' => 'cancelled']);
 
                     return 'cancelled';
                 }
                 if ($allowed > $this->clock->now()) {
-                    $this->db->table('tm_reminders')->where('id', $id)->update(['scheduled_at' => LocalTime::stamp($allowed)]);
+                    $this->db->table(Tables::name('reminders'))->where('id', $id)->update(['scheduled_at' => LocalTime::stamp($allowed)]);
 
                     return 'deferred';
                 }
                 $operation = 'reminder:'.$id.':'.$row->generation;
                 (new EventRecorder($this->db, $this->clock))->append($context, 'task', $task->public_key, 'reminder_due', $operation, ['reminder_key' => $row->reminder_key, 'generation' => $row->generation, 'recipient_ref' => $context->actor, 'channel' => $row->channel], $task->id);
-                $eventId = $this->db->table('tm_outbox')->where('scope_key', $context->scope)->where('operation_id', $operation)->where('action', 'reminder_due')->value('event_id');
-                $this->db->table('tm_reminder_deliveries')->insert(['reminder_id' => $id, 'generation' => $row->generation, 'event_id' => $eventId, 'created_at' => LocalTime::stamp($this->clock->now())]);
-                $this->db->table('tm_reminders')->where('id', $id)->update(['state' => 'sent']);
+                $eventId = $this->db->table(Tables::name('outbox'))->where('scope_key', $context->scope)->where('operation_id', $operation)->where('action', 'reminder_due')->value('event_id');
+                $this->db->table(Tables::name('reminder_deliveries'))->insert(['reminder_id' => $id, 'generation' => $row->generation, 'event_id' => $eventId, 'created_at' => LocalTime::stamp($this->clock->now())]);
+                $this->db->table(Tables::name('reminders'))->where('id', $id)->update(['state' => 'sent']);
 
                 return 'queued';
             }, 3);

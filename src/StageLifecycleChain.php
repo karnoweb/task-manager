@@ -13,6 +13,7 @@ final readonly class StageLifecycleChain implements StageLifecycle
 
     public function activated(ExecutionContext $context, int $instanceId, string $operationId): void
     {
+        $context->validateTenant();
         foreach ($this->hooks as $hook) {
             $hook->activated($context, $instanceId, $operationId);
         }
@@ -20,6 +21,7 @@ final readonly class StageLifecycleChain implements StageLifecycle
 
     public function entered(ExecutionContext $context, int $instanceId, int $visitId, object $stage, string $operationId): void
     {
+        $context->validateTenant();
         foreach ($this->hooks as $hook) {
             $hook->entered($context, $instanceId, $visitId, $stage, $operationId);
         }
@@ -27,6 +29,7 @@ final readonly class StageLifecycleChain implements StageLifecycle
 
     public function leaving(ExecutionContext $context, int $instanceId): void
     {
+        $context->validateTenant();
         foreach (array_reverse($this->hooks) as $hook) {
             $hook->leaving($context, $instanceId);
         }
@@ -34,6 +37,7 @@ final readonly class StageLifecycleChain implements StageLifecycle
 
     public function activity(ExecutionContext $context, int $instanceId): void
     {
+        $context->validateTenant();
         foreach ($this->hooks as $hook) {
             $hook->activity($context, $instanceId);
         }
@@ -41,6 +45,7 @@ final readonly class StageLifecycleChain implements StageLifecycle
 
     public function beforeTransition(ExecutionContext $context, array $instance, array $edge, array $payload): void
     {
+        $context->validateTenant();
         foreach ($this->hooks as $hook) {
             $hook->beforeTransition($context, $instance, $edge, $payload);
         }

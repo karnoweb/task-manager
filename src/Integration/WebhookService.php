@@ -13,11 +13,13 @@ use Karnoweb\TaskManager\Contracts\WebhookTransport;
 use Karnoweb\TaskManager\EventRecorder;
 use Karnoweb\TaskManager\Exceptions\DomainError;
 use Karnoweb\TaskManager\Scheduling\LocalTime;
+use Karnoweb\TaskManager\Schema\Tables;
 
 final class WebhookService
 {
     public function __construct(private readonly Connection $db, private readonly Clock $clock, private readonly AuthorizationProvider $authorization, private readonly EventAccess $access, private readonly WebhookUrlPolicy $urls, private readonly SecretVault $vault, private readonly WebhookTransport $transport)
     {
+        Tables::assertConnection($db);
     }
 
     private function authorize(ExecutionContext $context): void
@@ -35,7 +37,7 @@ final class WebhookService
             throw new DomainError('webhook_secret_invalid');
         }
 
-return $secret;
+        return $secret;
     }
 
     private function validate(ExecutionContext $context, string $url, string $secretRef, array $types): void
@@ -53,27 +55,29 @@ return $secret;
 
     public function get(ExecutionContext $context, string $key): array
     {
+        $context->validateTenant();
         $this->authorize($context);
         if (! Str::isUuid($key)) {
             throw new DomainError('not_found');
-        }$row = $this->db->table('tm_webhook_endpoints')->where('scope_key', $context->scope)->where('owner_ref', $context->actor)->where('endpoint_key', $key)->first();
+        }$row = $this->db->table(Tables::name('webhook_endpoints'))->where('scope_key', $context->scope)->where('owner_ref', $context->actor)->where('endpoint_key', $key)->first();
         if (! $row) {
             throw new DomainError('not_found');
         }
 
-return [...(array) $row, 'event_types' => json_decode($row->event_types, true, flags: JSON_THROW_ON_ERROR)];
+        return [...(array) $row, 'event_types' => json_decode($row->event_types, true, flags: JSON_THROW_ON_ERROR)];
     }
 
     public function create(ExecutionContext $context, string $url, string $secretRef, array $types, string $operation): array
     {
+        $context->validateTenant();
         $this->authorize($context);
         $this->validate($context, $url, $secretRef, $types);
 
         return (new CommandExecutor($this->db))->execute($context, $operation, ['action' => 'webhook_create', 'url' => $url, 'secret_ref' => $secretRef, 'types' => $types], function () use ($context, $url, $secretRef, $types, $operation) {
-            if ($this->db->table('tm_webhook_endpoints')->where('scope_key', $context->scope)->where('owner_ref', $context->actor)->count() >= 100) {
+            if ($this->db->table(Tables::name('webhook_endpoints'))->where('scope_key', $context->scope)->where('owner_ref', $context->actor)->count() >= 100) {
                 throw new DomainError('webhook_endpoint_limit');
             }$key = (string) Str::uuid();
-            $this->db->table('tm_webhook_endpoints')->insert(['endpoint_key' => $key, 'scope_key' => $context->scope, 'owner_ref' => $context->actor, 'url' => $url, 'secret_ref' => $secretRef, 'event_types' => json_encode($types, JSON_THROW_ON_ERROR)]);
+            $this->db->table(Tables::name('webhook_endpoints'))->insert(['endpoint_key' => $key, 'scope_key' => $context->scope, 'owner_ref' => $context->actor, 'url' => $url, 'secret_ref' => $secretRef, 'event_types' => json_encode($types, JSON_THROW_ON_ERROR)]);
             (new EventRecorder($this->db, $this->clock))->append($context, 'webhook_endpoint', $key, 'webhook_registered', $operation, ['event_types' => $types]);
 
             return $this->get($context, $key);
@@ -82,12 +86,13 @@ return [...(array) $row, 'event_types' => json_decode($row->event_types, true, f
 
     public function change(ExecutionContext $context, string $key, int $version, string $url, string $secretRef, array $types, bool $active, string $operation): array
     {
+        $context->validateTenant();
         $this->authorize($context);
         $this->validate($context, $url, $secretRef, $types);
 
         return (new CommandExecutor($this->db))->execute($context, $operation, ['action' => 'webhook_change', 'key' => $key, 'version' => $version, 'url' => $url, 'secret_ref' => $secretRef, 'types' => $types, 'active' => $active], function () use ($context, $key, $version, $url, $secretRef, $types, $active, $operation) {
             $row = $this->get($context, $key);
-            $changed = $this->db->table('tm_webhook_endpoints')->where('id', $row['id'])->where('version', $version)->update(['url' => $url, 'secret_ref' => $secretRef, 'event_types' => json_encode($types, JSON_THROW_ON_ERROR), 'active' => $active, 'version' => $version + 1]);
+            $changed = $this->db->table(Tables::name('webhook_endpoints'))->where('id', $row['id'])->where('version', $version)->update(['url' => $url, 'secret_ref' => $secretRef, 'event_types' => json_encode($types, JSON_THROW_ON_ERROR), 'active' => $active, 'version' => $version + 1]);
             if ($changed !== 1) {
                 throw new DomainError('version_conflict');
             }(new EventRecorder($this->db, $this->clock))->append($context, 'webhook_endpoint', $key, 'webhook_changed', $operation, ['version' => $version + 1]);
@@ -98,34 +103,36 @@ return [...(array) $row, 'event_types' => json_decode($row->event_types, true, f
 
     public function queue(ExecutionContext $context, string $eventId): int
     {
+        $context->validateTenant();
         $this->authorize($context);
         if (! Str::isUuid($eventId)) {
             throw new DomainError('not_found');
-        }$event = $this->db->table('tm_outbox')->where('scope_key', $context->scope)->where('event_id', $eventId)->first();
+        }$event = $this->db->table(Tables::name('outbox'))->where('scope_key', $context->scope)->where('event_id', $eventId)->first();
         if (! $event) {
             throw new DomainError('not_found');
         }$this->access->source($context, (array) $event);
-        $rows = $this->db->table('tm_webhook_endpoints')->where('scope_key', $context->scope)->where('owner_ref', $context->actor)->where('active', true)->orderBy('id')->limit(101)->get();
+        $rows = $this->db->table(Tables::name('webhook_endpoints'))->where('scope_key', $context->scope)->where('owner_ref', $context->actor)->where('active', true)->orderBy('id')->limit(101)->get();
         if ($rows->count() > 100) {
             throw new DomainError('webhook_endpoint_limit');
         }$count = 0;
         foreach ($rows as $row) {
             if (in_array($event->action, json_decode($row->event_types, true, flags: JSON_THROW_ON_ERROR), true)) {
-                $count += $this->db->table('tm_webhook_deliveries')->insertOrIgnore(['endpoint_id' => $row->id, 'event_id' => $eventId, 'endpoint_version' => $row->version]);
+                $count += $this->db->table(Tables::name('webhook_deliveries'))->insertOrIgnore(['endpoint_id' => $row->id, 'event_id' => $eventId, 'endpoint_version' => $row->version]);
             }
         }
 
-return $count;
+        return $count;
     }
 
     public function deliveries(ExecutionContext $context, int $afterId = 0, int $limit = 100): array
     {
+        $context->validateTenant();
         $this->authorize($context);
         if ($afterId < 0 || $limit < 1 || $limit > 100) {
             throw new DomainError('pagination_invalid');
         }
 
-return $this->db->table('tm_webhook_deliveries')->whereIn('endpoint_id', $this->db->table('tm_webhook_endpoints')->where('scope_key', $context->scope)->where('owner_ref', $context->actor)->select('id'))->where('id', '>', $afterId)->orderBy('id')->limit($limit)->get()->map(function ($row) {
+        return $this->db->table(Tables::name('webhook_deliveries'))->whereIn('endpoint_id', $this->db->table(Tables::name('webhook_endpoints'))->where('scope_key', $context->scope)->where('owner_ref', $context->actor)->select('id'))->where('id', '>', $afterId)->orderBy('id')->limit($limit)->get()->map(function ($row) {
             $data = (array) $row;
             unset($data['lease_token']);
 
@@ -135,24 +142,25 @@ return $this->db->table('tm_webhook_deliveries')->whereIn('endpoint_id', $this->
 
     public function run(ExecutionContext $context, int $limit = 100): array
     {
+        $context->validateTenant();
         $this->authorize($context);
         if (! $context->serviceActor || $this->db->transactionLevel() !== 0 || $limit < 1 || $limit > 1000) {
             throw new DomainError('webhook_worker_context_invalid');
         }$now = LocalTime::stamp($this->clock->now());
-        $ids = $this->db->table('tm_webhook_deliveries')->whereIn('endpoint_id', $this->db->table('tm_webhook_endpoints')->where('scope_key', $context->scope)->where('owner_ref', $context->actor)->select('id'))->whereIn('state', ['pending', 'retry', 'sending'])->where(fn ($q) => $q->whereNull('next_attempt_at')->orWhere('next_attempt_at', '<=', $now))->where(fn ($q) => $q->whereNull('lease_until')->orWhere('lease_until', '<=', $now))->orderBy('id')->limit($limit)->pluck('id');
+        $ids = $this->db->table(Tables::name('webhook_deliveries'))->whereIn('endpoint_id', $this->db->table(Tables::name('webhook_endpoints'))->where('scope_key', $context->scope)->where('owner_ref', $context->actor)->select('id'))->whereIn('state', ['pending', 'retry', 'sending'])->where(fn ($q) => $q->whereNull('next_attempt_at')->orWhere('next_attempt_at', '<=', $now))->where(fn ($q) => $q->whereNull('lease_until')->orWhere('lease_until', '<=', $now))->orderBy('id')->limit($limit)->pluck('id');
         $result = ['delivered' => 0, 'retry' => 0, 'dead' => 0, 'cancelled' => 0];
         foreach ($ids as $id) {
             $token = (string) Str::uuid();
             $claim = $this->db->transaction(function () use ($id, $token, $now) {
-                $row = $this->db->table('tm_webhook_deliveries')->where('id', $id)->lockForUpdate()->first();
+                $row = $this->db->table(Tables::name('webhook_deliveries'))->where('id', $id)->lockForUpdate()->first();
                 if (! in_array($row->state, ['pending', 'retry', 'sending'], true) || ($row->lease_until !== null && $row->lease_until > $now) || ($row->next_attempt_at !== null && $row->next_attempt_at > $now)) {
                     return null;
-                }$endpoint = $this->db->table('tm_webhook_endpoints')->where('id', $row->endpoint_id)->first();
+                }$endpoint = $this->db->table(Tables::name('webhook_endpoints'))->where('id', $row->endpoint_id)->first();
                 if (! $endpoint->active || $endpoint->version !== $row->endpoint_version) {
-                    $this->db->table('tm_webhook_deliveries')->where('id', $id)->update(['state' => 'cancelled', 'reason_code' => 'endpoint_changed', 'version' => $row->version + 1]);
+                    $this->db->table(Tables::name('webhook_deliveries'))->where('id', $id)->update(['state' => 'cancelled', 'reason_code' => 'endpoint_changed', 'version' => $row->version + 1]);
 
                     return null;
-                }$this->db->table('tm_webhook_deliveries')->where('id', $id)->update(['state' => 'sending', 'attempts' => $row->attempts + 1, 'lease_token' => $token, 'lease_until' => LocalTime::stamp($this->clock->now()->modify('+30 seconds')), 'version' => $row->version + 1]);
+                }$this->db->table(Tables::name('webhook_deliveries'))->where('id', $id)->update(['state' => 'sending', 'attempts' => $row->attempts + 1, 'lease_token' => $token, 'lease_until' => LocalTime::stamp($this->clock->now()->modify('+30 seconds')), 'version' => $row->version + 1]);
 
                 return ['delivery' => (array) $row, 'endpoint' => (array) $endpoint];
             }, 3);
@@ -163,7 +171,7 @@ return $this->db->table('tm_webhook_deliveries')->whereIn('endpoint_id', $this->
             $status = null;
             try {
                 $endpoint = $claim['endpoint'];
-                $event = $this->db->table('tm_outbox')->where('scope_key', $context->scope)->where('event_id', $claim['delivery']['event_id'])->first();
+                $event = $this->db->table(Tables::name('outbox'))->where('scope_key', $context->scope)->where('event_id', $claim['delivery']['event_id'])->first();
                 if (! $event) {
                     throw new DomainError('not_found');
                 }$this->access->source($context, (array) $event);
@@ -190,36 +198,37 @@ return $this->db->table('tm_webhook_deliveries')->whereIn('endpoint_id', $this->
             }
             $attempt = $claim['delivery']['attempts'] + 1;
             $delay = [5, 30, 120, 600, 3600][min($attempt - 1, 4)];
-            $changed = $this->db->table('tm_webhook_deliveries')->where('id', $id)->where('state', 'sending')->where('lease_token', $token)->where('lease_until', '>', LocalTime::stamp($this->clock->now()))->update(['state' => $state, 'reason_code' => $reason, 'response_status' => $status, 'next_attempt_at' => $state === 'retry' ? LocalTime::stamp($this->clock->now()->modify('+'.$delay.' seconds')) : null, 'lease_token' => null, 'lease_until' => null]);
+            $changed = $this->db->table(Tables::name('webhook_deliveries'))->where('id', $id)->where('state', 'sending')->where('lease_token', $token)->where('lease_until', '>', LocalTime::stamp($this->clock->now()))->update(['state' => $state, 'reason_code' => $reason, 'response_status' => $status, 'next_attempt_at' => $state === 'retry' ? LocalTime::stamp($this->clock->now()->modify('+'.$delay.' seconds')) : null, 'lease_token' => null, 'lease_until' => null]);
             if ($changed) {
                 $result[$state]++;
             }
         }
 
-return $result;
+        return $result;
     }
 
     public function retry(ExecutionContext $context, int $deliveryId, int $version, string $operation): array
     {
+        $context->validateTenant();
         $this->authorize($context);
 
         return (new CommandExecutor($this->db))->execute($context, $operation, ['action' => 'webhook_retry', 'id' => $deliveryId, 'version' => $version], function () use ($context, $deliveryId, $version, $operation) {
-            $row = $this->db->table('tm_webhook_deliveries')->where('id', $deliveryId)->whereIn('endpoint_id', $this->db->table('tm_webhook_endpoints')->where('scope_key', $context->scope)->where('owner_ref', $context->actor)->select('id'))->lockForUpdate()->first();
+            $row = $this->db->table(Tables::name('webhook_deliveries'))->where('id', $deliveryId)->whereIn('endpoint_id', $this->db->table(Tables::name('webhook_endpoints'))->where('scope_key', $context->scope)->where('owner_ref', $context->actor)->select('id'))->lockForUpdate()->first();
             if (! $row) {
                 throw new DomainError('not_found');
             }if ($row->version !== $version) {
                 throw new DomainError('version_conflict');
             }if (! in_array($row->state, ['dead', 'cancelled'], true)) {
                 throw new DomainError('webhook_retry_invalid');
-            }$endpoint = $this->db->table('tm_webhook_endpoints')->where('id', $row->endpoint_id)->first();
-            $event = $this->db->table('tm_outbox')->where('event_id', $row->event_id)->where('scope_key', $context->scope)->first();
+            }$endpoint = $this->db->table(Tables::name('webhook_endpoints'))->where('id', $row->endpoint_id)->first();
+            $event = $this->db->table(Tables::name('outbox'))->where('event_id', $row->event_id)->where('scope_key', $context->scope)->first();
             $this->access->source($context, (array) $event);
-            $this->db->table('tm_webhook_deliveries')->where('id', $deliveryId)->update(['state' => 'pending', 'attempts' => 0, 'version' => $version + 1, 'endpoint_version' => $endpoint->version, 'next_attempt_at' => null, 'reason_code' => null]);
+            $this->db->table(Tables::name('webhook_deliveries'))->where('id', $deliveryId)->update(['state' => 'pending', 'attempts' => 0, 'version' => $version + 1, 'endpoint_version' => $endpoint->version, 'next_attempt_at' => null, 'reason_code' => null]);
             (new EventRecorder($this->db, $this->clock))->append($context, 'webhook_endpoint', $endpoint->endpoint_key, 'webhook_retried', $operation, ['delivery_id' => $deliveryId]);
 
             return ['delivery_id' => $deliveryId, 'version' => $version + 1];
         }, function ($result) use ($context) {
-            if (! $this->db->table('tm_webhook_deliveries')->where('id', $result['delivery_id'])->whereIn('endpoint_id', $this->db->table('tm_webhook_endpoints')->where('scope_key', $context->scope)->where('owner_ref', $context->actor)->select('id'))->exists()) {
+            if (! $this->db->table(Tables::name('webhook_deliveries'))->where('id', $result['delivery_id'])->whereIn('endpoint_id', $this->db->table(Tables::name('webhook_endpoints'))->where('scope_key', $context->scope)->where('owner_ref', $context->actor)->select('id'))->exists()) {
                 throw new DomainError('not_found');
             }
         });
@@ -227,13 +236,14 @@ return $result;
 
     public function verifyIncoming(ExecutionContext $context, string $key, string $timestamp, string $eventId, string $body, string $signature): bool
     {
-        $endpoint = $this->get($context,$key);
-        WebhookSignature::verify($this->secret($context,$endpoint['secret_ref']),$timestamp,$eventId,$body,$signature,$this->clock->now());
-        $data = json_decode($body,true);
+        $context->validateTenant();
+        $endpoint = $this->get($context, $key);
+        WebhookSignature::verify($this->secret($context, $endpoint['secret_ref']), $timestamp, $eventId, $body, $signature, $this->clock->now());
+        $data = json_decode($body, true);
         if (! is_array($data) || ($data['scope_key'] ?? null) !== $context->scope || ($data['event_id'] ?? null) !== $eventId || ($data['schema_version'] ?? null) !== 1) {
             throw new DomainError('webhook_scope_or_schema_invalid');
         }
 
-return (bool) $this->db->table('tm_webhook_receipts')->insertOrIgnore(['endpoint_id' => $endpoint['id'], 'event_id' => $eventId, 'received_at' => LocalTime::stamp($this->clock->now())]);
+        return (bool) $this->db->table(Tables::name('webhook_receipts'))->insertOrIgnore(['endpoint_id' => $endpoint['id'], 'event_id' => $eventId, 'received_at' => LocalTime::stamp($this->clock->now())]);
     }
 }

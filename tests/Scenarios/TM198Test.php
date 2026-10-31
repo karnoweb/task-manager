@@ -26,7 +26,7 @@ final class TM198Test extends SlaTestCase
         self::assertCount(3, $bv);
         self::assertSame(3600, $av[2]['remaining_seconds']);
         self::assertSame(2400, $bv[2]['remaining_seconds']);
-        self::assertSame(1200,$av[0]['elapsed_seconds']);
+        self::assertSame(1200, $av[0]['elapsed_seconds']);
         self::assertNotNull($av[0]['exited_at']);
     }
 }

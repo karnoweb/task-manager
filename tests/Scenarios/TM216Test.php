@@ -23,6 +23,6 @@ final class TM216Test extends EnterpriseProcessTestCase
         $events = DB::table('tm_outbox')->count();
         self::assertSame($result, $automation->run($this->worker(), $event->event_id));
         self::assertSame($events, DB::table('tm_outbox')->count());
-        self::assertGreaterThan(0, DB::table('tm_event_lineage')->where('root_event_id', $event->event_id)->where('depth',1)->count());
+        self::assertGreaterThan(0, DB::table('tm_event_lineage')->where('root_event_id', $event->event_id)->where('depth', 1)->count());
     }
 }

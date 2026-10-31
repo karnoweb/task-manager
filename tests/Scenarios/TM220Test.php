@@ -36,6 +36,6 @@ final class TM220Test extends PhaseSixTestCase
         self::assertSame($before, $legacy->fresh()->getAttributes());
         $this->app->make(TaskService::class)->reschedule($legacy, Carbon::parse('2026-10-25'));
         self::assertSame('2026-10-25', $legacy->fresh()->due_at->format('Y-m-d'));
-        $this->error('not_found', fn () => $this->dates()->change($c,$key,$task['version'],null,null,'2026-10-26 00:00:00','UTC',false,'reject','rolled-back-edit'));
+        $this->error('not_found', fn () => $this->dates()->change($c, $key, $task['version'], null, null, '2026-10-26 00:00:00', 'UTC', false, 'reject', 'rolled-back-edit'));
     }
 }

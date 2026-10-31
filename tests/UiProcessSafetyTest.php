@@ -105,10 +105,10 @@ final class UiProcessSafetyTest extends PhaseSixTestCase
     {
         [$legacy,$b] = $this->migrationTasks();
         $this->cutover()->importBatch($this->manager(), 'crm.tasks', 1, 0, 'import');
-        DB::table('crm_followups')->where('id',$legacy->id)->delete();
-        $result = $this->cutover()->reconcile($this->manager(),'crm.tasks');
+        DB::table('crm_followups')->where('id', $legacy->id)->delete();
+        $result = $this->cutover()->reconcile($this->manager(), 'crm.tasks');
         self::assertFalse($result['consistent']);
-        self::assertContains('inventory_count',$result['problems']);
-        $this->error('reconciliation_required',fn () => $this->cutover()->switch($this->manager(),'crm.tasks',1,'active','cutover'));
+        self::assertContains('inventory_count', $result['problems']);
+        $this->error('reconciliation_required', fn () => $this->cutover()->switch($this->manager(), 'crm.tasks', 1, 'active', 'cutover'));
     }
 }

@@ -36,6 +36,6 @@ final class TM136Test extends PhaseFiveTestCase
     {
         $base = $this->manager();
 
-        return new ExecutionContext('one','a','automation-worker',true,$base->capabilities);
+        return new ExecutionContext('one', 'a', 'automation-worker', true, $base->capabilities);
     }
 }

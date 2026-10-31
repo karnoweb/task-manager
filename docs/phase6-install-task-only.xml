@@ -1,6 +1,0 @@
-<?xml version="1.0" encoding="UTF-8"?>
-<testsuites>
-  <testsuite name="InstallationProbe" file="D:\my-packages\task-manager\tests\HostProfiles\InstallationProbe.php" tests="1" assertions="9" errors="0" failures="0" skipped="0" time="0.669431">
-    <testcase name="test_installed_profile_boots_real_packages_and_persists_only_its_own_truth" file="D:\my-packages\task-manager\tests\HostProfiles\InstallationProbe.php" line="74" class="InstallationProbe" classname="InstallationProbe" assertions="9" time="0.669431"/>
-  </testsuite>
-</testsuites>

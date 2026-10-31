@@ -20,6 +20,6 @@ final class TM119Test extends PhaseFiveTestCase
         $second = $this->recurrence()->generate($this->manager(), $series['series_key'], 1, $from, $until, 'generator-b');
         self::assertCount(3, $first['created']);
         self::assertSame([], $second['created']);
-        self::assertSame(3,DB::table('tm_recurrence_occurrences')->count());
+        self::assertSame(3, DB::table('tm_recurrence_occurrences')->count());
     }
 }

@@ -4,16 +4,19 @@ namespace Karnoweb\TaskManager\Responsibility;
 
 use Illuminate\Database\Connection;
 use Karnoweb\TaskManager\Context\ExecutionContext;
+use Karnoweb\TaskManager\Context\TenantBoundary;
 use Karnoweb\TaskManager\Contracts\Clock;
 use Karnoweb\TaskManager\Contracts\ResponsibilityResolver;
 use Karnoweb\TaskManager\Contracts\StageLifecycle;
 use Karnoweb\TaskManager\EventRecorder;
 use Karnoweb\TaskManager\Exceptions\DomainError;
+use Karnoweb\TaskManager\Schema\Tables;
 
 final class AssignmentEngine implements StageLifecycle
 {
     public function __construct(private readonly Connection $db, private readonly Clock $clock, private readonly ResponsibilityResolver $resolver)
     {
+        Tables::assertConnection($db);
     }
 
     public function validate(array $policy): array
@@ -48,14 +51,15 @@ final class AssignmentEngine implements StageLifecycle
 
     public function policy(ExecutionContext $context, array $instance): array
     {
+        $context->validateTenant();
         $id = $instance['assignment_policy_id'];
         if ($id === null) {
-            $id = $this->db->table('tm_stage_visits')->where('instance_id', $instance['id'])->whereNull('exited_at')->value('assignment_policy_id');
+            $id = $this->db->table(Tables::name('stage_visits'))->where('instance_id', $instance['id'])->whereNull('exited_at')->value('assignment_policy_id');
         }
         if ($id === null) {
             return ['id' => null, 'definition' => $this->validate([])];
         }
-        $row = $this->db->table('tm_assignment_policies')->where('scope_key', $context->scope)->where('id', $id)->first();
+        $row = $this->db->table(Tables::name('assignment_policies'))->where('scope_key', $context->scope)->where('id', $id)->first();
         if (! $row) {
             throw new DomainError('assignment_policy_missing');
         }
@@ -65,6 +69,7 @@ final class AssignmentEngine implements StageLifecycle
 
     public function resolve(ExecutionContext $context, array $instance, array $policy): ?string
     {
+        $context->validateTenant();
         if ($policy['mode'] === 'follow_owner') {
             return $instance['owner_ref'];
         }
@@ -85,16 +90,17 @@ final class AssignmentEngine implements StageLifecycle
             return $candidates[0];
         }
         $key = ['scope_key' => $context->scope, 'reference_key' => hash('sha256', $policy['reference'])];
-        $this->db->table('tm_assignment_queues')->insertOrIgnore($key + ['position' => 0]);
-        $queue = $this->db->table('tm_assignment_queues')->where($key)->lockForUpdate()->first();
+        $this->db->table(Tables::name('assignment_queues'))->insertOrIgnore($key + ['position' => 0]);
+        $queue = $this->db->table(Tables::name('assignment_queues'))->where($key)->lockForUpdate()->first();
         $chosen = $candidates[$queue->position % count($candidates)];
-        $this->db->table('tm_assignment_queues')->where($key)->increment('position');
+        $this->db->table(Tables::name('assignment_queues'))->where($key)->increment('position');
 
         return $chosen;
     }
 
     public function assign(ExecutionContext $context, array $instance, array $policy, ?int $policyId, ?string $primary, array $secondary, string $reason, ?int $visitId = null, bool $validateEligibility = true): void
     {
+        $context->validateTenant();
         if ($this->db->transactionLevel() < 1) {
             throw new DomainError('assignment_requires_transaction');
         }
@@ -119,22 +125,24 @@ final class AssignmentEngine implements StageLifecycle
             if ($validateEligibility && ! $this->resolver->eligible($context, $actor, 'assignment')) {
                 throw new DomainError('assignment_unresolvable');
             }
+            TenantBoundary::validateActor($context, $actor);
         }
         $now = $this->now();
         $this->close($context, $instance['id']);
         foreach ($actors as $actor) {
             $kind = $actor === $primary ? 'primary' : 'secondary';
-            $assignment = $this->db->table('tm_instance_assignments')->insertGetId(['scope_key' => $context->scope, 'instance_id' => $instance['id'], 'actor_ref' => $actor,
+            $assignment = $this->db->table(Tables::name('instance_assignments'))->insertGetId(['scope_key' => $context->scope, 'instance_id' => $instance['id'], 'actor_ref' => $actor,
                 'kind' => $kind, 'active_from' => $now, 'assigned_by' => $context->actor, 'reason_code' => $reason, 'policy_id' => $policyId, 'visit_id' => $visitId]);
-            $this->db->table('tm_assignment_slots')->insert(['instance_id' => $instance['id'], 'slot_key' => $kind === 'primary' ? 'primary' : 'secondary:'.hash('sha256', $actor), 'actor_ref' => $actor, 'assignment_id' => $assignment]);
+            $this->db->table(Tables::name('assignment_slots'))->insert(['instance_id' => $instance['id'], 'slot_key' => $kind === 'primary' ? 'primary' : 'secondary:'.hash('sha256', $actor), 'actor_ref' => $actor, 'assignment_id' => $assignment]);
         }
-        $this->db->table('tm_workflow_instances')->where('id', $instance['id'])->update(['primary_assignee' => $primary,
+        $this->db->table(Tables::name('workflow_instances'))->where('id', $instance['id'])->update(['primary_assignee' => $primary,
             'assignment_snapshot' => json_encode(['primary' => $primary, 'secondary' => $secondary, 'policy_id' => $policyId, 'max_assignees' => $policy['max_assignees'], 'allow_unassigned' => $policy['allow_unassigned']], JSON_THROW_ON_ERROR)]);
     }
 
     public function activated(ExecutionContext $context, int $instanceId, string $operationId): void
     {
-        $instance = (array) $this->db->table('tm_workflow_instances')->where('scope_key', $context->scope)->where('id', $instanceId)->first();
+        $context->validateTenant();
+        $instance = (array) $this->db->table(Tables::name('workflow_instances'))->where('scope_key', $context->scope)->where('id', $instanceId)->first();
         if ($instance['assignment_snapshot'] === null) {
             return;
         }
@@ -147,7 +155,8 @@ final class AssignmentEngine implements StageLifecycle
 
     public function entered(ExecutionContext $context, int $instanceId, int $visitId, object $stage, string $operationId): void
     {
-        $instance = (array) $this->db->table('tm_workflow_instances')->where('scope_key', $context->scope)->where('id', $instanceId)->first();
+        $context->validateTenant();
+        $instance = (array) $this->db->table(Tables::name('workflow_instances'))->where('scope_key', $context->scope)->where('id', $instanceId)->first();
         $policyId = $instance['assignment_policy_id'] ?? $stage->assignment_policy_id;
         if ($policyId === null) {
             $snapshot = $instance['assignment_snapshot'] === null ? null : json_decode($instance['assignment_snapshot'], true, flags: JSON_THROW_ON_ERROR);
@@ -157,11 +166,11 @@ final class AssignmentEngine implements StageLifecycle
 
             return;
         }
-        $row = $this->db->table('tm_assignment_policies')->where('scope_key', $context->scope)->where('id', $policyId)->first();
+        $row = $this->db->table(Tables::name('assignment_policies'))->where('scope_key', $context->scope)->where('id', $policyId)->first();
         if (! $row) {
             throw new DomainError('assignment_policy_missing');
         } $policy = json_decode($row->definition, true, flags: JSON_THROW_ON_ERROR);
-        $this->db->table('tm_stage_visits')->where('id', $visitId)->update(['assignment_policy_id' => $policyId]);
+        $this->db->table(Tables::name('stage_visits'))->where('id', $visitId)->update(['assignment_policy_id' => $policyId]);
         $snapshot = $instance['assignment_snapshot'] === null ? null : json_decode($instance['assignment_snapshot'], true, flags: JSON_THROW_ON_ERROR);
         $preserve = $instance['assignment_policy_id'] === $policyId && in_array($policy['mode'], ['fixed', 'manual'], true) && ($snapshot['policy_id'] ?? null) === $policyId;
         $primary = $preserve ? $snapshot['primary'] : $this->resolve($context, $instance, $policy);
@@ -173,21 +182,25 @@ final class AssignmentEngine implements StageLifecycle
 
     public function close(ExecutionContext $context, int $instanceId): void
     {
-        $this->db->table('tm_instance_assignments')->where('scope_key', $context->scope)->where('instance_id', $instanceId)->whereNull('active_to')->update(['active_to' => $this->now()]);
-        $this->db->table('tm_assignment_slots')->where('instance_id', $instanceId)->delete();
+        $context->validateTenant();
+        $this->db->table(Tables::name('instance_assignments'))->where('scope_key', $context->scope)->where('instance_id', $instanceId)->whereNull('active_to')->update(['active_to' => $this->now()]);
+        $this->db->table(Tables::name('assignment_slots'))->where('instance_id', $instanceId)->delete();
     }
 
     public function leaving(ExecutionContext $context, int $instanceId): void
     {
+        $context->validateTenant();
         $this->close($context, $instanceId);
     }
 
     public function activity(ExecutionContext $context, int $instanceId): void
     {
+        $context->validateTenant();
     }
 
     public function beforeTransition(ExecutionContext $context, array $instance, array $edge, array $payload): void
     {
+        $context->validateTenant();
     }
 
     private function now(): string

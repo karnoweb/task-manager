@@ -54,7 +54,7 @@ final class ReminderCoreTest extends PhaseFiveTestCase
         self::assertSame(0, $this->reminders()->dispatch($this->worker())['queued']);
         $this->clock->advance('+1 hour');
         self::assertSame(1, $this->reminders()->dispatch($this->worker())['queued']);
-        self::assertSame(1,DB::table('tm_reminder_deliveries')->count());
-        $this->error('scheduler_context_invalid',fn () => $this->reminders()->dispatch($this->manager()));
+        self::assertSame(1, DB::table('tm_reminder_deliveries')->count());
+        $this->error('scheduler_context_invalid', fn () => $this->reminders()->dispatch($this->manager()));
     }
 }

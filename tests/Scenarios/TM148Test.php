@@ -22,6 +22,6 @@ final class TM148Test extends WorkflowTestCase
         self::assertSame(hash('sha256', 'Changed'), $body['after_redacted']['title_hash']);
         self::assertSame('workflow-test', $events[1]->correlation_id);
         self::assertSame('a', $events[1]->actor_ref);
-        self::assertSame(3, $this->service()->get($c,$t['public_key'])['version']);
+        self::assertSame(3, $this->service()->get($c, $t['public_key'])['version']);
     }
 }

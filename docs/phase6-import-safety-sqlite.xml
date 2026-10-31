@@ -1,9 +1,0 @@
-<?xml version="1.0" encoding="UTF-8"?>
-<testsuites>
-  <testsuite name="Karnoweb\TaskManager\Tests\CrmImportSafetyTest" file="D:\my-packages\task-manager\tests\CrmImportSafetyTest.php" tests="4" assertions="23" errors="0" failures="0" skipped="0" time="2.466951">
-    <testcase name="test_real_crm_recurrence_history_import_has_one_series_and_no_duplicate_generation" file="D:\my-packages\task-manager\tests\CrmImportSafetyTest.php" line="8" class="Karnoweb\TaskManager\Tests\CrmImportSafetyTest" classname="Karnoweb.TaskManager.Tests.CrmImportSafetyTest" assertions="11" time="1.090941"/>
-    <testcase name="test_unmapped_task_type_rolls_back_the_entire_import_and_its_events" file="D:\my-packages\task-manager\tests\CrmImportSafetyTest.php" line="17" class="Karnoweb\TaskManager\Tests\CrmImportSafetyTest" classname="Karnoweb.TaskManager.Tests.CrmImportSafetyTest" assertions="4" time="0.632023"/>
-    <testcase name="test_invalid_terminal_mapping_is_rejected_before_any_host_or_engine_write" file="D:\my-packages\task-manager\tests\CrmImportSafetyTest.php" line="21" class="Karnoweb\TaskManager\Tests\CrmImportSafetyTest" classname="Karnoweb.TaskManager.Tests.CrmImportSafetyTest" assertions="3" time="0.317150"/>
-    <testcase name="test_scoped_followup_association_rechecks_both_sides_and_never_leaks_private_crm_content" file="D:\my-packages\task-manager\tests\CrmImportSafetyTest.php" line="25" class="Karnoweb\TaskManager\Tests\CrmImportSafetyTest" classname="Karnoweb.TaskManager.Tests.CrmImportSafetyTest" assertions="5" time="0.426836"/>
-  </testsuite>
-</testsuites>

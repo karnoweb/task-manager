@@ -7,25 +7,29 @@ use Illuminate\Database\Query\Builder;
 use Illuminate\Support\Str;
 use Karnoweb\TaskManager\CommandExecutor;
 use Karnoweb\TaskManager\Context\ExecutionContext;
+use Karnoweb\TaskManager\Context\TenantBoundary;
 use Karnoweb\TaskManager\Contracts\AuthorizationProvider;
 use Karnoweb\TaskManager\Contracts\Clock;
 use Karnoweb\TaskManager\Contracts\StageLifecycle;
 use Karnoweb\TaskManager\Enterprise\VisibilityEpoch;
 use Karnoweb\TaskManager\EventRecorder;
 use Karnoweb\TaskManager\Exceptions\DomainError;
+use Karnoweb\TaskManager\Schema\Tables;
 use Karnoweb\TaskManager\TaskGraph\HierarchyIndex;
 use Karnoweb\TaskManager\TaskGraph\PreviewValue;
 use Karnoweb\TaskManager\TaskGraph\ScopeGraphLock;
+use Karnoweb\TaskManager\TaskRecord;
 use Karnoweb\TaskManager\TaskService;
 
 final class ProjectService
 {
     public function authorizedQuery(ExecutionContext $context): Builder
     {
+        $context->validateTenant();
         $context->require('project.view');
         $this->authorization->authorize($context, 'project.view');
-        $query = $this->db->table('tm_projects')->where('scope_key', $context->scope)->whereExists(function (Builder $q) use ($context) {
-            $q->selectRaw('1')->from('tm_project_members')->whereColumn('project_id', 'tm_projects.id')->where('actor_ref', $context->actor)->whereIn('role', ['manager', 'member', 'viewer']);
+        $query = $this->db->table(Tables::name('projects'))->where('scope_key', $context->scope)->whereExists(function (Builder $q) use ($context) {
+            $q->selectRaw('1')->from(Tables::name('project_members'))->whereColumn('project_id', Tables::sql('tm_projects.id'))->where('actor_ref', $context->actor)->whereIn('role', ['manager', 'member', 'viewer']);
         });
         $this->authorization->constrain($query, $context, 'project', 'view');
 
@@ -34,18 +38,20 @@ final class ProjectService
 
     public function __construct(private readonly Connection $db, private readonly Clock $clock, private readonly AuthorizationProvider $authorization, private readonly WorkflowService $workflows, private readonly TaskService $tasks, private readonly StageLifecycle $lifecycle)
     {
+        Tables::assertConnection($db);
     }
 
     public function get(ExecutionContext $context, string $key, string $capability = 'view', bool $lock = false): array
     {
+        $context->validateTenant();
         if (! Str::isUuid($key)) {
             throw new DomainError('not_found');
         }
         $context->require('project.'.$capability);
         $this->authorization->authorize($context, 'project.'.$capability);
-        $query = $this->db->table('tm_projects')->where('scope_key', $context->scope)->where('project_key', $key)
+        $query = $this->db->table(Tables::name('projects'))->where('scope_key', $context->scope)->where('project_key', $key)
             ->whereExists(function (Builder $q) use ($context, $capability) {
-                $q->selectRaw('1')->from('tm_project_members')->whereColumn('project_id', 'tm_projects.id')->where('actor_ref', $context->actor)
+                $q->selectRaw('1')->from(Tables::name('project_members'))->whereColumn('project_id', Tables::sql('tm_projects.id'))->where('actor_ref', $context->actor)
                     ->whereIn('role', $capability === 'view' ? ['manager', 'member', 'viewer'] : ($capability === 'manage' ? ['manager'] : ['manager', 'member']));
             });
         $this->authorization->constrain($query, $context, 'project', $capability);
@@ -62,6 +68,7 @@ final class ProjectService
 
     public function create(ExecutionContext $context, string $key, string $name, int $revisionId, string $operation): array
     {
+        $context->validateTenant();
         $context->require('project.manage');
         $this->authorization->authorize($context, 'project.manage');
         if (! preg_match('/^[A-Z][A-Z0-9]{0,19}$/D', $key) || trim($name) === '' || mb_strlen($name) > 255) {
@@ -71,16 +78,61 @@ final class ProjectService
 
         return (new CommandExecutor($this->db))->execute($context, $operation, ['action' => 'project_create', 'key' => $key, 'name' => $name, 'revision' => $revisionId], function () use ($context, $key, $name, $revisionId, $operation) {
             $public = (string) Str::uuid();
-            $id = $this->db->table('tm_projects')->insertGetId(['project_key' => $public, 'scope_key' => $context->scope, 'key' => $key, 'name' => $name, 'owner_ref' => $context->actor, 'workflow_revision_id' => $revisionId]);
-            $this->db->table('tm_project_members')->insert(['project_id' => $id, 'actor_ref' => $context->actor, 'role' => 'manager']);
+            $id = $this->db->table(Tables::name('projects'))->insertGetId(['project_key' => $public, 'scope_key' => $context->scope, 'key' => $key, 'name' => $name, 'owner_ref' => $context->actor, 'workflow_revision_id' => $revisionId]);
+            $this->db->table(Tables::name('project_members'))->insert(['project_id' => $id, 'actor_ref' => $context->actor, 'role' => 'manager']);
             $this->event($context, $public, 'project_created', $operation, []);
 
             return $this->get($context, $public);
         }, fn ($r) => $this->get($context, $r['project_key']));
     }
 
+    public function createTask(ExecutionContext $context, string $projectKey, string $type, string $title, string $operation): array
+    {
+        $context->validateTenant();
+        foreach (['task.create', 'task.view', 'task.edit', 'project.edit', 'workflow.view'] as $capability) {
+            $context->require($capability);
+            $this->authorization->authorize($context, $capability);
+        }
+        Definition::key($type);
+        $title = trim($title);
+        if ($title === '' || mb_strlen($title) > 255) {
+            throw new DomainError('title_invalid');
+        }
+
+        return (new CommandExecutor($this->db))->execute($context, $operation, ['action' => 'create_project_task', 'project' => $projectKey, 'type' => $type, 'title' => $title], function () use ($context, $projectKey, $type, $title, $operation) {
+            ScopeGraphLock::acquire($this->db, $context);
+            $project = $this->get($context, $projectKey, 'manage', true);
+            $this->get($context, $projectKey, 'edit');
+            if ($project['status'] !== 'active') {
+                throw new DomainError('project_archived');
+            }
+            $revisionId = $this->db->table(Tables::name('project_type_workflows'))->where('project_id', $project['id'])->where('type_key', $type)->value('workflow_revision_id') ?? $project['workflow_revision_id'];
+            $revision = $this->workflows->revision($context, $revisionId);
+            if (($revision['definition']['states'][$revision['definition']['initial']]['terminal'] ?? 'none') !== 'none') {
+                throw new DomainError('initial_state_terminal');
+            }
+            $key = (new TaskRecord($this->db, $this->clock))->insert($context, $revision, $title, project: $project, type: $type, lifecycle: $this->lifecycle, operation: $operation);
+            $task = $this->tasks->get($context, $key);
+            if (! $this->tasks->authorizedQuery($context, 'edit')->where('public_key', $key)->exists()) {
+                throw new DomainError('not_found');
+            }
+            (new EventRecorder($this->db, $this->clock))->append($context, 'task', $key, 'created', $operation, ['project_key' => $projectKey, 'type' => $type, 'title_hash' => hash('sha256', $title)], $task['id']);
+
+            return $task;
+        }, function ($result) use ($context, $projectKey) {
+            $this->get($context, $projectKey, 'manage');
+            $this->get($context, $projectKey, 'edit');
+            $this->tasks->get($context, $result['public_key']);
+            if (! $this->tasks->authorizedQuery($context, 'edit')->where('public_key', $result['public_key'])->exists()) {
+                throw new DomainError('not_found');
+            }
+        });
+    }
+
     public function change(ExecutionContext $context, string $key, int $version, string $operation, string $action, array $data): array
     {
+        $context->validateTenant();
+
         return (new CommandExecutor($this->db))->execute($context, $operation, ['action' => 'project_'.$action, 'key' => $key, 'version' => $version, 'data' => $data], function () use ($context, $key, $version, $operation, $action, $data) {
             $project = $this->get($context, $key, 'manage', true);
             if ($project['version'] !== $version) {
@@ -96,20 +148,23 @@ final class ProjectService
                 if ($actor === $project['owner_ref'] && $role !== 'manager') {
                     throw new DomainError('owner_membership_required');
                 }
-                $this->db->table('tm_project_members')->where('project_id', $project['id'])->where('actor_ref', $actor)->delete();
                 if ($role !== null) {
-                    $this->db->table('tm_project_members')->insert(['project_id' => $project['id'], 'actor_ref' => $actor, 'role' => $role]);
+                    TenantBoundary::validateActor($context, $actor);
+                }
+                $this->db->table(Tables::name('project_members'))->where('project_id', $project['id'])->where('actor_ref', $actor)->delete();
+                if ($role !== null) {
+                    $this->db->table(Tables::name('project_members'))->insert(['project_id' => $project['id'], 'actor_ref' => $actor, 'role' => $role]);
                 }
             } elseif ($action === 'archive' || $action === 'restore') {
                 $changes['status'] = $action === 'archive' ? 'archived' : 'active';
             } elseif ($action === 'type_workflow') {
                 Definition::key($data['type'] ?? null);
                 $revision = $this->workflows->revision($context, $data['revision'] ?? 0);
-                $this->db->table('tm_project_type_workflows')->updateOrInsert(['project_id' => $project['id'], 'type_key' => $data['type']], ['workflow_revision_id' => $revision['id']]);
+                $this->db->table(Tables::name('project_type_workflows'))->updateOrInsert(['project_id' => $project['id'], 'type_key' => $data['type']], ['workflow_revision_id' => $revision['id']]);
             } else {
                 throw new DomainError('action_invalid');
             }
-            $this->db->table('tm_projects')->where('id', $project['id'])->update($changes);
+            $this->db->table(Tables::name('projects'))->where('id', $project['id'])->update($changes);
             if ($action === 'member') {
                 VisibilityEpoch::bump($this->db, $context->scope);
             }
@@ -121,13 +176,14 @@ final class ProjectService
 
     public function previewTaskMove(ExecutionContext $context, string $taskKey, string $projectKey, string $type, array $stateMap): array
     {
+        $context->validateTenant();
         $task = $this->tasks->get($context, $taskKey);
         $project = $this->get($context, $projectKey, 'edit');
         if ($project['status'] !== 'active') {
             throw new DomainError('project_archived');
         }
         Definition::key($type);
-        $revisionId = $this->db->table('tm_project_type_workflows')->where('project_id', $project['id'])->where('type_key', $type)->value('workflow_revision_id') ?? $project['workflow_revision_id'];
+        $revisionId = $this->db->table(Tables::name('project_type_workflows'))->where('project_id', $project['id'])->where('type_key', $type)->value('workflow_revision_id') ?? $project['workflow_revision_id'];
         $definition = $this->workflows->revision($context, $revisionId)['definition'];
         $state = $stateMap[$task['state']] ?? null;
         if (! is_string($state) || ! isset($definition['states'][$state])) {
@@ -139,6 +195,7 @@ final class ProjectService
 
     public function moveTask(ExecutionContext $context, array $preview, string $operation, ?string $parentKey = null): array
     {
+        $context->validateTenant();
         $context->require('project.edit');
 
         return (new CommandExecutor($this->db))->execute($context, $operation, ['action' => 'task_move_project', 'preview' => $preview, 'parent' => $parentKey], function () use ($context, $preview, $operation, $parentKey) {
@@ -154,7 +211,7 @@ final class ProjectService
             if ($project['status'] !== 'active') {
                 throw new DomainError('project_archived');
             }
-            $effectiveRevision = $this->db->table('tm_project_type_workflows')->where('project_id', $project['id'])->where('type_key', $preview['type'])->value('workflow_revision_id') ?? $project['workflow_revision_id'];
+            $effectiveRevision = $this->db->table(Tables::name('project_type_workflows'))->where('project_id', $project['id'])->where('type_key', $preview['type'])->value('workflow_revision_id') ?? $project['workflow_revision_id'];
             if ($effectiveRevision !== $preview['revision_id']) {
                 throw new DomainError('preview_stale');
             }
@@ -162,10 +219,10 @@ final class ProjectService
             if (! isset($definition['states'][$preview['state'] ?? ''])) {
                 throw new DomainError('state_mapping_required');
             }
-            if ($this->db->table('tm_tasks')->where('parent_task_id', $task->id)->exists()) {
+            if ($this->db->table(Tables::name('tasks'))->where('parent_task_id', $task->id)->exists()) {
                 throw new DomainError('subtree_preview_required');
             }
-            if ($task->project_id !== $project['id'] && $this->db->table('tm_sprint_memberships')->where('task_id', $task->id)->exists()) {
+            if ($task->project_id !== $project['id'] && $this->db->table(Tables::name('sprint_memberships'))->where('task_id', $task->id)->exists()) {
                 throw new DomainError('sprint_membership_blocks_move');
             }
             $parentId = null;
@@ -186,7 +243,7 @@ final class ProjectService
                     if (++$depth > $project['hierarchy_max_depth']) {
                         throw new DomainError('task_depth_exceeded');
                     }
-                    $ancestor = $ancestor->parent_task_id === null ? null : $this->db->table('tm_tasks')->where('scope_key', $context->scope)->where('project_id', $project['id'])->where('id', $ancestor->parent_task_id)->first();
+                    $ancestor = $ancestor->parent_task_id === null ? null : $this->db->table(Tables::name('tasks'))->where('scope_key', $context->scope)->where('project_id', $project['id'])->where('id', $ancestor->parent_task_id)->first();
                 }
             }
             HierarchyIndex::move($this->db, $context, $task->id, $parentId, $project['hierarchy_max_depth']);
@@ -197,12 +254,13 @@ final class ProjectService
 
     public function previewSubtreeMove(ExecutionContext $context, string $rootKey, string $projectKey, array $stateMaps): array
     {
+        $context->validateTenant();
         $root = $this->tasks->get($context, $rootKey);
         $project = $this->get($context, $projectKey, 'manage');
         if ($root['deleted_at'] !== null || $project['status'] !== 'active') {
             throw new DomainError('subtree_move_invalid');
         }
-        $paths = $this->db->table('tm_task_closure')->where('scope_key', $context->scope)->where('ancestor_task_id', $root['id'])->orderByDesc('depth')->orderBy('descendant_task_id')->limit(1001)->get();
+        $paths = $this->db->table(Tables::name('task_closure'))->where('scope_key', $context->scope)->where('ancestor_task_id', $root['id'])->orderByDesc('depth')->orderBy('descendant_task_id')->limit(1001)->get();
         if ($paths->isEmpty() || $paths->count() > 1000) {
             throw new DomainError('subtree_batch_required');
         }
@@ -220,7 +278,7 @@ final class ProjectService
             if ($task->project_id !== $root['project_id']) {
                 throw new DomainError('parent_project_mismatch');
             }
-            if ($task->project_id !== $project['id'] && $this->db->table('tm_sprint_memberships')->where('task_id', $task->id)->exists()) {
+            if ($task->project_id !== $project['id'] && $this->db->table(Tables::name('sprint_memberships'))->where('task_id', $task->id)->exists()) {
                 throw new DomainError('sprint_membership_blocks_move');
             }
             $map = $stateMaps[$task->type_key] ?? null;
@@ -228,7 +286,7 @@ final class ProjectService
                 throw new DomainError('state_mapping_required');
             }
             $preview = $this->previewTaskMove($context, $task->public_key, $projectKey, $task->type_key, $map);
-            $instance = $this->db->table('tm_workflow_instances')->where('task_id', $task->id)->where('slot_key', 'main')->orderByDesc('id')->first();
+            $instance = $this->db->table(Tables::name('workflow_instances'))->where('task_id', $task->id)->where('slot_key', 'main')->orderByDesc('id')->first();
             if (! $instance || $instance->pipeline_id !== null) {
                 throw new DomainError('pipeline_move_required');
             }
@@ -240,6 +298,8 @@ final class ProjectService
 
     public function moveSubtree(ExecutionContext $context, array $preview, string $operation): array
     {
+        $context->validateTenant();
+
         return (new CommandExecutor($this->db))->execute($context, $operation, ['action' => 'subtree_project_move', 'preview' => $preview], function () use ($context, $preview, $operation) {
             ScopeGraphLock::acquire($this->db, $context);
             if (! is_string($preview['root_key'] ?? null) || ! is_string($preview['project_key'] ?? null) || ! is_array($preview['state_maps'] ?? null)) {
@@ -252,13 +312,13 @@ final class ProjectService
             $project = $this->get($context, $preview['project_key'], 'manage', true);
             // Check all lifecycle guards against the original hierarchy before any node changes.
             foreach ($fresh['items'] as $item) {
-                $instance = $this->db->table('tm_workflow_instances')->where('task_id', $item['id'])->where('slot_key', 'main')->orderByDesc('id')->lockForUpdate()->first();
+                $instance = $this->db->table(Tables::name('workflow_instances'))->where('task_id', $item['id'])->where('slot_key', 'main')->orderByDesc('id')->lockForUpdate()->first();
                 $this->lifecycle->beforeTransition($context, (array) $instance, ['key' => 'project_move', 'from' => $instance->current_state_key, 'to' => $item['state'], 'target_revision_id' => $item['revision_id'], 'force_exit' => true], []);
             }
             HierarchyIndex::move($this->db, $context, $fresh['root_id'], null, $project['hierarchy_max_depth']);
             $keys = [];
             foreach ($fresh['items'] as $item) {
-                $task = $this->db->table('tm_tasks')->where('id', $item['id'])->lockForUpdate()->first();
+                $task = $this->db->table(Tables::name('tasks'))->where('id', $item['id'])->lockForUpdate()->first();
                 $definition = $this->workflows->revision($context, $item['revision_id'])['definition'];
                 $result = $this->applyTaskMove($context, $task, $project, $item, $task->id === $fresh['root_id'] ? null : $task->parent_task_id, $definition, $item['revision_id'], 'subtree:'.hash('sha256', $operation.':'.$task->id), true);
                 $keys[] = $result['public_key'];
@@ -276,17 +336,17 @@ final class ProjectService
 
     private function applyTaskMove(ExecutionContext $context, object $task, array $project, array $preview, ?int $parentId, array $definition, int $effectiveRevision, string $operation, bool $lifecycleChecked = false): array
     {
-        $this->db->table('tm_sequences')->insertOrIgnore(['scope_key' => $context->scope, 'sequence_key' => 'project:'.$project['id']]);
-        $sequence = $this->db->table('tm_sequences')->where('scope_key', $context->scope)->where('sequence_key', 'project:'.$project['id'])->lockForUpdate()->first();
+        $this->db->table(Tables::name('sequences'))->insertOrIgnore(['scope_key' => $context->scope, 'sequence_key' => 'project:'.$project['id']]);
+        $sequence = $this->db->table(Tables::name('sequences'))->where('scope_key', $context->scope)->where('sequence_key', 'project:'.$project['id'])->lockForUpdate()->first();
         $number = $sequence->current + 1;
-        $this->db->table('tm_sequences')->where('scope_key', $context->scope)->where('sequence_key', 'project:'.$project['id'])->update(['current' => $number]);
+        $this->db->table(Tables::name('sequences'))->where('scope_key', $context->scope)->where('sequence_key', 'project:'.$project['id'])->update(['current' => $number]);
         $display = $project['key'].'-'.$number;
-        $this->db->table('tm_task_key_aliases')->where('task_id', $task->id)->update(['is_current' => false]);
-        $this->db->table('tm_task_key_aliases')->insert(['scope_key' => $context->scope, 'task_id' => $task->id, 'display_key' => $display]);
-        $this->db->table('tm_tasks')->where('id', $task->id)->update(['project_id' => $project['id'], 'type_key' => $preview['type'], 'display_key' => $display, 'parent_task_id' => $parentId, 'version' => $task->version + 1]);
-        $this->db->table('tm_task_grants')->where('task_id', $task->id)->delete();
+        $this->db->table(Tables::name('task_key_aliases'))->where('task_id', $task->id)->update(['is_current' => false]);
+        $this->db->table(Tables::name('task_key_aliases'))->insert(['scope_key' => $context->scope, 'task_id' => $task->id, 'display_key' => $display]);
+        $this->db->table(Tables::name('tasks'))->where('id', $task->id)->update(['project_id' => $project['id'], 'type_key' => $preview['type'], 'display_key' => $display, 'parent_task_id' => $parentId, 'version' => $task->version + 1]);
+        $this->db->table(Tables::name('task_grants'))->where('task_id', $task->id)->delete();
         VisibilityEpoch::bump($this->db, $context->scope);
-        $instance = $this->db->table('tm_workflow_instances')->where('task_id', $task->id)->where('slot_key', 'main')->orderByDesc('id')->lockForUpdate()->first();
+        $instance = $this->db->table(Tables::name('workflow_instances'))->where('task_id', $task->id)->where('slot_key', 'main')->orderByDesc('id')->lockForUpdate()->first();
         if ($instance->pipeline_id !== null) {
             throw new DomainError('pipeline_move_required');
         }
@@ -294,14 +354,14 @@ final class ProjectService
             $this->lifecycle->beforeTransition($context, (array) $instance, ['key' => 'project_move', 'from' => $instance->current_state_key, 'to' => $preview['state'], 'target_revision_id' => $effectiveRevision, 'force_exit' => true], []);
         }
         $terminal = ($definition['states'][$preview['state']]['terminal'] ?? 'none') !== 'none';
-        $this->db->table('tm_workflow_instances')->where('id', $instance->id)->update(['workflow_revision_id' => $effectiveRevision, 'workflow_key' => $this->db->table('tm_workflow_definitions')->where('id', $effectiveRevision)->value('key'),
+        $this->db->table(Tables::name('workflow_instances'))->where('id', $instance->id)->update(['workflow_revision_id' => $effectiveRevision, 'workflow_key' => $this->db->table(Tables::name('workflow_definitions'))->where('id', $effectiveRevision)->value('key'),
             'current_state_key' => $preview['state'], 'version' => $instance->version + 1, 'lifecycle' => $terminal ? 'closed' : 'active', 'completed_at' => $terminal ? $this->now() : null]);
         if ($terminal) {
-            $this->db->table('tm_active_process_slots')->where('instance_id', $instance->id)->delete();
+            $this->db->table(Tables::name('active_process_slots'))->where('instance_id', $instance->id)->delete();
         } else {
             $this->reserveSlot($context, $instance, $task->public_key);
         }
-        $this->db->table('tm_instance_transitions')->insert(['scope_key' => $context->scope, 'instance_id' => $instance->id,
+        $this->db->table(Tables::name('instance_transitions'))->insert(['scope_key' => $context->scope, 'instance_id' => $instance->id,
             ...StateIndex::transition($this->db, $instance->workflow_revision_id, $instance->current_state_key, $effectiveRevision, $preview['state']),
             'from_state' => $instance->current_state_key, 'to_state' => $preview['state'], 'actor_ref' => $context->actor, 'operation_id' => $operation, 'occurred_at' => $this->now()]);
         (new EventRecorder($this->db, $this->clock))->append($context, 'task', $task->public_key, 'task_project_moved', $operation, ['before' => ['project' => $task->project_id, 'display' => $task->display_key], 'after' => ['project' => $project['id'], 'display' => $display]], $task->id);
@@ -311,8 +371,8 @@ final class ProjectService
 
     private function reserveSlot(ExecutionContext $context, object $instance, string $taskKey): void
     {
-        $this->db->table('tm_active_process_slots')->insertOrIgnore(['scope_key' => $context->scope, 'subject_type' => 'task', 'subject_id' => $taskKey, 'slot_key' => 'main', 'instance_id' => $instance->id]);
-        $slot = $this->db->table('tm_active_process_slots')->where('scope_key', $context->scope)->where('subject_type', 'task')->where('subject_id', $taskKey)->where('slot_key', 'main')->first();
+        $this->db->table(Tables::name('active_process_slots'))->insertOrIgnore(['scope_key' => $context->scope, 'subject_type' => 'task', 'subject_id' => $taskKey, 'slot_key' => 'main', 'instance_id' => $instance->id]);
+        $slot = $this->db->table(Tables::name('active_process_slots'))->where('scope_key', $context->scope)->where('subject_type', 'task')->where('subject_id', $taskKey)->where('slot_key', 'main')->first();
         if (! $slot || $slot->instance_id !== $instance->id) {
             throw new DomainError('active_slot_conflict');
         }
@@ -320,6 +380,7 @@ final class ProjectService
 
     public function previewWorkflowMigration(ExecutionContext $context, string $projectKey, int $revisionId, array $stateMap, ?string $type = null): array
     {
+        $context->validateTenant();
         $project = $this->get($context, $projectKey, 'manage');
         $definition = $this->workflows->revision($context, $revisionId)['definition'];
         $tasks = $this->tasks->authorizedQuery($context, 'edit')->where('project_id', $project['id']);
@@ -327,9 +388,9 @@ final class ProjectService
             Definition::key($type);
             $tasks->where('type_key', $type);
         } else {
-            $tasks->whereNotIn('type_key', $this->db->table('tm_project_type_workflows')->where('project_id', $project['id'])->select('type_key'));
+            $tasks->whereNotIn('type_key', $this->db->table(Tables::name('project_type_workflows'))->where('project_id', $project['id'])->select('type_key'));
         }
-        $instances = $this->db->table('tm_workflow_instances')->where('scope_key', $context->scope)->where('slot_key', 'main')->where('lifecycle', 'active')->whereIn('task_id', $tasks->select('id'))->orderBy('id')->limit(1001)->get();
+        $instances = $this->db->table(Tables::name('workflow_instances'))->where('scope_key', $context->scope)->where('slot_key', 'main')->where('lifecycle', 'active')->whereIn('task_id', $tasks->select('id'))->orderBy('id')->limit(1001)->get();
         if ($instances->count() > 1000) {
             throw new DomainError('migration_batch_required');
         }
@@ -350,6 +411,8 @@ final class ProjectService
 
     public function migrateWorkflow(ExecutionContext $context, array $preview, string $operation): array
     {
+        $context->validateTenant();
+
         return (new CommandExecutor($this->db))->execute($context, $operation, ['action' => 'migrate_project_workflow', 'preview' => $preview], function () use ($context, $preview, $operation) {
             ScopeGraphLock::acquire($this->db, $context);
             $project = $this->get($context, $preview['project_key'], 'manage', true);
@@ -362,9 +425,9 @@ final class ProjectService
             }
             $revision = $this->workflows->revision($context, $preview['revision_id']);
             $ids = array_column($preview['items'], 'instance_id');
-            $taskIds = $this->db->table('tm_workflow_instances')->whereIn('id', $ids)->pluck('task_id')->all();
-            $this->db->table('tm_tasks')->whereIn('id', $taskIds)->orderBy('id')->lockForUpdate()->get();
-            $instances = $this->db->table('tm_workflow_instances')->whereIn('id', $ids)->orderBy('id')->lockForUpdate()->get();
+            $taskIds = $this->db->table(Tables::name('workflow_instances'))->whereIn('id', $ids)->pluck('task_id')->all();
+            $this->db->table(Tables::name('tasks'))->whereIn('id', $taskIds)->orderBy('id')->lockForUpdate()->get();
+            $instances = $this->db->table(Tables::name('workflow_instances'))->whereIn('id', $ids)->orderBy('id')->lockForUpdate()->get();
             $expected = array_column($preview['items'], null, 'instance_id');
             foreach ($instances as $instance) {
                 if ($instance->version !== $expected[$instance->id]['version'] || $instance->current_state_key !== $expected[$instance->id]['state']) {
@@ -377,24 +440,24 @@ final class ProjectService
                 $state = $preview['state_map'][$instance->current_state_key];
                 $this->lifecycle->beforeTransition($context, (array) $instance, ['key' => 'workflow_migrate', 'from' => $instance->current_state_key, 'to' => $state, 'target_revision_id' => $revision['id'], 'force_exit' => true], []);
                 $terminal = ($revision['definition']['states'][$state]['terminal'] ?? 'none') !== 'none';
-                $this->db->table('tm_workflow_instances')->where('id', $instance->id)->update(['workflow_revision_id' => $revision['id'], 'workflow_key' => $revision['key'],
+                $this->db->table(Tables::name('workflow_instances'))->where('id', $instance->id)->update(['workflow_revision_id' => $revision['id'], 'workflow_key' => $revision['key'],
                     'current_state_key' => $state, 'version' => $instance->version + 1, 'lifecycle' => $terminal ? 'closed' : 'active', 'completed_at' => $terminal ? $this->now() : null]);
                 if ($terminal) {
-                    $this->db->table('tm_active_process_slots')->where('instance_id', $instance->id)->delete();
+                    $this->db->table(Tables::name('active_process_slots'))->where('instance_id', $instance->id)->delete();
                 } else {
                     $this->reserveSlot($context, $instance, $task->public_key);
                 }
-                $this->db->table('tm_tasks')->where('id', $task->id)->increment('version');
-                $this->db->table('tm_instance_transitions')->insert(['scope_key' => $context->scope, 'instance_id' => $instance->id, 'from_state' => $instance->current_state_key,
+                $this->db->table(Tables::name('tasks'))->where('id', $task->id)->increment('version');
+                $this->db->table(Tables::name('instance_transitions'))->insert(['scope_key' => $context->scope, 'instance_id' => $instance->id, 'from_state' => $instance->current_state_key,
                     ...StateIndex::transition($this->db, $instance->workflow_revision_id, $instance->current_state_key, $revision['id'], $state),
                     'to_state' => $state, 'actor_ref' => $context->actor, 'operation_id' => $operation, 'occurred_at' => $this->now()]);
                 (new EventRecorder($this->db, $this->clock))->append($context, 'instance', $instance->instance_key, 'workflow_migrated', $operation, ['before' => $instance->current_state_key, 'after' => $state, 'revision' => $revision['id']], $task->id);
             }
             if ($preview['type'] === null) {
-                $this->db->table('tm_projects')->where('id', $project['id'])->update(['workflow_revision_id' => $revision['id'], 'version' => $project['version'] + 1]);
+                $this->db->table(Tables::name('projects'))->where('id', $project['id'])->update(['workflow_revision_id' => $revision['id'], 'version' => $project['version'] + 1]);
             } else {
-                $this->db->table('tm_project_type_workflows')->updateOrInsert(['project_id' => $project['id'], 'type_key' => $preview['type']], ['workflow_revision_id' => $revision['id']]);
-                $this->db->table('tm_projects')->where('id', $project['id'])->increment('version');
+                $this->db->table(Tables::name('project_type_workflows'))->updateOrInsert(['project_id' => $project['id'], 'type_key' => $preview['type']], ['workflow_revision_id' => $revision['id']]);
+                $this->db->table(Tables::name('projects'))->where('id', $project['id'])->increment('version');
             }
             $this->event($context, $project['project_key'], 'project_workflow_migrated', $operation, ['revision' => $revision['id'], 'count' => count($ids)]);
 

@@ -19,6 +19,6 @@ final class TM064Test extends PhaseFiveTestCase
         self::assertSame([], $this->recurrence()->generate($this->manager(), $series['series_key'], 1, $from, $until, 'still-pending')['created']);
         $next = $this->service()->get($this->manager(), $result['created'][0]);
         $this->service()->mutate($this->manager(), $next['public_key'], $next['version'], 'complete-next', 'complete');
-        self::assertCount(1, $this->recurrence()->generate($this->manager(),$series['series_key'],1,$from,$until,'next')['created']);
+        self::assertCount(1, $this->recurrence()->generate($this->manager(), $series['series_key'], 1, $from, $until, 'next')['created']);
     }
 }

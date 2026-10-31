@@ -152,7 +152,7 @@ abstract class PhaseSixTestCase extends PhaseFiveTestCase
         $legacy = $this->app->make(TaskService::class)->create($deal, Carbon::parse('2026-10-22 09:00:00'), 1, ['title' => 'Legacy follow-up']);
         $r = $this->workflows()->publish($this->manager(), 'crm_tasks', 0, 'legacy-workflow', ['initial' => 'new', 'states' => ['new' => ['terminal' => 'none'], 'done' => ['terminal' => 'success'], 'cancelled' => ['terminal' => 'cancelled']], 'transitions' => ['complete' => ['from' => 'new', 'to' => 'done'], 'cancel' => ['from' => 'new', 'to' => 'cancelled', 'reason_required' => true, 'reason_codes' => ['cancelled']]]]);
         $project = $this->projects()->create($this->manager(), 'CRM', 'CRM tasks', $r['id'], 'legacy-project');
-        $b = $this->cutover()->configure($this->manager(),'crm.tasks',['revision_id' => $r['id'], 'project_key' => $project['project_key'], 'states' => ['open' => 'new', 'done' => 'done', 'cancelled' => 'cancelled']],'migration-configure');
+        $b = $this->cutover()->configure($this->manager(), 'crm.tasks', ['revision_id' => $r['id'], 'project_key' => $project['project_key'], 'states' => ['open' => 'new', 'done' => 'done', 'cancelled' => 'cancelled']], 'migration-configure');
 
         return [$legacy->fresh(), $b, $deal];
     }

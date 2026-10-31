@@ -9,7 +9,9 @@ use Karnoweb\TaskManager\Contracts\AuthorizationProvider;
 use Karnoweb\TaskManager\Contracts\AuthorizationRevision;
 use Karnoweb\TaskManager\Contracts\Clock;
 use Karnoweb\TaskManager\Exceptions\DomainError;
+use Karnoweb\TaskManager\Pagination;
 use Karnoweb\TaskManager\Scheduling\LocalTime;
+use Karnoweb\TaskManager\Schema\Tables;
 use Karnoweb\TaskManager\TaskService;
 use Karnoweb\TaskManager\Workflow\StateIndex;
 
@@ -17,10 +19,12 @@ final class QueryService
 {
     public function __construct(private readonly Connection $db, private readonly Clock $clock, private readonly AuthorizationProvider $authorization, private readonly AuthorizationRevision $revision, private readonly TaskService $tasks, private readonly CustomFieldService $fields)
     {
+        Tables::assertConnection($db);
     }
 
     public function base(ExecutionContext $context, array $filters): Builder
     {
+        $context->validateTenant();
         if (array_diff(array_keys($filters), ['q', 'project_id', 'list_id', 'owner_ref', 'type_key', 'parent_task_id', 'priority', 'status_category', 'watcher_ref', 'assignee_ref', 'due_before', 'due_after', 'custom'])) {
             throw new DomainError('query_filter_invalid');
         }
@@ -44,10 +48,10 @@ final class QueryService
             } $query->whereIn('id', StateIndex::currentTaskIds($this->db, $context->scope, [$filters['status_category']]));
         }
         if (isset($filters['watcher_ref'])) {
-            $query->whereIn('id', $this->db->table('tm_task_watchers')->where('actor_ref', $filters['watcher_ref'])->select('task_id'));
+            $query->whereIn('id', $this->db->table(Tables::name('task_watchers'))->where('actor_ref', $filters['watcher_ref'])->select('task_id'));
         }
         if (isset($filters['assignee_ref'])) {
-            $query->whereIn('id', $this->db->table('tm_workflow_instances as assigned')->where('assigned.scope_key', $context->scope)->where('assigned.slot_key', 'main')->where('assigned.primary_assignee', $filters['assignee_ref'])->whereNotExists(fn ($newer) => $newer->selectRaw('1')->from('tm_workflow_instances as newer')->whereColumn('newer.task_id', 'assigned.task_id')->where('newer.slot_key', 'main')->whereColumn('newer.id', '>', 'assigned.id'))->select('assigned.task_id'));
+            $query->whereIn('id', $this->db->table(Tables::sql('tm_workflow_instances as assigned'))->where('assigned.scope_key', $context->scope)->where('assigned.slot_key', 'main')->where('assigned.primary_assignee', $filters['assignee_ref'])->whereNotExists(fn ($newer) => $newer->selectRaw('1')->from(Tables::sql('tm_workflow_instances as newer'))->whereColumn('newer.task_id', 'assigned.task_id')->where('newer.slot_key', 'main')->whereColumn('newer.id', '>', 'assigned.id'))->select('assigned.task_id'));
         }
         foreach (['due_before' => '<', 'due_after' => '>='] as $key => $operator) {
             if (isset($filters[$key])) {
@@ -83,18 +87,20 @@ final class QueryService
             }
         }
 
-return $value;
+        return $value;
     }
 
     public function tasks(ExecutionContext $context, array $filters = [], string $sort = 'id', string $direction = 'asc', int $limit = 30, ?string $cursor = null): array
     {
+        $context->validateTenant();
+        $limit = Pagination::limit($limit, func_num_args() < 5);
         if (! in_array($direction, ['asc', 'desc'], true) || $limit < 1 || $limit > 100) {
             throw new DomainError('pagination_invalid');
         }
         if (isset($filters['q']) && is_string($filters['q'])) {
             $filters['q'] = TextNormalizer::normalize($filters['q']);
         }
-        $base = $this->base($context, $filters)->select('tm_tasks.*');
+        $base = $this->base($context, $filters)->select(Tables::sql('tm_tasks.*'));
         if (str_starts_with($sort, 'custom:')) {
             [,,$subquery] = $this->fields->sortQuery($context, substr($sort, 7));
             $base->addSelect(['sort_value' => $subquery]);
@@ -110,7 +116,7 @@ return $value;
         if ($cursor !== null) {
             if (! preg_match('/^[a-f0-9]{64}$/D', $cursor)) {
                 throw new DomainError('cursor_invalid');
-            } $stored = $this->db->table('tm_query_cursors')->where('token_hash', hash('sha256', $cursor))->where('scope_key', $context->scope)->where('actor_ref', $context->actor)->where('expires_at', '>', LocalTime::stamp($this->clock->now()))->first();
+            } $stored = $this->db->table(Tables::name('query_cursors'))->where('token_hash', hash('sha256', $cursor))->where('scope_key', $context->scope)->where('actor_ref', $context->actor)->where('expires_at', '>', LocalTime::stamp($this->clock->now()))->first();
             if (! $stored || $stored->query_hash !== $hash || $stored->permission_hash !== $permission) {
                 throw new DomainError('cursor_stale');
             } $last = json_decode($stored->position, true, flags: JSON_THROW_ON_ERROR);
@@ -125,16 +131,16 @@ return $value;
         $rows = $rows->take($limit);
         $token = null;
         if ($more) {
-            $expired = $this->db->table('tm_query_cursors')->where('scope_key', $context->scope)->where('actor_ref', $context->actor)->where('expires_at', '<=', LocalTime::stamp($this->clock->now()))->limit(1000)->pluck('token_hash');
+            $expired = $this->db->table(Tables::name('query_cursors'))->where('scope_key', $context->scope)->where('actor_ref', $context->actor)->where('expires_at', '<=', LocalTime::stamp($this->clock->now()))->limit(1000)->pluck('token_hash');
             if ($expired->isNotEmpty()) {
-                $this->db->table('tm_query_cursors')->whereIn('token_hash', $expired->all())->delete();
+                $this->db->table(Tables::name('query_cursors'))->whereIn('token_hash', $expired->all())->delete();
             }
-            if ($this->db->table('tm_query_cursors')->where('scope_key', $context->scope)->where('actor_ref', $context->actor)->count() >= 1000) {
+            if ($this->db->table(Tables::name('query_cursors'))->where('scope_key', $context->scope)->where('actor_ref', $context->actor)->count() >= 1000) {
                 throw new DomainError('rate_limited');
             }
             $last = $rows->last();
             $token = bin2hex(random_bytes(32));
-            $this->db->table('tm_query_cursors')->insert(['token_hash' => hash('sha256', $token), 'scope_key' => $context->scope, 'actor_ref' => $context->actor, 'query_hash' => $hash, 'permission_hash' => $permission, 'position' => json_encode(['value' => $last->sort_value, 'id' => $last->id], JSON_THROW_ON_ERROR), 'expires_at' => LocalTime::stamp($this->clock->now()->modify('+15 minutes'))]);
+            $this->db->table(Tables::name('query_cursors'))->insert(['token_hash' => hash('sha256', $token), 'scope_key' => $context->scope, 'actor_ref' => $context->actor, 'query_hash' => $hash, 'permission_hash' => $permission, 'position' => json_encode(['value' => $last->sort_value, 'id' => $last->id], JSON_THROW_ON_ERROR), 'expires_at' => LocalTime::stamp($this->clock->now()->modify('+15 minutes'))]);
         }
 
         return ['total' => $total, 'items' => $rows->map(function ($row) {
@@ -147,18 +153,19 @@ return $value;
 
     public function reindex(ExecutionContext $context, int $afterId = 0, int $limit = 1000): array
     {
+        $context->validateTenant();
         $context->require('migration.manage');
         $this->authorization->authorize($context, 'migration.manage');
         if ($limit < 1 || $limit > 1000 || $afterId < 0) {
             throw new DomainError('pagination_invalid');
         }
-        $rows = $this->db->table('tm_tasks')->where('scope_key', $context->scope)->where('id', '>', $afterId)->orderBy('id')->limit($limit)->get(['id', 'title']);
+        $rows = $this->db->table(Tables::name('tasks'))->where('scope_key', $context->scope)->where('id', '>', $afterId)->orderBy('id')->limit($limit)->get(['id', 'title']);
         foreach ($rows as $row) {
-            $this->db->table('tm_tasks')->where('id', $row->id)->update(['title_search_normalized' => TextNormalizer::normalize($row->title), 'search_revision' => TextNormalizer::VERSION]);
+            $this->db->table(Tables::name('tasks'))->where('id', $row->id)->update(['title_search_normalized' => TextNormalizer::normalize($row->title), 'search_revision' => TextNormalizer::VERSION]);
         } if ($rows->isNotEmpty()) {
             VisibilityEpoch::bump($this->db, $context->scope);
         }
 
-return ['updated' => $rows->count(), 'after_id' => $rows->last()?->id];
+        return ['updated' => $rows->count(), 'after_id' => $rows->last()?->id];
     }
 }

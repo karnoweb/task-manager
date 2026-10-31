@@ -1,6 +1,0 @@
-<?xml version="1.0" encoding="UTF-8"?>
-<testsuites>
-  <testsuite name="Karnoweb\TaskManager\Tests\BulkCoreTest" file="D:\my-packages\task-manager\tests\BulkCoreTest.php" tests="1" assertions="9" errors="0" failures="0" skipped="0" time="0.657962">
-    <testcase name="test_atomic_failure_rolls_back_successes_and_partial_failure_keeps_only_authorized_changes" file="D:\my-packages\task-manager\tests\BulkCoreTest.php" line="10" class="Karnoweb\TaskManager\Tests\BulkCoreTest" classname="Karnoweb.TaskManager.Tests.BulkCoreTest" assertions="9" time="0.657962"/>
-  </testsuite>
-</testsuites>
