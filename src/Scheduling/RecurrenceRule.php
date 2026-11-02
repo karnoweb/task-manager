@@ -44,16 +44,16 @@ final class RecurrenceRule
                 } $input['until'] = $date->format(DATE_ATOM);
             }
         }
-        if (array_diff(array_keys($input), ['frequency', 'interval', 'weekdays', 'week_start', 'month_day', 'month', 'count', 'until', 'missing_day', 'dst_policy', 'after_completion', 'calendar_ref', 'holiday_policy'])) {
+        if (array_diff(array_keys($input), ['frequency', 'interval', 'weekdays', 'week_start', 'month_day', 'month', 'count', 'until', 'missing_day', 'dst_policy', 'nonexistent_time', 'after_completion', 'calendar_ref', 'holiday_policy'])) {
             throw new DomainError('recurrence_rule_invalid');
         }
         $rule = ['frequency' => $input['frequency'] ?? '', 'interval' => $input['interval'] ?? 1, 'weekdays' => $input['weekdays'] ?? [], 'week_start' => $input['week_start'] ?? 'SA',
             'month_day' => $input['month_day'] ?? null, 'month' => $input['month'] ?? null, 'count' => $input['count'] ?? null, 'until' => $input['until'] ?? null,
-            'missing_day' => $input['missing_day'] ?? 'skip', 'dst_policy' => $input['dst_policy'] ?? 'reject', 'after_completion' => $input['after_completion'] ?? false,
+            'missing_day' => $input['missing_day'] ?? 'skip', 'dst_policy' => $input['dst_policy'] ?? 'reject', 'nonexistent_time' => $input['nonexistent_time'] ?? 'skip', 'after_completion' => $input['after_completion'] ?? false,
             'calendar_ref' => $input['calendar_ref'] ?? null, 'holiday_policy' => $input['holiday_policy'] ?? 'include'];
         if (! in_array($rule['frequency'], ['daily', 'weekly', 'monthly', 'yearly'], true) || ! is_int($rule['interval']) || $rule['interval'] < 1 || $rule['interval'] > 365 || ! is_array($rule['weekdays']) || ! array_is_list($rule['weekdays']) || count($rule['weekdays']) > 7 || array_filter($rule['weekdays'], fn ($day) => ! is_string($day)) || array_diff($rule['weekdays'], array_keys(self::DAYS)) || ! is_string($rule['week_start']) || ! isset(self::DAYS[$rule['week_start']])
             || ($rule['month_day'] !== null && (! is_int($rule['month_day']) || $rule['month_day'] < 1 || $rule['month_day'] > 31)) || ($rule['month'] !== null && (! is_int($rule['month']) || $rule['month'] < 1 || $rule['month'] > 12))
-            || ($rule['count'] !== null && (! is_int($rule['count']) || $rule['count'] < 1 || $rule['count'] > 10000)) || ! in_array($rule['missing_day'], ['skip', 'last_day'], true) || ! in_array($rule['dst_policy'], ['reject', 'earliest', 'latest'], true) || ! is_bool($rule['after_completion']) || ! in_array($rule['holiday_policy'], ['include', 'skip'], true)
+            || ($rule['count'] !== null && (! is_int($rule['count']) || $rule['count'] < 1 || $rule['count'] > 10000)) || ! in_array($rule['missing_day'], ['skip', 'last_day'], true) || ! in_array($rule['dst_policy'], ['reject', 'earliest', 'latest'], true) || ! in_array($rule['nonexistent_time'], ['skip', 'shift_forward'], true) || ! is_bool($rule['after_completion']) || ! in_array($rule['holiday_policy'], ['include', 'skip'], true)
             || ($rule['calendar_ref'] !== null && (! is_string($rule['calendar_ref']) || strlen($rule['calendar_ref']) > 120 || trim($rule['calendar_ref']) === '')) || ($rule['holiday_policy'] === 'skip' && ! is_string($rule['calendar_ref']))) {
             throw new DomainError('recurrence_rule_invalid');
         }
@@ -118,9 +118,15 @@ final class RecurrenceRule
             try {
                 $utc = LocalTime::resolve($day->format('Y-m-d').' '.$time, $timezone, $rule['dst_policy']);
             } catch (DomainError $error) {
-                if ($error->getMessage() === 'local_time_nonexistent') {
+                if ($error->getMessage() !== 'local_time_nonexistent') {
+                    throw $error;
+                }
+                if (($rule['nonexistent_time'] ?? 'skip') !== 'shift_forward') {
                     continue;
-                } throw $error;
+                }
+                // Opt-in: keep the wall time by reading it with the offset in force before the gap (02:30 -> 03:30).
+                $epoch = (new \DateTimeImmutable($day->format('Y-m-d').'T'.$time.'Z'))->getTimestamp();
+                $utc = new \DateTimeImmutable('@'.($epoch - $zone->getOffset(new \DateTimeImmutable('@'.($epoch - 86400)))));
             }
             if ($rule['until'] !== null && $utc > new \DateTimeImmutable($rule['until'])) {
                 break;
