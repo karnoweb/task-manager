@@ -89,10 +89,13 @@ return new class extends Migration
         Schema::create(Tables::name('reminder_deliveries'), function (Blueprint $t) {
             $t->foreignId('reminder_id')->constrained(Tables::name('reminders'))->restrictOnDelete();
             $t->unsignedInteger('generation');
-            $t->uuid('event_id');
-            $t->foreign('event_id')->references('event_id')->on(Tables::name('outbox'))->restrictOnDelete();
+            $t->char('event_id', 36);
             $t->timestamp('created_at', 6);
             $t->primary(['reminder_id', 'generation']);
+        });
+        IdentifierCollation::align(Schema::getConnection(), Tables::name('reminder_deliveries'), 'event_id');
+        Schema::table(Tables::name('reminder_deliveries'), function (Blueprint $t) {
+            $t->foreign('event_id')->references('event_id')->on(Tables::name('outbox'))->restrictOnDelete();
         });
     }
 

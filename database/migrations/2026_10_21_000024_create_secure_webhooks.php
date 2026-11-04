@@ -27,8 +27,7 @@ return new class extends Migration
             $t->collation = IdentifierCollation::forConnection(Schema::getConnection());
             $t->bigIncrements('id');
             $t->foreignId('endpoint_id')->constrained(Tables::name('webhook_endpoints'))->restrictOnDelete();
-            $t->uuid('event_id');
-            $t->foreign('event_id')->references('event_id')->on(Tables::name('outbox'))->restrictOnDelete();
+            $t->char('event_id', 36);
             $t->unsignedInteger('endpoint_version');
             $t->string('state', 20)->default('pending');
             $t->unsignedInteger('attempts')->default(0);
@@ -40,6 +39,10 @@ return new class extends Migration
             $t->string('reason_code', 80)->nullable();
             $t->unique(['endpoint_id', 'event_id'], Tables::name('webhook_dedupe'));
             $t->index(['state', 'next_attempt_at', 'id'], Tables::name('webhook_retry'));
+        });
+        IdentifierCollation::align(Schema::getConnection(), Tables::name('webhook_deliveries'), 'event_id');
+        Schema::table(Tables::name('webhook_deliveries'), function (Blueprint $t) {
+            $t->foreign('event_id')->references('event_id')->on(Tables::name('outbox'))->restrictOnDelete();
         });
         Schema::create(Tables::name('webhook_receipts'), function (Blueprint $t) {
             $t->foreignId('endpoint_id')->constrained(Tables::name('webhook_endpoints'))->restrictOnDelete();

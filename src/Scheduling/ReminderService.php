@@ -20,6 +20,7 @@ use Karnoweb\TaskManager\SubjectRegistry;
 use Karnoweb\TaskManager\TaskGraph\ScopeGraphLock;
 use Karnoweb\TaskManager\TaskService;
 use Karnoweb\TaskManager\Workflow\StateIndex;
+use Karnoweb\TaskManager\Workflow\SubjectScope;
 
 final class ReminderService
 {
@@ -71,7 +72,7 @@ final class ReminderService
             throw new DomainError('subject_reference_invalid');
         }
         $handler = $this->subjects->handler($type);
-        if (! $handler->query($context, 'view')->where($handler->scopeColumn(), $context->scope)->where($handler->idColumn(), $id)->exists()) {
+        if (! $handler->query($context, 'view')->where($handler->scopeColumn(), SubjectScope::value($handler, $context))->where($handler->idColumn(), $id)->exists()) {
             throw new DomainError('not_found');
         }
     }
@@ -304,7 +305,7 @@ final class ReminderService
                     $sources->whereNull('subject_type');
                     foreach ($this->subjects?->all() ?? [] as $alias => $handler) {
                         try {
-                            $subjects = $handler->query($context, 'view')->where($handler->scopeColumn(), $context->scope);
+                            $subjects = $handler->query($context, 'view')->where($handler->scopeColumn(), SubjectScope::value($handler, $context));
                         } catch (DomainError $error) {
                             if ($error->getMessage() === 'capability_denied') {
                                 continue;

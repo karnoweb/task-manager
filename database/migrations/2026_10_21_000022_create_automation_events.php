@@ -15,10 +15,14 @@ return new class extends Migration
         });
         Schema::create(Tables::name('event_lineage'), function (Blueprint $t) {
             $t->collation = IdentifierCollation::forConnection(Schema::getConnection());
-            $t->uuid('event_id')->primary();
-            $t->uuid('root_event_id');
+            $t->char('event_id', 36)->primary();
+            $t->char('root_event_id', 36);
             $t->unsignedSmallInteger('depth');
             $t->index('root_event_id');
+        });
+        IdentifierCollation::align(Schema::getConnection(), Tables::name('event_lineage'), 'event_id');
+        IdentifierCollation::align(Schema::getConnection(), Tables::name('event_lineage'), 'root_event_id');
+        Schema::table(Tables::name('event_lineage'), function (Blueprint $t) {
             $t->foreign('event_id')->references('event_id')->on(Tables::name('outbox'))->restrictOnDelete();
             $t->foreign('root_event_id')->references('event_id')->on(Tables::name('outbox'))->restrictOnDelete();
         });
@@ -44,8 +48,7 @@ return new class extends Migration
             $t->collation = IdentifierCollation::forConnection(Schema::getConnection());
             $t->bigIncrements('id');
             $t->foreignId('rule_id')->constrained(Tables::name('automation_rules'))->restrictOnDelete();
-            $t->uuid('event_id');
-            $t->foreign('event_id')->references('event_id')->on(Tables::name('outbox'))->restrictOnDelete();
+            $t->char('event_id', 36);
             $t->unsignedInteger('rule_revision');
             $t->string('action_key', 100);
             $t->string('state', 30);
@@ -53,13 +56,20 @@ return new class extends Migration
             $t->timestamp('occurred_at', 6);
             $t->unique(['rule_id', 'event_id', 'action_key'], Tables::name('automation_dedupe'));
         });
+        IdentifierCollation::align(Schema::getConnection(), Tables::name('automation_runs'), 'event_id');
+        Schema::table(Tables::name('automation_runs'), function (Blueprint $t) {
+            $t->foreign('event_id')->references('event_id')->on(Tables::name('outbox'))->restrictOnDelete();
+        });
         Schema::create(Tables::name('automation_budgets'), function (Blueprint $t) {
             $t->collation = IdentifierCollation::forConnection(Schema::getConnection());
             $t->string('scope_key', 120);
-            $t->uuid('root_event_id');
-            $t->foreign('root_event_id')->references('event_id')->on(Tables::name('outbox'))->restrictOnDelete();
+            $t->char('root_event_id', 36);
             $t->unsignedInteger('used')->default(0);
             $t->primary(['scope_key', 'root_event_id']);
+        });
+        IdentifierCollation::align(Schema::getConnection(), Tables::name('automation_budgets'), 'root_event_id');
+        Schema::table(Tables::name('automation_budgets'), function (Blueprint $t) {
+            $t->foreign('root_event_id')->references('event_id')->on(Tables::name('outbox'))->restrictOnDelete();
         });
         Schema::create(Tables::name('automation_throttles'), function (Blueprint $t) {
             $t->foreignId('rule_id')->constrained(Tables::name('automation_rules'))->restrictOnDelete();
@@ -89,8 +99,7 @@ return new class extends Migration
             $t->collation = IdentifierCollation::forConnection(Schema::getConnection());
             $t->bigIncrements('id');
             $t->foreignId('subscription_id')->constrained(Tables::name('event_subscriptions'))->restrictOnDelete();
-            $t->uuid('event_id');
-            $t->foreign('event_id')->references('event_id')->on(Tables::name('outbox'))->restrictOnDelete();
+            $t->char('event_id', 36);
             $t->string('state', 20)->default('pending');
             $t->unsignedInteger('attempts')->default(0);
             $t->timestamp('next_attempt_at', 6)->nullable();
@@ -99,6 +108,10 @@ return new class extends Migration
             $t->string('reason_code', 80)->nullable();
             $t->unique(['subscription_id', 'event_id'], Tables::name('subscription_delivery'));
             $t->index(['state', 'next_attempt_at', 'id'], Tables::name('event_delivery_ready'));
+        });
+        IdentifierCollation::align(Schema::getConnection(), Tables::name('event_deliveries'), 'event_id');
+        Schema::table(Tables::name('event_deliveries'), function (Blueprint $t) {
+            $t->foreign('event_id')->references('event_id')->on(Tables::name('outbox'))->restrictOnDelete();
         });
         Schema::create(Tables::name('event_offsets'), function (Blueprint $t) {
             $t->collation = IdentifierCollation::forConnection(Schema::getConnection());

@@ -39,7 +39,7 @@ final class InstanceService
             throw new DomainError('not_found');
         }
         $handler = $this->subjects->handler($type);
-        $query = $handler->query($context, $capability)->where($handler->scopeColumn(), $context->scope)->where($handler->idColumn(), $id);
+        $query = $handler->query($context, $capability)->where($handler->scopeColumn(), SubjectScope::value($handler, $context))->where($handler->idColumn(), $id);
         if ($lock) {
             $query->lockForUpdate();
         }
@@ -58,7 +58,7 @@ final class InstanceService
             $q->whereRaw('1 = 0');
             foreach ($this->subjects->all() as $alias => $handler) {
                 try {
-                    $subjects = $handler->query($context, 'view')->where($handler->scopeColumn(), $context->scope);
+                    $subjects = $handler->query($context, 'view')->where($handler->scopeColumn(), SubjectScope::value($handler, $context));
                 } catch (DomainError $error) {
                     if ($error->getMessage() === 'capability_denied') {
                         continue;

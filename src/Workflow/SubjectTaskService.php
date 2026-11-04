@@ -30,7 +30,7 @@ final readonly class SubjectTaskService
             throw new DomainError('not_found');
         }
         $h = $this->subjects->handler($type);
-        $q = $h->query($c, $capability)->where($h->scopeColumn(), $c->scope)->where($h->idColumn(), $id);
+        $q = $h->query($c, $capability)->where($h->scopeColumn(), SubjectScope::value($h, $c))->where($h->idColumn(), $id);
         if ($lock) {
             $q->lockForUpdate();
         }
