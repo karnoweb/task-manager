@@ -13,7 +13,7 @@ php artisan migrate
 
 Service Provider (ثبت‌کننده سرویس) و Migrationها (تعریف تغییرات ساختار پایگاه داده) خودکار بارگذاری می‌شوند. اگر کشف خودکار پکیج را غیرفعال کرده‌اید، `Karnoweb\TaskManager\TaskManagerServiceProvider::class` را در `bootstrap/providers.php` برنامه ثبت کنید. برای شروع، Project، Pipeline (چیدمان مراحل)، Kanban یا Calendar لازم نیست.
 
-انتشار تنظیمات فقط برای تغییر پیش‌فرض‌هاست: `php artisan vendor:publish --tag=task-manager-config`. تنظیمات در `config/task-manager.php` میزبان قرار می‌گیرند. Todo از تنظیم اختیاری دیگری استفاده نمی‌کند؛ بررسی وابستگی‌ها و نصب در میزبان خودتان لازم است.
+انتشار تنظیمات فقط برای تغییر پیش‌فرض‌هاست: `php artisan vendor:publish --tag=task-manager-config`. تنظیمات در `config/task-manager.php` میزبان قرار می‌گیرند. Todo از تنظیم اختیاری دیگری استفاده نمی‌کند؛ بررسی وابستگی‌ها و نصب در میزبان خودتان لازم است. کپی مایگریشن با نام ثابت در [انتشار مایگریشن](../installation.md#انتشار-مایگریشن) است و برای نخستین Todo لازم نیست.
 
 ## مثال کامل: ساخت، خواندن و تکمیل
 

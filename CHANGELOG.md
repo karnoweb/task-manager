@@ -1,5 +1,9 @@
 # Changelog
 
+## 13.0.2
+
+- Migrations can be published with `php artisan vendor:publish --tag=task-manager-migrations`. The provider uses `publishes()`, so the shipped filenames stay unchanged.
+
 ## Unreleased — phase-six checkpoint — 2026-10-21
 
 - Added explicit optional Kanban and Calendar adapters against the actual locally locked package contracts; the package core retains no mandatory UI/CRM dependency.

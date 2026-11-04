@@ -11,7 +11,7 @@ composer require karnoweb/task-manager
 php artisan migrate
 ```
 
-برای مخزن محلی و تنظیمات، [راهنمای نصب](docs/installation.md) را ببینید. انتشار config برای شروع لازم نیست.
+برای مخزن محلی و تنظیمات، [راهنمای نصب](docs/installation.md) را ببینید. انتشار config برای شروع لازم نیست. مایگریشن‌ها از خود بسته اجرا می‌شوند. کپی با نام ثابت: `php artisan vendor:publish --tag=task-manager-migrations`. جزئیات در [انتشار مایگریشن](docs/installation.md#انتشار-مایگریشن).
 
 ## نخستین Todo
 

@@ -81,9 +81,9 @@ use Karnoweb\TaskManager\Workflow\EntryRoutingService;
 use Karnoweb\TaskManager\Workflow\InstanceService;
 use Karnoweb\TaskManager\Workflow\PipelineService;
 use Karnoweb\TaskManager\Workflow\ProjectService;
+use Karnoweb\TaskManager\Workflow\SubjectTaskService;
 use Karnoweb\TaskManager\Workflow\TaskSubjectHandler;
 use Karnoweb\TaskManager\Workflow\TransitionGuards;
-use Karnoweb\TaskManager\Workflow\SubjectTaskService;
 use Karnoweb\TaskManager\Workflow\UnavailableEntryRoutingProvider;
 use Karnoweb\TaskManager\Workflow\WorkflowService;
 
@@ -177,6 +177,16 @@ final class TaskManagerServiceProvider extends ServiceProvider
     public function boot(): void
     {
         $this->loadMigrationsFrom(__DIR__.'/../database/migrations');
-        $this->publishes([__DIR__.'/../config/task-manager.php' => config_path('task-manager.php')], 'task-manager-config');
+
+        if ($this->app->runningInConsole()) {
+            $this->publishes([
+                __DIR__.'/../config/task-manager.php' => config_path('task-manager.php'),
+            ], 'task-manager-config');
+
+            // publishes(), not publishesMigrations(): filenames stay exactly as shipped.
+            $this->publishes([
+                __DIR__.'/../database/migrations' => database_path('migrations'),
+            ], 'task-manager-migrations');
+        }
     }
 }

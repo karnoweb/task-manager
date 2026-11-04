@@ -3,7 +3,7 @@
   "description": "Independent Laravel task and workflow engine",
   "type": "library",
   "license": "MIT",
-  "version": "13.0.1",
+  "version": "13.0.2",
   "require": {
     "php": "^8.3",
     "illuminate/database": "^13.0",
