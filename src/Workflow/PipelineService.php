@@ -3,6 +3,7 @@
 namespace Karnoweb\TaskManager\Workflow;
 
 use Illuminate\Database\Connection;
+use Illuminate\Database\QueryException;
 use Illuminate\Support\Str;
 use Karnoweb\TaskManager\CommandExecutor;
 use Karnoweb\TaskManager\Context\ExecutionContext;
@@ -86,6 +87,29 @@ final class PipelineService
         return $query->pluck('pipeline_key')->map(fn ($key) => $this->get($context, $key))->all();
     }
 
+    public function rename(ExecutionContext $context, string $pipelineKey, int $version, string $name, string $operation): array
+    {
+        if (trim($name) === '' || mb_strlen($name) > 120) {
+            throw new DomainError('pipeline_invalid');
+        }
+
+        return $this->administer($context, $pipelineKey, $version, $operation, ['action' => 'rename_pipeline', 'name' => trim($name)], function (array $pipeline) use ($name): void {
+            $this->db->table(Tables::name('pipelines'))->where('id', $pipeline['id'])->update(['name' => trim($name)]);
+        });
+    }
+
+    public function setStageCapacity(ExecutionContext $context, string $pipelineKey, int $version, string $stageKey, ?int $capacity, string $operation): array
+    {
+        if ($capacity !== null && $capacity < 1) {
+            throw new DomainError('stage_mapping_invalid');
+        }
+
+        return $this->administer($context, $pipelineKey, $version, $operation, ['action' => 'set_stage_capacity', 'stage' => $stageKey, 'capacity' => $capacity], function (array $pipeline) use ($stageKey, $capacity): void {
+            $stage = $this->stage($pipeline, $stageKey);
+            $this->db->table(Tables::name('pipeline_stages'))->where('id', $stage['id'])->update(['capacity' => $capacity]);
+        });
+    }
+
     /** Stage administration never edits the workflow revision: a stage is a placement of an existing state. */
     public function addStage(ExecutionContext $context, string $pipelineKey, int $version, string $stageKey, string $state, string $operation, ?string $label = null, ?int $capacity = null): array
     {
@@ -167,7 +191,7 @@ final class PipelineService
             }
             try {
                 $this->db->table(Tables::name('pipeline_stages'))->where('id', $stage['id'])->delete();
-            } catch (\Illuminate\Database\QueryException) {
+            } catch (QueryException) {
                 throw new DomainError('stage_in_use');
             }
         });
