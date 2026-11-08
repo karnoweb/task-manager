@@ -35,8 +35,8 @@ return new class extends Migration
             $t->foreignId('instance_id')->constrained(Tables::name('workflow_instances'))->restrictOnDelete();
             $t->string('actor_ref', 120);
             $t->string('kind', 30);
-            $t->timestamp('active_from');
-            $t->timestamp('active_to')->nullable();
+            $t->dateTime('active_from');
+            $t->dateTime('active_to')->nullable();
             $t->string('assigned_by', 120);
             $t->string('reason_code', 100);
             $t->unsignedBigInteger('policy_id')->nullable();

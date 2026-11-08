@@ -20,7 +20,7 @@ return new class extends Migration
             $t->string('route_ref', 100);
             $t->string('reason_code', 100);
             $t->string('operation_id', 120);
-            $t->timestamp('created_at');
+            $t->dateTime('created_at');
             $t->unique(['scope_key', 'operation_id']);
         });
         Schema::create(Tables::name('external_sagas'), function (Blueprint $t) {
@@ -39,8 +39,8 @@ return new class extends Migration
             $t->unsignedInteger('version')->default(1);
             $t->unsignedInteger('attempts')->default(0);
             $t->string('failure_code', 100)->nullable();
-            $t->timestamp('created_at');
-            $t->timestamp('confirmed_at')->nullable();
+            $t->dateTime('created_at');
+            $t->dateTime('confirmed_at')->nullable();
             $t->index(['scope_key', 'state', 'id']);
         });
         Schema::create(Tables::name('external_case_subjects'), function (Blueprint $t) {

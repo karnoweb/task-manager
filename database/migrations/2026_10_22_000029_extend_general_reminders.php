@@ -17,10 +17,10 @@ return new class extends Migration
             $table->string('timezone', 100)->default('UTC');
             $table->string('subject_type', 100)->nullable();
             $table->string('subject_id', 120)->nullable();
-            $table->timestamp('created_at', 6)->nullable();
-            $table->timestamp('updated_at', 6)->nullable();
-            $table->timestamp('completed_at', 6)->nullable();
-            $table->timestamp('deleted_at', 6)->nullable();
+            $table->dateTime('created_at', 6)->nullable();
+            $table->dateTime('updated_at', 6)->nullable();
+            $table->dateTime('completed_at', 6)->nullable();
+            $table->dateTime('deleted_at', 6)->nullable();
             $table->index(['scope_key', 'subject_type', 'subject_id'], Tables::name('reminder_subject'));
         });
         DB::table(Tables::name('reminders'))->update(['created_by' => DB::raw('actor_ref')]);

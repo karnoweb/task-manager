@@ -53,7 +53,7 @@ return new class extends Migration
             $t->string('action_key', 100);
             $t->string('state', 30);
             $t->string('reason_code', 80)->nullable();
-            $t->timestamp('occurred_at', 6);
+            $t->dateTime('occurred_at', 6);
             $t->unique(['rule_id', 'event_id', 'action_key'], Tables::name('automation_dedupe'));
         });
         IdentifierCollation::align(Schema::getConnection(), Tables::name('automation_runs'), 'event_id');
@@ -102,8 +102,8 @@ return new class extends Migration
             $t->char('event_id', 36);
             $t->string('state', 20)->default('pending');
             $t->unsignedInteger('attempts')->default(0);
-            $t->timestamp('next_attempt_at', 6)->nullable();
-            $t->timestamp('lease_until', 6)->nullable();
+            $t->dateTime('next_attempt_at', 6)->nullable();
+            $t->dateTime('lease_until', 6)->nullable();
             $t->uuid('lease_token')->nullable();
             $t->string('reason_code', 80)->nullable();
             $t->unique(['subscription_id', 'event_id'], Tables::name('subscription_delivery'));

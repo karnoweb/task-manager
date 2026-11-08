@@ -34,7 +34,7 @@ return new class extends Migration
             $t->bigInteger('number_scaled')->nullable();
             $t->boolean('bool_value')->nullable();
             $t->date('date_value')->nullable();
-            $t->timestamp('datetime_value', 6)->nullable();
+            $t->dateTime('datetime_value', 6)->nullable();
             $t->string('key_value', 255)->nullable();
             $t->unsignedInteger('version')->default(1);
             $t->unique(['field_id', 'task_id']);
@@ -74,7 +74,7 @@ return new class extends Migration
             $t->string('query_hash', 64);
             $t->string('permission_hash', 64);
             $t->text('position');
-            $t->timestamp('expires_at', 6);
+            $t->dateTime('expires_at', 6);
             $t->index(['scope_key', 'actor_ref', 'expires_at'], Tables::name('query_cursor_expiry'));
         });
         Schema::table(Tables::name('tasks'), function (Blueprint $t) {

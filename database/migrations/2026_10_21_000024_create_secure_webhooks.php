@@ -32,8 +32,8 @@ return new class extends Migration
             $t->string('state', 20)->default('pending');
             $t->unsignedInteger('attempts')->default(0);
             $t->unsignedInteger('version')->default(1);
-            $t->timestamp('next_attempt_at', 6)->nullable();
-            $t->timestamp('lease_until', 6)->nullable();
+            $t->dateTime('next_attempt_at', 6)->nullable();
+            $t->dateTime('lease_until', 6)->nullable();
             $t->uuid('lease_token')->nullable();
             $t->unsignedSmallInteger('response_status')->nullable();
             $t->string('reason_code', 80)->nullable();
@@ -47,7 +47,7 @@ return new class extends Migration
         Schema::create(Tables::name('webhook_receipts'), function (Blueprint $t) {
             $t->foreignId('endpoint_id')->constrained(Tables::name('webhook_endpoints'))->restrictOnDelete();
             $t->uuid('event_id');
-            $t->timestamp('received_at', 6);
+            $t->dateTime('received_at', 6);
             $t->primary(['endpoint_id', 'event_id']);
         });
     }

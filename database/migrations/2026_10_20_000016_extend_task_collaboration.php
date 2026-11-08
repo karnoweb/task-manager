@@ -12,12 +12,12 @@ return new class extends Migration
     public function up(): void
     {
         Schema::table(Tables::name('comments'), function (Blueprint $t) {
-            $t->timestamp('created_at', 6)->nullable();
-            $t->timestamp('edited_at', 6)->nullable();
+            $t->dateTime('created_at', 6)->nullable();
+            $t->dateTime('edited_at', 6)->nullable();
             $t->foreignId('parent_comment_id')->nullable()->constrained(Tables::name('comments'))->restrictOnDelete();
         });
         Schema::table(Tables::name('attachments'), function (Blueprint $t) {
-            $t->timestamp('created_at', 6)->nullable();
+            $t->dateTime('created_at', 6)->nullable();
             $t->boolean('storage_verified')->default(false);
         });
         Schema::create(Tables::name('comment_revisions'), function (Blueprint $t) {
@@ -27,7 +27,7 @@ return new class extends Migration
             $t->unsignedInteger('version');
             $t->text('body');
             $t->string('editor_ref', 120);
-            $t->timestamp('occurred_at', 6)->nullable();
+            $t->dateTime('occurred_at', 6)->nullable();
             $t->boolean('deleted')->default(false);
             $t->unique(['comment_id', 'version']);
         });
@@ -46,7 +46,7 @@ return new class extends Migration
             $t->collation = IdentifierCollation::forConnection(Schema::getConnection());
             $t->foreignId('task_id')->constrained(Tables::name('tasks'))->restrictOnDelete();
             $t->string('actor_ref', 120);
-            $t->timestamp('created_at', 6);
+            $t->dateTime('created_at', 6);
             $t->primary(['task_id', 'actor_ref']);
         });
         Schema::create(Tables::name('checklists'), function (Blueprint $t) {
@@ -57,8 +57,8 @@ return new class extends Migration
             $t->foreignId('task_id')->constrained(Tables::name('tasks'))->restrictOnDelete();
             $t->string('title');
             $t->unsignedInteger('version')->default(1);
-            $t->timestamp('created_at', 6);
-            $t->timestamp('deleted_at', 6)->nullable();
+            $t->dateTime('created_at', 6);
+            $t->dateTime('deleted_at', 6)->nullable();
         });
         Schema::create(Tables::name('checklist_items'), function (Blueprint $t) {
             $t->collation = IdentifierCollation::forConnection(Schema::getConnection());
@@ -68,11 +68,11 @@ return new class extends Migration
             $t->string('title');
             $t->boolean('done')->default(false);
             $t->string('assignee_ref', 120)->nullable();
-            $t->timestamp('due_at', 6)->nullable();
+            $t->dateTime('due_at', 6)->nullable();
             $t->foreignId('converted_task_id')->nullable()->unique()->constrained(Tables::name('tasks'))->restrictOnDelete();
             $t->integer('position')->default(0);
             $t->unsignedInteger('version')->default(1);
-            $t->timestamp('deleted_at', 6)->nullable();
+            $t->dateTime('deleted_at', 6)->nullable();
             $t->index(['assignee_ref', 'due_at', 'id'], Tables::name('checklist_due_assignee'));
         });
         Schema::create(Tables::name('attachment_tickets'), function (Blueprint $t) {
@@ -83,8 +83,8 @@ return new class extends Migration
             $t->foreignId('attachment_id')->constrained(Tables::name('attachments'))->restrictOnDelete();
             $t->unsignedInteger('attachment_version');
             $t->string('actor_ref', 120);
-            $t->timestamp('expires_at', 6);
-            $t->timestamp('revoked_at', 6)->nullable();
+            $t->dateTime('expires_at', 6);
+            $t->dateTime('revoked_at', 6)->nullable();
             $t->index(['scope_key', 'actor_ref', 'attachment_id', 'expires_at'], Tables::name('file_ticket_actor'));
         });
     }

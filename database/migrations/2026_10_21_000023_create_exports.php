@@ -23,9 +23,9 @@ return new class extends Migration
             $t->unsignedInteger('attempts')->default(0);
             $t->unsignedBigInteger('cutoff_id');
             $t->string('file_ref', 100)->nullable();
-            $t->timestamp('expires_at', 6);
+            $t->dateTime('expires_at', 6);
             $t->uuid('lease_token')->nullable();
-            $t->timestamp('lease_until', 6)->nullable();
+            $t->dateTime('lease_until', 6)->nullable();
             $t->string('reason_code', 80)->nullable();
             $t->index(['scope_key', 'actor_ref', 'state', 'id'], Tables::name('export_worker'));
         });

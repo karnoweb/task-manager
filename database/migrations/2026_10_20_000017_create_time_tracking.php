@@ -25,8 +25,8 @@ return new class extends Migration
             $t->foreignId('task_id')->constrained(Tables::name('tasks'))->restrictOnDelete();
             $t->string('actor_ref', 120);
             $t->string('state', 30)->default('active');
-            $t->timestamp('started_at', 6);
-            $t->timestamp('ended_at', 6)->nullable();
+            $t->dateTime('started_at', 6);
+            $t->dateTime('ended_at', 6)->nullable();
             $t->unsignedInteger('version')->default(1);
             $t->index(['scope_key', 'actor_ref', 'started_at'], Tables::name('timer_actor_time'));
         });
@@ -44,14 +44,14 @@ return new class extends Migration
             $t->string('scope_key', 120);
             $t->foreignId('task_id')->constrained(Tables::name('tasks'))->restrictOnDelete();
             $t->string('actor_ref', 120);
-            $t->timestamp('started_at', 6);
-            $t->timestamp('ended_at', 6);
+            $t->dateTime('started_at', 6);
+            $t->dateTime('ended_at', 6);
             $t->unsignedBigInteger('duration_seconds');
             $t->text('note')->nullable();
             $t->foreignId('timer_id')->nullable()->unique()->constrained(Tables::name('task_timers'))->restrictOnDelete();
             $t->boolean('overlap_warning')->default(false);
             $t->unsignedInteger('version')->default(1);
-            $t->timestamp('deleted_at', 6)->nullable();
+            $t->dateTime('deleted_at', 6)->nullable();
             $t->index(['scope_key', 'actor_ref', 'started_at', 'ended_at'], Tables::name('time_actor_interval'));
             $t->index(['task_id', 'deleted_at', 'id'], Tables::name('time_task_totals'));
         });
@@ -63,7 +63,7 @@ return new class extends Migration
             $t->unsignedInteger('source_task_version');
             $t->unsignedBigInteger('spent_seconds');
             $t->unsignedBigInteger('remaining_seconds')->nullable();
-            $t->timestamp('rebuilt_at', 6);
+            $t->dateTime('rebuilt_at', 6);
         });
     }
 

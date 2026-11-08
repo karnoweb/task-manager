@@ -27,7 +27,7 @@ return new class extends Migration
             $t->unsignedInteger('revision');
             $t->text('definition');
             $t->string('definition_hash', 64);
-            $t->timestamp('created_at', 6);
+            $t->dateTime('created_at', 6);
             $t->unique(['template_id', 'revision']);
         });
         Schema::create(Tables::name('project_template_instances'), function (Blueprint $t) {

@@ -38,8 +38,8 @@ return new class extends Migration
             $t->bigIncrements('id');
             $t->foreignId('group_id')->constrained(Tables::name('process_groups'))->restrictOnDelete();
             $t->foreignId('instance_id')->constrained(Tables::name('workflow_instances'))->restrictOnDelete();
-            $t->timestamp('joined_at', 6);
-            $t->timestamp('left_at', 6)->nullable();
+            $t->dateTime('joined_at', 6);
+            $t->dateTime('left_at', 6)->nullable();
             $t->unsignedInteger('enrollment_revision');
             $t->unique(['group_id', 'instance_id', 'enrollment_revision'], Tables::name('group_member_revision_unique'));
             $t->index(['group_id', 'id']);
@@ -62,7 +62,7 @@ return new class extends Migration
             $t->string('milestone_key', 100);
             $t->unsignedInteger('instance_version');
             $t->string('operation_id', 120);
-            $t->timestamp('created_at', 6);
+            $t->dateTime('created_at', 6);
             $t->string('transaction_ref', 100)->nullable();
             $t->string('state', 30)->default('pending');
             $t->unique(['instance_id', 'instance_version', 'milestone_key'], Tables::name('milestone_intent_version_unique'));
@@ -75,8 +75,8 @@ return new class extends Migration
             $t->foreignId('instance_id')->constrained(Tables::name('workflow_instances'))->restrictOnDelete();
             $t->foreignId('intent_id')->unique()->constrained(Tables::name('milestone_intents'))->restrictOnDelete();
             $t->string('milestone_key', 100);
-            $t->timestamp('committed_at', 6);
-            $t->timestamp('verified_at', 6);
+            $t->dateTime('committed_at', 6);
+            $t->dateTime('verified_at', 6);
             $t->index(['instance_id', 'milestone_key', 'committed_at'], Tables::name('milestone_cutoff_index'));
         });
         Schema::create(Tables::name('group_operations'), function (Blueprint $t) {
@@ -87,12 +87,12 @@ return new class extends Migration
             $t->foreignId('group_id')->constrained(Tables::name('process_groups'))->restrictOnDelete();
             $t->foreignId('policy_id')->constrained(Tables::name('group_lifecycle_policies'))->restrictOnDelete();
             $t->unsignedInteger('source_revision');
-            $t->timestamp('cutoff_at', 6);
+            $t->dateTime('cutoff_at', 6);
             $t->string('initiator_ref', 120);
             $t->string('operation_id', 120);
             $t->string('state', 30)->default('processing');
             $t->unsignedInteger('version')->default(1);
-            $t->timestamp('created_at', 6);
+            $t->dateTime('created_at', 6);
             $t->unique(['scope_key', 'operation_id']);
             $t->index(['scope_key', 'state', 'id']);
         });
@@ -105,13 +105,13 @@ return new class extends Migration
             $t->unsignedInteger('expected_instance_version');
             $t->string('state', 30)->default('pending');
             $t->uuid('lease_token')->nullable();
-            $t->timestamp('lease_expires_at', 6)->nullable();
+            $t->dateTime('lease_expires_at', 6)->nullable();
             $t->unsignedInteger('attempts')->default(0);
             $t->string('result', 30)->nullable();
             $t->string('reason_code', 100)->nullable();
             $t->string('error_code', 100)->nullable();
             $t->string('operation_id', 120)->nullable();
-            $t->timestamp('processed_at', 6)->nullable();
+            $t->dateTime('processed_at', 6)->nullable();
             $t->unique(['run_id', 'member_id']);
             $t->index(['run_id', 'state', 'lease_expires_at', 'member_id'], Tables::name('group_claim_index'));
         });

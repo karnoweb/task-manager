@@ -100,7 +100,7 @@ return new class extends Migration
             $t->unsignedBigInteger('pipeline_id')->nullable();
             $t->string('active_stage_key', 100)->nullable();
             $t->unsignedBigInteger('case_id')->nullable();
-            $t->timestamp('started_at')->nullable();
+            $t->dateTime('started_at')->nullable();
             $t->foreign('pipeline_id')->references('id')->on(Tables::name('pipelines'))->restrictOnDelete();
             $t->foreign('case_id')->references('id')->on(Tables::name('process_cases'))->restrictOnDelete();
             $t->index(['scope_key', 'subject_type', 'subject_id']);
@@ -130,8 +130,8 @@ return new class extends Migration
             $t->foreignId('pipeline_id')->constrained(Tables::name('pipelines'))->restrictOnDelete();
             $t->string('stage_key', 100);
             $t->unsignedInteger('visit_no');
-            $t->timestamp('entered_at');
-            $t->timestamp('exited_at')->nullable();
+            $t->dateTime('entered_at');
+            $t->dateTime('exited_at')->nullable();
             $t->unique(['instance_id', 'visit_no']);
         });
         Schema::create(Tables::name('security_decisions'), function (Blueprint $t) {
@@ -142,7 +142,7 @@ return new class extends Migration
             $t->string('action', 80);
             $t->string('reason', 80);
             $t->string('target_hash', 64);
-            $t->timestamp('occurred_at');
+            $t->dateTime('occurred_at');
         });
         foreach ([Tables::name('audit_events'), Tables::name('outbox')] as $table) {
             Schema::table($table, function (Blueprint $t) {

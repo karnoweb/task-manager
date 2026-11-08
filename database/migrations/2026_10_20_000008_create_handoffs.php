@@ -44,10 +44,10 @@ return new class extends Migration
             $t->string('reason_code', 100);
             $t->string('target_team', 120);
             $t->unsignedBigInteger('paused_visit_id')->nullable();
-            $t->timestamp('deadline_at')->nullable();
+            $t->dateTime('deadline_at')->nullable();
             $t->string('failure_code', 100)->nullable();
-            $t->timestamp('created_at');
-            $t->timestamp('resolved_at')->nullable();
+            $t->dateTime('created_at');
+            $t->dateTime('resolved_at')->nullable();
             $t->index(['scope_key', 'status', 'deadline_at']);
             $t->unique('destination_id');
         });
@@ -65,7 +65,7 @@ return new class extends Migration
             $t->unsignedInteger('destination_version');
             $t->string('actor_ref', 120);
             $t->string('operation_id', 120);
-            $t->timestamp('occurred_at');
+            $t->dateTime('occurred_at');
         });
     }
 

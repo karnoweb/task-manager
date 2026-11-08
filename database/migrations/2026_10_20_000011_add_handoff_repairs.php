@@ -21,7 +21,7 @@ return new class extends Migration
             $t->string('actor_ref', 120);
             $t->string('reason_code', 100);
             $t->string('operation_id', 120);
-            $t->timestamp('occurred_at');
+            $t->dateTime('occurred_at');
             $t->unique(['handoff_id', 'operation_id']);
         });
     }

@@ -27,7 +27,7 @@ return new class extends Migration
                     $t->unsignedBigInteger('size');
                 }
                 $t->unsignedInteger('version')->default(1);
-                $t->timestamp('deleted_at')->nullable();
+                $t->dateTime('deleted_at')->nullable();
             });
         }
     }

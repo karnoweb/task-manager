@@ -1,5 +1,12 @@
 # Changelog
 
+## 13.0.5
+
+- Domain datetime columns in package migrations use `dateTime` instead of `TIMESTAMP` so `migrate` / `migrate:fresh` on MariaDB does not hit SQLSTATE 1067 (invalid default).
+- `IdentifierCollation` falls back to `utf8mb4_bin` on MariaDB builds that lack `utf8mb4_nopad_bin`.
+- Align `outbox` / `audit_events` `event_id` after foundation create so MariaDB foreign keys to `outbox` succeed.
+- Migrations load from the package by default; publish with `php artisan vendor:publish --tag=task-manager-migrations` only when the host needs its own copy (see [installation](docs/installation.md#انتشار-مایگریشن)).
+
 ## 13.0.2
 
 - Migrations can be published with `php artisan vendor:publish --tag=task-manager-migrations`. The provider uses `publishes()`, so the shipped filenames stay unchanged.

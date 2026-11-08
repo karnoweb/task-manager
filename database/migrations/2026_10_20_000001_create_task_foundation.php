@@ -34,8 +34,8 @@ return new class extends Migration
             $t->string('priority')->default('normal');
             $t->decimal('rank', 20, 8)->default(0);
             $t->unsignedInteger('version')->default(1);
-            $t->timestamp('archived_at')->nullable();
-            $t->timestamp('deleted_at')->nullable();
+            $t->dateTime('archived_at')->nullable();
+            $t->dateTime('deleted_at')->nullable();
             $t->timestamps();
             $t->index(['scope_key', 'owner_ref']);
             $t->unique(['scope_key', 'display_key']);
@@ -52,7 +52,7 @@ return new class extends Migration
             $t->string('workflow_key')->default('personal');
             $t->unsignedBigInteger('workflow_revision_id');
             $t->string('current_state_key')->default('pending');
-            $t->timestamp('completed_at')->nullable();
+            $t->dateTime('completed_at')->nullable();
             $t->unsignedInteger('version')->default(1);
         });
         Schema::create(Tables::name('workflow_definitions'), function (Blueprint $t) {
@@ -85,7 +85,7 @@ return new class extends Migration
             $t->string('to_state');
             $t->string('actor_ref', 120);
             $t->string('operation_id', 120);
-            $t->timestamp('occurred_at');
+            $t->dateTime('occurred_at');
             $t->index(['scope_key', 'instance_id']);
         });
         Schema::create(Tables::name('command_journal'), function (Blueprint $t) {
@@ -128,14 +128,16 @@ return new class extends Migration
                 $t->string('operation_id', 120);
                 $t->string('correlation_id', 120);
                 $t->text('payload');
-                $t->timestamp('occurred_at');
+                $t->dateTime('occurred_at');
                 if ($name === Tables::name('outbox')) {
                     $t->unsignedInteger('attempts')->default(0);
-                    $t->timestamp('published_at')->nullable();
+                    $t->dateTime('published_at')->nullable();
                 }
                 $t->index(['scope_key', 'task_id']);
             });
         }
+        IdentifierCollation::align(Schema::getConnection(), Tables::name('outbox'), 'event_id');
+        IdentifierCollation::align(Schema::getConnection(), Tables::name('audit_events'), 'event_id');
     }
 
     public function down(): void

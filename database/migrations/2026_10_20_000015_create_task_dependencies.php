@@ -25,8 +25,8 @@ return new class extends Migration
             $t->string('calendar_ref', 120)->nullable();
             $t->string('enforcement', 30)->default('strict');
             $t->unsignedInteger('version')->default(1);
-            $t->timestamp('created_at', 6);
-            $t->timestamp('deleted_at', 6)->nullable();
+            $t->dateTime('created_at', 6);
+            $t->dateTime('deleted_at', 6)->nullable();
             $t->index(['scope_key', 'predecessor_id', 'blocking', 'deleted_at'], Tables::name('dependency_outgoing'));
             $t->index(['scope_key', 'successor_id', 'blocking', 'deleted_at'], Tables::name('dependency_incoming'));
         });
@@ -39,8 +39,8 @@ return new class extends Migration
             $t->primary(['predecessor_id', 'successor_id', 'type'], Tables::name('active_dependency_key'));
         });
         Schema::table(Tables::name('tasks'), function (Blueprint $t) {
-            $t->timestamp('planned_start_at', 6)->nullable();
-            $t->timestamp('planned_finish_at', 6)->nullable();
+            $t->dateTime('planned_start_at', 6)->nullable();
+            $t->dateTime('planned_finish_at', 6)->nullable();
             $t->unsignedInteger('estimate_minutes')->nullable();
             $t->decimal('story_points', 12, 2)->nullable();
         });

@@ -38,8 +38,8 @@ return new class extends Migration
             $t->string('execution_state', 30)->default('none');
             $t->string('requested_by', 120);
             $t->unsignedInteger('version')->default(1);
-            $t->timestamp('created_at');
-            $t->timestamp('decided_at')->nullable();
+            $t->dateTime('created_at');
+            $t->dateTime('decided_at')->nullable();
             $t->unsignedInteger('decision_instance_version')->nullable();
         });
         Schema::create(Tables::name('active_approval_steps'), function (Blueprint $t) {
@@ -56,7 +56,7 @@ return new class extends Migration
             $t->string('vote', 30);
             $t->string('reason_code', 100)->nullable();
             $t->string('operation_id', 120);
-            $t->timestamp('occurred_at');
+            $t->dateTime('occurred_at');
             $t->unique(['step_id', 'actor_ref']);
         });
     }

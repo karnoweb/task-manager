@@ -14,7 +14,7 @@ return new class extends Migration
             $t->boolean('is_inbox')->default(false);
             $t->unsignedInteger('version')->default(1);
             $t->decimal('rank', 20, 8)->default(0);
-            $t->timestamp('archived_at')->nullable();
+            $t->dateTime('archived_at')->nullable();
         });
         DB::table(Tables::name('lists'))->where('name', 'Inbox')->update(['is_inbox' => true]);
     }

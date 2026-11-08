@@ -27,10 +27,10 @@ return new class extends Migration
             $t->string('name');
             $t->string('state', 30)->default('planned');
             $t->unsignedInteger('version')->default(1);
-            $t->timestamp('planned_start_at', 6)->nullable();
-            $t->timestamp('planned_end_at', 6)->nullable();
-            $t->timestamp('started_at', 6)->nullable();
-            $t->timestamp('closed_at', 6)->nullable();
+            $t->dateTime('planned_start_at', 6)->nullable();
+            $t->dateTime('planned_end_at', 6)->nullable();
+            $t->dateTime('started_at', 6)->nullable();
+            $t->dateTime('closed_at', 6)->nullable();
             $t->index(['scope_key', 'project_id', 'state', 'id'], Tables::name('sprint_project_state'));
         });
         Schema::create(Tables::name('sprint_tasks'), function (Blueprint $t) {
@@ -38,8 +38,8 @@ return new class extends Migration
             $t->bigIncrements('id');
             $t->foreignId('sprint_id')->constrained(Tables::name('sprints'))->restrictOnDelete();
             $t->foreignId('task_id')->constrained(Tables::name('tasks'))->restrictOnDelete();
-            $t->timestamp('joined_at', 6);
-            $t->timestamp('left_at', 6)->nullable();
+            $t->dateTime('joined_at', 6);
+            $t->dateTime('left_at', 6)->nullable();
             $t->unsignedBigInteger('points_minor_at_join')->nullable();
             $t->unsignedInteger('membership_revision');
             $t->index(['sprint_id', 'left_at', 'id'], Tables::name('sprint_members_at_boundary'));
@@ -64,7 +64,7 @@ return new class extends Migration
             $t->foreignId('sprint_id')->constrained(Tables::name('sprints'))->restrictOnDelete();
             $t->string('kind', 30);
             $t->string('date_key', 10);
-            $t->timestamp('captured_at', 6);
+            $t->dateTime('captured_at', 6);
             $t->unsignedInteger('membership_revision');
             $t->unique(['sprint_id', 'kind', 'date_key'], Tables::name('sprint_snapshot_dedupe'));
         });
@@ -87,7 +87,7 @@ return new class extends Migration
             $t->foreignId('project_id')->constrained(Tables::name('projects'))->restrictOnDelete();
             $t->string('kind', 30);
             $t->string('name');
-            $t->timestamp('due_at', 6)->nullable();
+            $t->dateTime('due_at', 6)->nullable();
             $t->unsignedInteger('version')->default(1);
         });
         Schema::create(Tables::name('marker_tasks'), function (Blueprint $t) {

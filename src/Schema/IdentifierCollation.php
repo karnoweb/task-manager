@@ -7,13 +7,41 @@ use Illuminate\Database\MySqlConnection;
 
 final class IdentifierCollation
 {
+    /** @var array<string, string> */
+    private static array $resolvedMaria = [];
+
     public static function forConnection(Connection $connection): string
     {
         if (! $connection instanceof MySqlConnection) {
             return 'utf8mb4_bin';
         }
 
-        return $connection->isMaria() ? 'utf8mb4_nopad_bin' : 'utf8mb4_0900_bin';
+        if ($connection->isMaria()) {
+            return self::mariadbBinaryCollation($connection);
+        }
+
+        $version = strtolower((string) $connection->getServerVersion());
+
+        if (str_starts_with($version, '8.')) {
+            return 'utf8mb4_0900_bin';
+        }
+
+        return 'utf8mb4_bin';
+    }
+
+    private static function mariadbBinaryCollation(MySqlConnection $connection): string
+    {
+        $key = $connection->getName();
+
+        if (isset(self::$resolvedMaria[$key])) {
+            return self::$resolvedMaria[$key];
+        }
+
+        $hasNopad = $connection->selectOne(
+            "SELECT 1 AS ok FROM information_schema.COLLATIONS WHERE COLLATION_NAME = 'utf8mb4_nopad_bin' LIMIT 1"
+        );
+
+        return self::$resolvedMaria[$key] = $hasNopad !== null ? 'utf8mb4_nopad_bin' : 'utf8mb4_bin';
     }
 
     /** Blueprint collation is not applied to char/uuid columns on MariaDB, so foreign keys to outbox.event_id fail. */

@@ -12,9 +12,9 @@ return new class extends Migration
     public function up(): void
     {
         Schema::table(Tables::name('tasks'), function (Blueprint $t) {
-            $t->timestamp('starts_at', 6)->nullable();
-            $t->timestamp('ends_at', 6)->nullable();
-            $t->timestamp('due_at', 6)->nullable();
+            $t->dateTime('starts_at', 6)->nullable();
+            $t->dateTime('ends_at', 6)->nullable();
+            $t->dateTime('due_at', 6)->nullable();
             $t->string('timezone', 100)->default('UTC');
             $t->boolean('all_day')->default(false);
             $t->date('local_start_date')->nullable();
@@ -53,8 +53,8 @@ return new class extends Migration
             $t->unsignedInteger('rule_revision');
             $t->string('state', 20)->default('active');
             $t->foreignId('task_id')->unique()->constrained(Tables::name('tasks'))->restrictOnDelete();
-            $t->timestamp('scheduled_at', 6);
-            $t->timestamp('created_at', 6);
+            $t->dateTime('scheduled_at', 6);
+            $t->dateTime('created_at', 6);
             $t->unique(['recurrence_id', 'occurrence_key'], Tables::name('occurrence_dedupe'));
             $t->index(['recurrence_id', 'scheduled_at']);
         });
@@ -65,7 +65,7 @@ return new class extends Migration
             $t->string('occurrence_key', 40);
             $t->unsignedInteger('version')->default(1);
             $t->boolean('cancelled')->default(false);
-            $t->timestamp('override_at', 6)->nullable();
+            $t->dateTime('override_at', 6)->nullable();
             $t->unique(['recurrence_id', 'occurrence_key'], Tables::name('exception_identity'));
         });
         Schema::create(Tables::name('reminders'), function (Blueprint $t) {
@@ -77,8 +77,8 @@ return new class extends Migration
             $t->string('actor_ref', 120);
             $t->string('anchor', 20);
             $t->integer('offset_seconds');
-            $t->timestamp('absolute_at', 6)->nullable();
-            $t->timestamp('scheduled_at', 6)->nullable();
+            $t->dateTime('absolute_at', 6)->nullable();
+            $t->dateTime('scheduled_at', 6)->nullable();
             $t->unsignedInteger('source_revision');
             $t->string('state', 20)->default('pending');
             $t->unsignedInteger('version')->default(1);
@@ -90,7 +90,7 @@ return new class extends Migration
             $t->foreignId('reminder_id')->constrained(Tables::name('reminders'))->restrictOnDelete();
             $t->unsignedInteger('generation');
             $t->char('event_id', 36);
-            $t->timestamp('created_at', 6);
+            $t->dateTime('created_at', 6);
             $t->primary(['reminder_id', 'generation']);
         });
         IdentifierCollation::align(Schema::getConnection(), Tables::name('reminder_deliveries'), 'event_id');

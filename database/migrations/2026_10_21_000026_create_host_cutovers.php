@@ -20,8 +20,8 @@ return new class extends Migration
             $t->unsignedInteger('version')->default(1);
             $t->text('mapping');
             $t->string('reconciled_hash', 64)->nullable();
-            $t->timestamp('cutover_at')->nullable();
-            $t->timestamp('rollback_at')->nullable();
+            $t->dateTime('cutover_at')->nullable();
+            $t->dateTime('rollback_at')->nullable();
             $t->unsignedBigInteger('cutover_event_id')->nullable();
             $t->unique(['scope_key', 'source_key']);
         });
@@ -39,7 +39,7 @@ return new class extends Migration
             $t->foreign('instance_id')->references('id')->on(Tables::name('workflow_instances'))->restrictOnDelete();
             $t->unsignedInteger('target_version');
             $t->string('target_hash', 64);
-            $t->timestamp('imported_at');
+            $t->dateTime('imported_at');
             $t->unique(['cutover_id', 'legacy_type', 'legacy_id']);
             $t->unique('task_id');
             $t->unique('instance_id');

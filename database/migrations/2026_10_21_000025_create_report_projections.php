@@ -20,7 +20,7 @@ return new class extends Migration
             $t->string('source_hash', 64);
             $t->text('definition');
             $t->text('metrics');
-            $t->timestamp('captured_at', 6);
+            $t->dateTime('captured_at', 6);
             $t->unsignedInteger('version')->default(1);
             $t->unique(['scope_key', 'actor_ref', 'report_key'], Tables::name('report_projection_identity'));
         });

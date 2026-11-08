@@ -29,7 +29,7 @@ return new class extends Migration
             $t->unsignedBigInteger('policy_id')->nullable();
             $t->foreign('policy_id')->references('id')->on(Tables::name('stage_policies'))->restrictOnDelete();
             foreach (['deadline_at', 'warning_at', 'stale_at', 'last_activity_at', 'paused_at', 'warned_at', 'breached_at', 'stale_detected_at', 'dead_candidate_at', 'anchor_at'] as $column) {
-                $t->timestamp($column)->nullable();
+                $t->dateTime($column)->nullable();
             }
             $t->unsignedBigInteger('paused_seconds')->default(0);
             $t->unsignedBigInteger('elapsed_seconds')->default(0);
@@ -48,8 +48,8 @@ return new class extends Migration
             $t->collation = IdentifierCollation::forConnection(Schema::getConnection());
             $t->bigIncrements('id');
             $t->foreignId('visit_id')->constrained(Tables::name('stage_visits'))->restrictOnDelete();
-            $t->timestamp('started_at');
-            $t->timestamp('ended_at')->nullable();
+            $t->dateTime('started_at');
+            $t->dateTime('ended_at')->nullable();
             $t->string('reason_code', 100);
             $t->string('actor_ref', 120);
         });
@@ -60,8 +60,8 @@ return new class extends Migration
             $t->foreignId('visit_id')->constrained(Tables::name('stage_visits'))->restrictOnDelete();
             $t->foreignId('policy_id')->constrained(Tables::name('stage_policies'))->restrictOnDelete();
             $t->string('event_key', 30);
-            $t->timestamp('threshold_at');
-            $t->timestamp('detected_at');
+            $t->dateTime('threshold_at');
+            $t->dateTime('detected_at');
             $t->unsignedInteger('generation')->default(1);
             $t->string('action_state', 30)->default('marked');
             $t->string('reason', 100)->nullable();

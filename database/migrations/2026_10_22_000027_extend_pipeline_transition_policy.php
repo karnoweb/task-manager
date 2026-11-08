@@ -11,7 +11,7 @@ return new class extends Migration
     {
         Schema::table(Tables::name('pipelines'), function (Blueprint $table) {
             $table->string('transition_mode', 20)->default('custom');
-            $table->timestamp('retired_at')->nullable();
+            $table->dateTime('retired_at')->nullable();
         });
     }
 
