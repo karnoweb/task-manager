@@ -26,7 +26,7 @@ final class SlaNativeLifecycleTest extends SlaTestCase
                 $this->service()->mutate($this->manager(), $task['public_key'], 2, $action, $action);
                 self::fail();
             } catch (DomainError $error) {
-                self::assertSame('active_process_blocks_archive', $error->getMessage());
+                self::assertSame('active_process_blocks_archive', $error->errorCode);
             }
         }
         self::assertNull(DB::table('tm_tasks')->where('public_key', $task['public_key'])->value('archived_at'));

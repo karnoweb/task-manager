@@ -37,7 +37,7 @@ final class TicketWorkflowPolicyTest extends WorkflowTestCase
             $this->instances()->transition($this->manager(), $i['instance_key'], 3, 'bad', 'move.waiting.closed');
             self::fail('Jump must be denied.');
         } catch (DomainError $error) {
-            self::assertSame('transition_policy_denied', $error->getMessage());
+            self::assertSame('transition_policy_denied', $error->errorCode);
             self::assertSame(['reviewing', 'done'], $error->details['allowed_destinations']);
         }
         self::assertSame(1, DB::table('tm_security_decisions')->where('reason', 'transition_policy_denied')->count());

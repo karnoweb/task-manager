@@ -73,7 +73,7 @@ final class HandoffParallelTest extends HandoffTestCase
             $this->handoffs()->parallel($this->manager(), $origin['instance_key'], 1, [$entry, $entry], $this->returnPolicy(), ['mode' => 'all', 'outcomes' => ['approved'], 'priority' => ['approved'], 'remaining' => 'keep_active_detached'], 'parallel');
             self::fail();
         } catch (DomainError $e) {
-            self::assertSame('active_slot_conflict', $e->getMessage());
+            self::assertSame('active_slot_conflict', $e->errorCode);
         }
         self::assertSame(0, DB::table('tm_handoff_groups')->count());
         self::assertSame(0, DB::table('tm_handoffs')->count());

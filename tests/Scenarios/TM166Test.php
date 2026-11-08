@@ -17,7 +17,6 @@ final class TM166Test extends HandoffTestCase
         self::assertNotNull($this->sla()->get($this->manager(), $h['paused_visit_id'])['paused_at']);
         self::assertCount(1, $this->instances()->visits($this->manager(), $origin['instance_key']));
         self::assertSame($waiting['case_id'], $destination['case_id']);
-        $this->expectExceptionMessage('instance_on_hold');
-        $this->instances()->transition($this->manager(), $origin['instance_key'], 2, 'bypass', 'review');
+                $this->error('instance_on_hold', fn () => $this->instances()->transition($this->manager(), $origin['instance_key'], 2, 'bypass', 'review'));
     }
 }

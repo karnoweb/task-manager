@@ -18,7 +18,7 @@ final class TM186Test extends HandoffTestCase
             $this->handoffs()->delegate($this->manager(), $origin['instance_key'], 1, $p['pipeline_key'], $r['id'], 'cross', $this->returnPolicy(), 'cross-scope');
             self::fail();
         } catch (DomainError $e) {
-            self::assertSame('not_found', $e->getMessage());
+            self::assertSame('not_found', $e->errorCode);
         }
         self::assertSame(0, DB::table('tm_handoffs')->count());
         self::assertSame(0, DB::table('tm_process_cases')->count());

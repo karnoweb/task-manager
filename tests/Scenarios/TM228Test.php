@@ -20,7 +20,7 @@ final class TM228Test extends GroupTestCase
             $this->groupService()->executeClosure($this->manager(), $preview, 'stale');
             self::fail();
         } catch (DomainError $error) {
-            self::assertSame('preview_stale', $error->getMessage());
+            self::assertSame('preview_stale', $error->errorCode);
         }
         self::assertSame(0, DB::table('tm_group_operations')->count());
         self::assertSame(1, $this->groupService()->previewDelta($this->manager(), $preview)['counts_delta']['failed']);

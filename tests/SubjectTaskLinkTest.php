@@ -18,7 +18,7 @@ final class SubjectTaskLinkTest extends WorkflowTestCase
         try {
             $call();
         } catch (DomainError $e) {
-            self::assertSame($code, $e->getMessage());
+            self::assertSame($code, $e->errorCode);
 
             return;
         }

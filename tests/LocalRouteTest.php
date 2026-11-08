@@ -59,7 +59,7 @@ final class LocalRouteTest extends RouteTestCase
             $this->routes()->spawn($this->manager(), 'ticket.sales-v1', $origin['instance_key'], 1, $sales['pipeline_key'], $r['id'], 'main', 'refer', 'sales_opportunity_identified', 'spawn');
             self::fail();
         } catch (DomainError $e) {
-            self::assertSame('host_guard_veto', $e->getMessage());
+            self::assertSame('host_guard_veto', $e->errorCode);
         }
         self::assertSame(1, DB::table('host_subjects')->count());
         self::assertSame(0, DB::table('host_route_operations')->count());
@@ -75,7 +75,6 @@ final class LocalRouteTest extends RouteTestCase
         [$origin, $sales] = $this->ticketFixture();
         $this->app->instance(SubjectRouteRegistry::class, new SubjectRouteRegistry(['ticket.sales-v1' => new HostLocalRouter(DB::connection('remote_fixture'))]));
         $preview = $this->instances()->previewMove($this->manager(), $origin['instance_key'], $sales['pipeline_key'], ['new' => 'new']);
-        $this->expectExceptionMessage('same_connection_required');
-        $this->routes()->move($this->manager(), 'ticket.sales-v1', $preview, 'sales_opportunity_identified', 'move');
+                $this->error('same_connection_required', fn () => $this->routes()->move($this->manager(), 'ticket.sales-v1', $preview, 'sales_opportunity_identified', 'move'));
     }
 }

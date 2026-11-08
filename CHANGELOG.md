@@ -1,5 +1,10 @@
 # Changelog
 
+## 13.1.0
+
+- `DomainError` returns translated `getMessage()` from `lang/en` and `lang/fa` (`task-manager::errors.*`); stable machine key stays on `errorCode`.
+- Publish/overrides: `php artisan vendor:publish --tag=task-manager-lang`.
+
 ## 13.0.5
 
 - Domain datetime columns in package migrations use `dateTime` instead of `TIMESTAMP` so `migrate` / `migrate:fresh` on MariaDB does not hit SQLSTATE 1067 (invalid default).

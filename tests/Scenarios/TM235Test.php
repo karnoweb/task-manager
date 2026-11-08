@@ -20,7 +20,7 @@ final class TM235Test extends GroupTestCase
             $this->groupService()->executeClosure($this->manager(), $preview, 'same-key');
             self::fail();
         } catch (DomainError $error) {
-            self::assertSame('idempotency_key_conflict', $error->getMessage());
+            self::assertSame('idempotency_key_conflict', $error->errorCode);
         }
         self::assertSame(1, DB::table('tm_group_operations')->count());
     }

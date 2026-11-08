@@ -23,7 +23,6 @@ final class TM227Test extends GroupTestCase
         self::assertTrue($delta['changed']);
         self::assertNotSame($preview['member_hash'], $delta['preview']['member_hash']);
         self::assertSame($events, DB::table('tm_outbox')->count());
-        $this->expectExceptionMessage('preview_stale');
-        $this->groupService()->executeClosure($this->manager(), $preview, 'stale');
+                $this->error('preview_stale', fn () => $this->groupService()->executeClosure($this->manager(), $preview, 'stale'));
     }
 }

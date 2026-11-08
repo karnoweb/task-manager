@@ -51,7 +51,7 @@ final class TM185Test extends HandoffTestCase
             $this->handoffs()->delegate($this->manager(), $origin['instance_key'], 1, $route, $r['id'], 'contracts', $this->returnPolicy(), 'delegate');
             self::fail();
         } catch (DomainError $e) {
-            self::assertSame('destination_not_accepted', $e->getMessage());
+            self::assertSame('destination_not_accepted', $e->errorCode);
         }
         self::assertSame(0, DB::table('tm_handoffs')->count());
         self::assertSame(1, DB::table('tm_workflow_instances')->count());

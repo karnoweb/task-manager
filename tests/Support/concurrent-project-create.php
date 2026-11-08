@@ -38,5 +38,5 @@ try {
     $task = $projects->createTask($context, $argv[2], 'task', 'Concurrent task', $argv[3]);
     echo json_encode(['key' => $task['public_key'], 'display' => $task['display_key']], JSON_THROW_ON_ERROR);
 } catch (DomainError $error) {
-    echo json_encode(['error' => $error->getMessage()], JSON_THROW_ON_ERROR);
+    echo json_encode(['error' => $error->errorCode], JSON_THROW_ON_ERROR);
 }

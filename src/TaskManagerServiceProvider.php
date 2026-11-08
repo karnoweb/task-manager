@@ -177,6 +177,7 @@ final class TaskManagerServiceProvider extends ServiceProvider
     public function boot(): void
     {
         $this->loadMigrationsFrom(__DIR__.'/../database/migrations');
+        $this->loadTranslationsFrom(__DIR__.'/../lang', 'task-manager');
 
         if ($this->app->runningInConsole()) {
             $this->publishes([
@@ -187,6 +188,10 @@ final class TaskManagerServiceProvider extends ServiceProvider
             $this->publishes([
                 __DIR__.'/../database/migrations' => database_path('migrations'),
             ], 'task-manager-migrations');
+
+            $this->publishes([
+                __DIR__.'/../lang' => lang_path('vendor/task-manager'),
+            ], 'task-manager-lang');
         }
     }
 }

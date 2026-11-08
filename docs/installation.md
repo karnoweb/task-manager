@@ -16,7 +16,7 @@ php artisan migrate:status
 
 این مسیر با مخزن محلی واقعی است؛ انتشار بسته در رجیستری عمومی فرض نشده است. در رجیستری سازمانی، دستور معمول `composer require karnoweb/task-manager` را با همان رجیستری اجرا کنید.
 
-Service Provider (ثبت‌کنندهٔ خدمات) خودکار ثبت می‌شود. اگر کشف خودکار غیرفعال است، `Karnoweb\TaskManager\TaskManagerServiceProvider::class` را به `bootstrap/providers.php` اضافه کنید. مهاجرت‌ها با `loadMigrationsFrom` از `database/migrations` بسته بارگذاری می‌شوند. کپی در پروژه میزبان اختیاری است: [انتشار مایگریشن](#انتشار-مایگریشن).
+Service Provider (ثبت‌کنندهٔ خدمات) خودکار ثبت می‌شود. خطاهای دامنه از `lang/` پکیج ترجمه می‌شوند؛ برای سفارشی‌سازی در میزبان: `php artisan vendor:publish --tag=task-manager-lang`. اگر کشف خودکار غیرفعال است، `Karnoweb\TaskManager\TaskManagerServiceProvider::class` را به `bootstrap/providers.php` اضافه کنید. مهاجرت‌ها با `loadMigrationsFrom` از `database/migrations` بسته بارگذاری می‌شوند. کپی در پروژه میزبان اختیاری است: [انتشار مایگریشن](#انتشار-مایگریشن).
 
 ## انتشار مایگریشن
 

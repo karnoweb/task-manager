@@ -20,7 +20,7 @@ final class HandoffRepairTest extends HandoffTestCase
             $this->handoffs()->manualJoin($this->manager(), $batch['group_key'], 1, 'too-early');
             self::fail();
         } catch (DomainError $error) {
-            self::assertSame('handoff_join_no_result', $error->getMessage());
+            self::assertSame('handoff_join_no_result', $error->errorCode);
         }
         $member = $batch['members'][0];
         $key = DB::table('tm_workflow_instances')->where('id', $member['destination_id'])->value('instance_key');
@@ -74,8 +74,7 @@ final class HandoffRepairTest extends HandoffTestCase
         [$h] = $this->delegateFixture(false);
         $base = $this->manager();
         $limited = new ExecutionContext('one', 'a', 'limited', capabilities: array_values(array_diff($base->capabilities, ['handoff.repair'])));
-        $this->expectExceptionMessage('capability_denied');
-        $this->handoffs()->retryReturn($limited, $h['handoff_key'], 1, 2, 'source_change_reviewed', 'repair');
+                $this->error('capability_denied', fn () => $this->handoffs()->retryReturn($limited, $h['handoff_key'], 1, 2, 'source_change_reviewed', 'repair'));
     }
 
     public function test_mixed_join_keeps_member_outcomes_distinct_from_aggregate_result(): void

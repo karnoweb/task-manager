@@ -37,7 +37,7 @@ try {
         : $instances->transition($context, $argv[3], 1, $argv[4], 'review');
     echo json_encode(['key' => $result['instance_key']], JSON_THROW_ON_ERROR);
 } catch (DomainError $error) {
-    echo json_encode(['error' => $error->getMessage()], JSON_THROW_ON_ERROR);
+    echo json_encode(['error' => $error->errorCode], JSON_THROW_ON_ERROR);
 } catch (Throwable $error) {
     fwrite(STDERR, $error->__toString());
     exit(1);

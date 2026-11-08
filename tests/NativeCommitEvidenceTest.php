@@ -58,7 +58,7 @@ final class NativeCommitEvidenceTest extends GroupTestCase
                 $this->milestones()->verify($this->manager(), $intent['intent_key'], 2, 'invalid-verify');
                 self::fail();
             } catch (DomainError $error) {
-                self::assertSame('commit_evidence_requires_committed_boundary', $error->getMessage());
+                self::assertSame('commit_evidence_requires_committed_boundary', $error->errorCode);
             }
         } finally {
             DB::rollBack();

@@ -67,7 +67,7 @@ final class ExternalSagaTest extends RouteTestCase
             DB::transaction(fn () => $this->sagas()->execute($this->manager(), $saga['saga_key']));
             self::fail();
         } catch (DomainError $e) {
-            self::assertSame('external_action_requires_committed_boundary', $e->getMessage());
+            self::assertSame('external_action_requires_committed_boundary', $e->errorCode);
         }
         self::assertSame(0, $this->remoteRouter->remote->table('remote_opportunities')->count());
     }
@@ -80,14 +80,14 @@ final class ExternalSagaTest extends RouteTestCase
             $this->sagas()->get($this->manager(scope: 'two'), $saga['saga_key']);
             self::fail();
         } catch (DomainError $e) {
-            self::assertSame('not_found', $e->getMessage());
+            self::assertSame('not_found', $e->errorCode);
         }
         DB::table('host_permissions')->where('subject_id', 'ticket-1')->delete();
         try {
             $this->sagas()->execute($this->manager(), $saga['saga_key']);
             self::fail();
         } catch (DomainError $e) {
-            self::assertSame('not_found', $e->getMessage());
+            self::assertSame('not_found', $e->errorCode);
         }
         self::assertSame(0, $this->remoteRouter->remote->table('remote_opportunities')->count());
     }
@@ -134,7 +134,7 @@ final class ExternalSagaTest extends RouteTestCase
             $this->sagas()->begin($this->manager(), $origin['instance_key'], 1, 'ticket.remote-v1', 'refer', 'sales_opportunity_identified', 'second');
             self::fail();
         } catch (DomainError $e) {
-            self::assertSame('external_action_pending', $e->getMessage());
+            self::assertSame('external_action_pending', $e->errorCode);
         }
         self::assertSame(1, DB::table('tm_external_sagas')->count());
         self::assertSame(0, $this->remoteRouter->remote->table('remote_opportunities')->count());
@@ -171,7 +171,7 @@ final class ExternalSagaTest extends RouteTestCase
             $this->sagas()->begin($this->manager(), $origin['instance_key'], 1, 'ticket.remote-v1', 'refer', 'sales_opportunity_identified', 'first');
             self::fail();
         } catch (DomainError $e) {
-            self::assertSame('external_export_invalid', $e->getMessage());
+            self::assertSame('external_export_invalid', $e->errorCode);
         }
         self::assertSame(0, DB::table('tm_external_sagas')->count());
         self::assertSame(0, $this->remoteRouter->remote->table('remote_opportunities')->count());

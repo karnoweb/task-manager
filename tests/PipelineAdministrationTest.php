@@ -14,8 +14,7 @@ final class PipelineAdministrationTest extends WorkflowTestCase
         self::assertSame('Enterprise sales', $renamed['name']);
         self::assertSame($pipeline['version'] + 1, $renamed['version']);
         self::assertSame($renamed, $this->pipelines()->rename($this->manager(), $pipeline['pipeline_key'], $pipeline['version'], 'Enterprise sales', 'rename'));
-        $this->expectExceptionMessage('version_conflict');
-        $this->pipelines()->rename($this->manager(), $pipeline['pipeline_key'], $pipeline['version'], 'Stale edit', 'stale');
+        $this->error('version_conflict', fn () => $this->pipelines()->rename($this->manager(), $pipeline['pipeline_key'], $pipeline['version'], 'Stale edit', 'stale'));
     }
 
     public function test_capacity_changes_are_enforced_by_transitions(): void
@@ -29,8 +28,6 @@ final class PipelineAdministrationTest extends WorkflowTestCase
         $first = $this->instances()->start($this->manager(), 'crm.lead', 'first', $revision['id'], 'start-first', pipelineKey: $pipeline['pipeline_key']);
         $second = $this->instances()->start($this->manager(), 'crm.lead', 'second', $revision['id'], 'start-second', pipelineKey: $pipeline['pipeline_key']);
         $this->instances()->transition($this->manager(), $first['instance_key'], $first['version'], 'move-first', 'review');
-        $this->expectException(DomainError::class);
-        $this->expectExceptionMessage('capacity_exceeded');
-        $this->instances()->transition($this->manager(), $second['instance_key'], $second['version'], 'move-second', 'review');
+        $this->error('capacity_exceeded', fn () => $this->instances()->transition($this->manager(), $second['instance_key'], $second['version'], 'move-second', 'review'));
     }
 }

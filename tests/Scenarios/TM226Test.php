@@ -15,7 +15,7 @@ final class TM226Test extends GroupTestCase
             $this->groupService()->previewClosure($this->manager(), $group['group_key']);
             self::fail();
         } catch (DomainError $error) {
-            self::assertSame('group_source_invalid', $error->getMessage());
+            self::assertSame('group_source_invalid', $error->errorCode);
         }
         self::assertSame(0, DB::table('tm_group_operations')->count());
         self::assertSame(0, DB::table('tm_group_operation_items')->count());

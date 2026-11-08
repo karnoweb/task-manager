@@ -42,7 +42,7 @@ try {
     $result = $sagas->execute($context, $argv[2]);
     echo json_encode(['state' => $result['state']], JSON_THROW_ON_ERROR);
 } catch (DomainError $error) {
-    echo json_encode(['error' => $error->getMessage()], JSON_THROW_ON_ERROR);
+    echo json_encode(['error' => $error->errorCode], JSON_THROW_ON_ERROR);
 } catch (Throwable $error) {
     fwrite(STDERR, $error->__toString());
     exit(1);

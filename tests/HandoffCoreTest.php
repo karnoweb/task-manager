@@ -23,8 +23,7 @@ final class HandoffCoreTest extends HandoffTestCase
         self::assertNotNull($this->sla()->get($this->manager(), $h['paused_visit_id'])['paused_at']);
         self::assertCount(1, $this->instances()->visits($this->manager(), $origin['instance_key']));
         self::assertSame($waiting['case_id'], $destination['case_id']);
-        $this->expectExceptionMessage('instance_on_hold');
-        $this->instances()->transition($this->manager(), $origin['instance_key'], 2, 'bypass', 'review');
+                $this->error('instance_on_hold', fn () => $this->instances()->transition($this->manager(), $origin['instance_key'], 2, 'bypass', 'review'));
     }
 
     public function test_success_returns_through_workflow_once_and_preserves_clock_metrics(): void
@@ -84,7 +83,7 @@ final class HandoffCoreTest extends HandoffTestCase
             $this->handoffs()->recall($this->manager(), $h['handoff_key'], 1, 'early-timeout', true);
             self::fail();
         } catch (DomainError $e) {
-            self::assertSame('handoff_timeout_not_due', $e->getMessage());
+            self::assertSame('handoff_timeout_not_due', $e->errorCode);
         }
         $this->clock->advance('+120 seconds');
         $r = $this->handoffs()->recall($this->manager(), $h['handoff_key'], 1, 'timeout', true);
@@ -96,15 +95,13 @@ final class HandoffCoreTest extends HandoffTestCase
     public function test_scope_is_checked_before_handoff_details(): void
     {
         [$h] = $this->delegateFixture(false);
-        $this->expectExceptionMessage('not_found');
-        $this->handoffs()->get($this->manager(scope: 'two'), $h['handoff_key']);
+                $this->error('not_found', fn () => $this->handoffs()->get($this->manager(scope: 'two'), $h['handoff_key']));
     }
 
     public function test_nonterminal_destination_cannot_claim_success(): void
     {
         [$h] = $this->delegateFixture(false);
-        $this->expectExceptionMessage('handoff_destination_not_terminal');
-        $this->handoffs()->settle($this->manager(), $h['handoff_key'], 1, 'premature');
+                $this->error('handoff_destination_not_terminal', fn () => $this->handoffs()->settle($this->manager(), $h['handoff_key'], 1, 'premature'));
     }
 
     public function test_rejection_returns_for_correction_with_original_reason_audited(): void
@@ -129,15 +126,13 @@ final class HandoffCoreTest extends HandoffTestCase
         self::assertSame($h, $this->handoffs()->delegate($this->manager(), $origin['instance_key'], 1, $destination['pipeline_key'], $r['id'], 'contracts', $this->returnPolicy(), 'delegate'));
         self::assertSame(2, DB::table('tm_workflow_instances')->count());
         self::assertSame(1, DB::table('tm_handoffs')->count());
-        $this->expectExceptionMessage('version_conflict');
-        $this->handoffs()->delegate($this->manager(), $origin['instance_key'], 1, $destination['pipeline_key'], $r['id'], 'other', $this->returnPolicy(), 'again');
+                $this->error('version_conflict', fn () => $this->handoffs()->delegate($this->manager(), $origin['instance_key'], 1, $destination['pipeline_key'], $r['id'], 'other', $this->returnPolicy(), 'again'));
     }
 
     public function test_cycle_is_rejected_before_creating_another_process(): void
     {
         [$h, $origin, $destination, $pipeline] = $this->delegateFixture(false);
-        $this->expectExceptionMessage('handoff_cycle_or_depth');
-        $this->handoffs()->delegate($this->manager(), $destination['instance_key'], 1, $pipeline['pipeline_key'], $origin['workflow_revision_id'], 'cycle', $this->returnPolicy(), 'cycle');
+                $this->error('handoff_cycle_or_depth', fn () => $this->handoffs()->delegate($this->manager(), $destination['instance_key'], 1, $pipeline['pipeline_key'], $origin['workflow_revision_id'], 'cycle', $this->returnPolicy(), 'cycle'));
     }
 
     public function test_denied_destination_rolls_back_case_origin_and_events(): void
@@ -149,7 +144,7 @@ final class HandoffCoreTest extends HandoffTestCase
             $this->handoffs()->delegate($this->manager(), $origin['instance_key'], 1, $destination['pipeline_key'], $r['id'], 'contracts', $this->returnPolicy(), 'delegate');
             self::fail();
         } catch (DomainError $e) {
-            self::assertSame('host_guard_veto', $e->getMessage());
+            self::assertSame('host_guard_veto', $e->errorCode);
         }
         self::assertSame(0, DB::table('tm_handoffs')->count());
         self::assertSame(0, DB::table('tm_process_cases')->count());
@@ -166,7 +161,7 @@ final class HandoffCoreTest extends HandoffTestCase
             $this->handoffs()->delegate($this->manager(), $origin['instance_key'], 1, $destination['pipeline_key'], $r['id'], 'contracts', $this->returnPolicy(), 'delegate');
             self::fail();
         } catch (DomainError $e) {
-            self::assertSame('sla_due_requires_detection', $e->getMessage());
+            self::assertSame('sla_due_requires_detection', $e->errorCode);
         }
         self::assertSame(1, DB::table('tm_workflow_instances')->count());
         self::assertSame(0, DB::table('tm_handoffs')->count());
@@ -195,7 +190,7 @@ final class HandoffCoreTest extends HandoffTestCase
             $this->handoffs()->settle($this->manager(), $h['handoff_key'], 2, 'contradictory-return');
             self::fail();
         } catch (DomainError $e) {
-            self::assertSame('handoff_already_resolved', $e->getMessage());
+            self::assertSame('handoff_already_resolved', $e->errorCode);
         }
         self::assertSame('approved', DB::table('tm_handoff_outcomes')->value('outcome'));
         self::assertSame(3, $this->instances()->get($this->manager(), $origin['instance_key'])['version']);
@@ -257,7 +252,7 @@ final class HandoffCoreTest extends HandoffTestCase
             $this->handoffs()->delegate($this->manager(), $origin['instance_key'], 1, $route, $r['id'], 'contracts', $this->returnPolicy(), 'delegate');
             self::fail();
         } catch (DomainError $e) {
-            self::assertSame('destination_not_accepted', $e->getMessage());
+            self::assertSame('destination_not_accepted', $e->errorCode);
         }
         self::assertSame(0, DB::table('tm_handoffs')->count());
         self::assertSame(1, DB::table('tm_workflow_instances')->count());
@@ -331,7 +326,7 @@ final class HandoffCoreTest extends HandoffTestCase
             $this->handoffs()->delegate($this->manager(), $origin['instance_key'], 1, $p['pipeline_key'], $r['id'], 'cross', $this->returnPolicy(), 'cross-scope');
             self::fail();
         } catch (DomainError $e) {
-            self::assertSame('not_found', $e->getMessage());
+            self::assertSame('not_found', $e->errorCode);
         }
         self::assertSame(0, DB::table('tm_handoffs')->count());
         self::assertSame(0, DB::table('tm_process_cases')->count());

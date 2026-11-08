@@ -86,7 +86,7 @@ correlationId شناسه ردیابی یک اجراست و می‌تواند د�
 
 ## خطا و اقدام بعدی
 
-خطاهای دامنه از نوع `Karnoweb\TaskManager\Exceptions\DomainError` هستند؛ کد خطا در getMessage و جزئیات در details است. برنامه میزبان باید نگاشت پاسخ HTTP خود را انجام دهد؛ پکیج در این نمونه کنترلر وب فراهم نمی‌کند.
+خطاهای دامنه از نوع `Karnoweb\TaskManager\Exceptions\DomainError` هستند؛ کد پایدار در ویژگی `errorCode` است، پیام ترجمه‌شده در `getMessage()` (با locale برنامه) و جزئیات ساخت‌یافته در `details`. رشته‌ها در `lang/en/errors.php` و `lang/fa/errors.php` پکیج‌اند؛ میزبان با `php artisan vendor:publish --tag=task-manager-lang` می‌تواند آن‌ها را بازنویسی یا برای زبان دیگر کپی کند. نگاشت HTTP با میزبان است.
 
 | خطا | علت / رفع |
 |---|---|

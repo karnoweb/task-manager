@@ -34,7 +34,7 @@ final class E2E06Test extends HandoffTestCase
             $this->instances()->transition($this->manager(), $keys[1], 2, 'stale-risk', 'accept');
             self::fail();
         } catch (DomainError $error) {
-            self::assertSame('version_conflict', $error->getMessage());
+            self::assertSame('version_conflict', $error->errorCode);
         }
         if ($outcome === 'approved') {
             $this->instances()->transition($this->manager(), $keys[1], 1, 'risk-approve', 'accept');

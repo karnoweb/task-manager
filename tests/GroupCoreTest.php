@@ -114,7 +114,7 @@ final class GroupCoreTest extends GroupTestCase
             $this->groupService()->previewClosure($this->manager(), $group['group_key']);
             self::fail();
         } catch (DomainError $error) {
-            self::assertSame('group_source_invalid', $error->getMessage());
+            self::assertSame('group_source_invalid', $error->errorCode);
         }
         self::assertSame(0, DB::table('tm_group_operations')->count());
         self::assertSame(0, DB::table('tm_group_operation_items')->count());
@@ -137,8 +137,7 @@ final class GroupCoreTest extends GroupTestCase
         self::assertTrue($delta['changed']);
         self::assertNotSame($preview['member_hash'], $delta['preview']['member_hash']);
         self::assertSame($events, DB::table('tm_outbox')->count());
-        $this->expectExceptionMessage('preview_stale');
-        $this->groupService()->executeClosure($this->manager(), $preview, 'stale');
+                $this->error('preview_stale', fn () => $this->groupService()->executeClosure($this->manager(), $preview, 'stale'));
     }
 
     public function test_membership_change_invalidates_preview_before_run_creation(): void
@@ -153,7 +152,7 @@ final class GroupCoreTest extends GroupTestCase
             $this->groupService()->executeClosure($this->manager(), $preview, 'stale');
             self::fail();
         } catch (DomainError $error) {
-            self::assertSame('preview_stale', $error->getMessage());
+            self::assertSame('preview_stale', $error->errorCode);
         }
         self::assertSame(0, DB::table('tm_group_operations')->count());
         self::assertSame(1, $this->groupService()->previewDelta($this->manager(), $preview)['counts_delta']['failed']);
@@ -217,7 +216,7 @@ final class GroupCoreTest extends GroupTestCase
             $this->groupService()->executeClosure($this->manager(), $preview, 'same-key');
             self::fail();
         } catch (DomainError $error) {
-            self::assertSame('idempotency_key_conflict', $error->getMessage());
+            self::assertSame('idempotency_key_conflict', $error->errorCode);
         }
         self::assertSame(1, DB::table('tm_group_operations')->count());
     }

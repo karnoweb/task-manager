@@ -52,5 +52,5 @@ try {
     $row = $routing->setDefault($context, 'support', $argv[2], 1, $argv[3]);
     echo json_encode(['version' => $row['version'], 'pipeline' => $row['pipeline_id']], JSON_THROW_ON_ERROR);
 } catch (DomainError $error) {
-    echo json_encode(['error' => $error->getMessage()], JSON_THROW_ON_ERROR);
+    echo json_encode(['error' => $error->errorCode], JSON_THROW_ON_ERROR);
 }

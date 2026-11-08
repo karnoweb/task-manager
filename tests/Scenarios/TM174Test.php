@@ -19,7 +19,7 @@ final class TM174Test extends HandoffTestCase
             $this->handoffs()->settle($this->manager(), $h['handoff_key'], 2, 'contradictory-return');
             self::fail();
         } catch (DomainError $e) {
-            self::assertSame('handoff_already_resolved', $e->getMessage());
+            self::assertSame('handoff_already_resolved', $e->errorCode);
         }
         self::assertSame('approved', DB::table('tm_handoff_outcomes')->value('outcome'));
         self::assertSame(3, $this->instances()->get($this->manager(), $origin['instance_key'])['version']);

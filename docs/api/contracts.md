@@ -12,6 +12,6 @@ DTO (شیء انتقال داده)های `CreateTodo(context, title, operationId
 
 `transition()` انتقال عادی و `executeBusinessCommand()` فرمان ویژه با مجوز مستقل، دلیل و guard را اجرا می‌کند. `availableTransitions()` نامزدهای سیاست جاری را می‌دهد؛ `requires_validation=true` یعنی guard میزبان هنوز باید هنگام اجرا تأیید کند.
 
-`DomainError` پیام کددار و `details` دارد. در `transition_policy_denied`، مقدار `details['allowed_destinations']` مقصدهای سیاست فعلی است. `not_found` نبود مجوز را از نبود رکورد تفکیک نمی‌کند. پیام خصوصی خطای میزبان را منتشر نکنید.
+`DomainError`: `errorCode` کلید پایدار (مثلاً `not_found`)، `getMessage()` متن ترجمه‌شده (`task-manager::errors.{code}`)، `details` دادهٔ ساخت‌یافته. در `transition_policy_denied`، `details['allowed_destinations']` مقاصد مجاز است. `not_found` نبود مجوز را از نبود رکورد تفکیک نمی‌کند. انتشار `task-manager-lang` برای سفارشی‌سازی متن در میزبان.
 
 `EventPump` رویداد committed را صف و بازیابی می‌کند؛ ارسال‌کنندهٔ میزبان باید `event_id` را رعایت کند. `ReminderService::query(context, limit=30, afterId=0)` هر صفحه را با مجوز فعلی می‌خواند؛ `count()` فقط pending/sent مجاز را می‌شمارد.

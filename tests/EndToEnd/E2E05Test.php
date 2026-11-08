@@ -15,7 +15,7 @@ final class E2E05Test extends RouteTestCase
             $this->instances()->get($this->manager('b'), $origin['instance_key']);
             self::fail();
         } catch (DomainError $error) {
-            self::assertSame('not_found', $error->getMessage());
+            self::assertSame('not_found', $error->errorCode);
         }
         $preview = $this->instances()->previewMove($this->manager(), $origin['instance_key'], $sales['pipeline_key'], ['new' => 'new']);
         $result = $this->routes()->move($this->manager(), 'ticket.sales-v1', $preview, 'sales_opportunity_identified', 'move-ticket');

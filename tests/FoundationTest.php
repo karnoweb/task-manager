@@ -44,8 +44,7 @@ final class FoundationTest extends PackageTestCase
         self::assertSame($first, $s->create($c, 'one', 'create'));
         self::assertSame(1, DB::table('tm_tasks')->count());
         self::assertSame(1, DB::table('tm_outbox')->count());
-        $this->expectExceptionMessage('idempotency_key_conflict');
-        $s->create($c, 'different', 'create');
+                $this->error('idempotency_key_conflict', fn () => $s->create($c, 'different', 'create'));
     }
 
     public function test_cross_actor_and_scope_cannot_read_count_or_update(): void
@@ -59,13 +58,13 @@ final class FoundationTest extends PackageTestCase
                 $s->get($other, $task['public_key']);
                 self::fail('Unauthorized read');
             } catch (DomainError $e) {
-                self::assertSame('not_found', $e->getMessage());
+                self::assertSame('not_found', $e->errorCode);
             }
             try {
                 $s->mutate($other, $task['public_key'], 1, 'edit', 'update', ['title' => 'stolen']);
                 self::fail('Unauthorized write');
             } catch (DomainError $e) {
-                self::assertSame('not_found', $e->getMessage());
+                self::assertSame('not_found', $e->errorCode);
             }
         }
         self::assertSame(1, DB::table('tm_command_journal')->count());
@@ -81,7 +80,7 @@ final class FoundationTest extends PackageTestCase
             $s->mutate($c, $task['public_key'], 1, 'stale', 'complete');
             self::fail('Stale write');
         } catch (DomainError $e) {
-            self::assertSame('version_conflict', $e->getMessage());
+            self::assertSame('version_conflict', $e->errorCode);
         }
         self::assertSame('pending', $s->get($c, $task['public_key'])['state']);
         self::assertSame(2, DB::table('tm_command_journal')->count());
@@ -107,7 +106,7 @@ final class FoundationTest extends PackageTestCase
                 $this->service()->create($this->context(), $title, 'invalid');
                 self::fail('Invalid title');
             } catch (DomainError $e) {
-                self::assertSame('title_invalid', $e->getMessage());
+                self::assertSame('title_invalid', $e->errorCode);
             }
         }
         self::assertSame(0, DB::table('tm_lists')->count());
@@ -116,8 +115,7 @@ final class FoundationTest extends PackageTestCase
 
     public function test_empty_context_is_rejected(): void
     {
-        $this->expectExceptionMessage('context_invalid');
-        new ExecutionContext('', '', 'test');
+        $this->error('context_invalid', fn () => new ExecutionContext('', '', 'test'));
     }
 
     public function test_share_revoke_immediately_changes_queries_and_activity(): void
@@ -131,8 +129,7 @@ final class FoundationTest extends PackageTestCase
         self::assertCount(2, $s->activity($b, $task['public_key']));
         $s->share($a, $task['public_key'], 2, 'revoke', 'b', revoke: true);
         self::assertSame(0, $s->count($b));
-        $this->expectExceptionMessage('not_found');
-        $s->activity($b, $task['public_key']);
+                $this->error('not_found', fn () => $s->activity($b, $task['public_key']));
     }
 
     public function test_clone_does_not_copy_shares_or_completed_state(): void
@@ -180,7 +177,7 @@ final class FoundationTest extends PackageTestCase
             $dispatcher->dispatch('one', fn () => self::fail('Uncommitted delivery'));
             self::fail('Dispatch must be rejected');
         } catch (DomainError $e) {
-            self::assertSame('dispatch_before_commit', $e->getMessage());
+            self::assertSame('dispatch_before_commit', $e->errorCode);
         } finally {
             DB::rollBack();
         }
@@ -218,8 +215,7 @@ final class FoundationTest extends PackageTestCase
         self::assertSame($list['list_id'], $moved['list_id']);
         self::assertSame([], $s->lists($this->context('b')));
         $foreign = $s->createList($this->context('b'), 'Other', 'foreign');
-        $this->expectExceptionMessage('not_found');
-        $s->mutate($a, $task['public_key'], 2, 'foreign-move', 'move_list', ['list_id' => $foreign['list_id']]);
+                $this->error('not_found', fn () => $s->mutate($a, $task['public_key'], 2, 'foreign-move', 'move_list', ['list_id' => $foreign['list_id']]));
     }
 
     public function test_facade_has_service_parity_and_missing_context_fails_closed(): void
@@ -238,11 +234,10 @@ final class FoundationTest extends PackageTestCase
             $this->service()->create($context, 'denied', 'denied');
             self::fail('Service capability bypass');
         } catch (DomainError $e) {
-            self::assertSame('capability_denied', $e->getMessage());
+            self::assertSame('capability_denied', $e->errorCode);
         }
         self::assertSame(0, DB::table('tm_command_journal')->count());
-        $this->expectExceptionMessage('service_capabilities_required');
-        new ExecutionContext('one', 'worker', 'test', true);
+        $this->error('service_capabilities_required', fn () => new ExecutionContext('one', 'worker', 'test', true));
     }
 
     public function test_clock_controls_completion_and_audit_without_waiting(): void
@@ -271,8 +266,7 @@ final class FoundationTest extends PackageTestCase
         $s->share($a, $task['public_key'], 1, 'share', 'b');
         self::assertSame([['priority' => 'normal', 'total' => 1]], $s->facets($b));
         self::assertSame([], $s->facets($this->context('b', 'two')));
-        $this->expectExceptionMessage('not_found');
-        $s->mutate($b, $task['public_key'], 2, 'edit', 'update', ['priority' => 'urgent']);
+                $this->error('not_found', fn () => $s->mutate($b, $task['public_key'], 2, 'edit', 'update', ['priority' => 'urgent']));
     }
 
     public function test_payload_field_order_is_canonical_for_retry(): void
@@ -308,8 +302,7 @@ final class FoundationTest extends PackageTestCase
         self::assertSame('TM-1', $other['display_key']);
         self::assertSame($a, $s->resolveKey($c, 'TM-1'));
         self::assertSame($other, $s->resolveKey($this->context('a', 'two'), 'TM-1'));
-        $this->expectExceptionMessage('not_found');
-        $s->resolveKey($this->context('b'), 'TM-1');
+                $this->error('not_found', fn () => $s->resolveKey($this->context('b'), 'TM-1'));
     }
 
     public function test_migration_rollback_and_reinstall(): void
@@ -347,7 +340,7 @@ final class FoundationTest extends PackageTestCase
                 $operation();
                 self::fail('Host permission bypass');
             } catch (DomainError $e) {
-                self::assertSame('not_found', $e->getMessage());
+                self::assertSame('not_found', $e->errorCode);
             }
         }
         self::assertSame(1, DB::table('tm_outbox')->count());

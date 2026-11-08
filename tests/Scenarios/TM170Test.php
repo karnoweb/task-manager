@@ -14,7 +14,7 @@ final class TM170Test extends HandoffTestCase
             $this->handoffs()->recall($this->manager(), $h['handoff_key'], 1, 'early-timeout', true);
             self::fail();
         } catch (DomainError $e) {
-            self::assertSame('handoff_timeout_not_due', $e->getMessage());
+            self::assertSame('handoff_timeout_not_due', $e->errorCode);
         }
         $this->clock->advance('+120 seconds');
         $r = $this->handoffs()->recall($this->manager(), $h['handoff_key'], 1, 'timeout', true);

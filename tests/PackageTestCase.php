@@ -49,7 +49,7 @@ abstract class PackageTestCase extends TestCase
             $operation();
             self::fail('Expected '.$expected);
         } catch (DomainError $error) {
-            self::assertSame($expected, $error->getMessage());
+            self::assertSame($expected, $error->errorCode);
         }
     }
 }

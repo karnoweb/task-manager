@@ -25,7 +25,7 @@ try {
         : $service->create($context, 'Concurrent', 'same-operation');
     echo json_encode(['id' => $result['public_key']], JSON_THROW_ON_ERROR);
 } catch (DomainError $error) {
-    echo json_encode(['error' => $error->getMessage()], JSON_THROW_ON_ERROR);
+    echo json_encode(['error' => $error->errorCode], JSON_THROW_ON_ERROR);
 } catch (Throwable $error) {
     fwrite(STDERR, $error->__toString());
     exit(1);
